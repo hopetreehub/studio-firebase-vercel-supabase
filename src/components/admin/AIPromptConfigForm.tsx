@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -108,7 +109,7 @@ Interpretation: `,
     }
   };
 
-  return (
+  const formContent = (
     <Card className="shadow-lg border-primary/10">
       <CardHeader>
         <CardTitle className="font-headline text-2xl text-primary">AI Settings</CardTitle>
@@ -217,4 +218,6 @@ Interpretation: `,
       </CardContent>
     </Card>
   );
+
+  return formContent;
 }
