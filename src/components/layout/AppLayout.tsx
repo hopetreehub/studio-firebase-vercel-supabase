@@ -4,39 +4,30 @@ import type React from 'react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation'; // usePathname 추가
 import { useEffect } from 'react';
-import { Spinner } from '@/components/ui/spinner';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading } = useAuth(); // 이 loading 값은 AppLayout이 렌더링될 때 false입니다.
   const router = useRouter();
+  const pathname = usePathname(); // window.location.pathname 대신 사용
 
   useEffect(() => {
-    if (!loading && !user) {
-      // Allow access to certain public pages even if not logged in
-      const publicPaths = ['/', '/blog', '/encyclopedia']; // Add any other public paths
-      const currentPath = window.location.pathname;
-      if (!publicPaths.includes(currentPath) && !currentPath.startsWith('/admin')) { // Admin path will be handled separately or assume it needs auth
-         // For now, let's assume /reading requires auth.
-         // Admin routes should have their own specific protection logic if needed.
-         if (currentPath === '/reading' || currentPath === '/admin/ai-config') {
-            router.push('/sign-in?redirect=' + encodeURIComponent(currentPath));
-         }
+    // AuthProvider가 초기 로딩 스피너를 처리합니다.
+    // 이 useEffect는 AuthProvider의 로딩이 false일 때 실행됩니다.
+    if (!loading && !user) { // 인증 상태가 확인되었고 사용자가 없는 경우
+      const publicPaths = ['/', '/blog', '/encyclopedia']; 
+      
+      // 현재 경로가 공개 경로가 아니라면 /sign-in으로 리디렉션합니다.
+      // /sign-in, /sign-up 경로는 RootLayoutClient에서 처리되므로 AppLayout에 도달하지 않습니다.
+      if (!publicPaths.includes(pathname)) {
+        router.push('/sign-in?redirect=' + encodeURIComponent(pathname));
       }
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, pathname]);
 
-  // Show spinner only if loading and user state is not yet determined.
-  // This prevents flicker if auth check is very fast.
-  if (loading && user === undefined) {
-     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <Spinner size="large" />
-      </div>
-    );
-  }
-
+  // AuthProvider가 초기 로딩 화면을 처리하므로 여기서는 스피너가 필요 없습니다.
+  // 이 지점에 도달했다면 AuthProvider의 loading은 false입니다.
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
