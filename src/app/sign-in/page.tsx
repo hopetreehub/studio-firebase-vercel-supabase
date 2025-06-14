@@ -1,9 +1,10 @@
+
 import { SignInForm } from '@/components/auth/SignInForm';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Sign In - MysticSight Tarot',
-  description: 'Sign in to your MysticSight Tarot account.',
+  title: '로그인 - InnerSpell',
+  description: 'InnerSpell 계정에 로그인하세요.',
 };
 
 export default function SignInPage() {

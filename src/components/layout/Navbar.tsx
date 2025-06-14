@@ -1,16 +1,17 @@
+
 'use client';
 
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import Image from 'next/image'; // Added for logo
 import { UserNav } from './UserNav';
-import { Sparkles } from 'lucide-react'; // Using Sparkles for a mystic touch
+import { ThemeToggle } from './ThemeToggle'; // Added ThemeToggle
 
 const navItems = [
-  { href: '/', label: 'Home' },
-  { href: '/reading', label: 'Tarot Reading' },
-  { href: '/encyclopedia', label: 'Encyclopedia' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/admin/ai-config', label: 'Admin AI Config'}
+  { href: '/', label: '홈' },
+  { href: '/reading', label: '타로 읽기' },
+  { href: '/encyclopedia', label: '카드 백과' },
+  { href: '/blog', label: '블로그' },
+  { href: '/admin/ai-config', label: 'AI 설정(관리자)'}
 ];
 
 export function Navbar() {
@@ -18,8 +19,9 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-screen-2xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center space-x-2">
-          <Sparkles className="h-7 w-7 text-primary" />
-          <span className="font-headline text-2xl font-bold text-primary">MysticSight Tarot</span>
+          {/* Assuming logo is placed in public/logo.png */}
+          <Image src="/logo.png" alt="InnerSpell 로고" width={32} height={32} className="h-8 w-8" />
+          <span className="font-headline text-2xl font-bold text-primary">InnerSpell</span>
         </Link>
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
           {navItems.map((item) => (
@@ -32,7 +34,8 @@ export function Navbar() {
             </Link>
           ))}
         </nav>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
+          <ThemeToggle />
           <UserNav />
         </div>
       </div>

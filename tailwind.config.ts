@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -10,8 +11,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Alegreya', 'serif'],
-        headline: ['Belleza', 'sans-serif'],
+        body: ['Alegreya', 'Noto Sans KR', 'serif'],
+        headline: ['Belleza', 'Noto Sans KR', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
@@ -105,5 +106,5 @@ export default {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [require('tailwindcss-animate'), require('tailwind-scrollbar')],
 } satisfies Config;

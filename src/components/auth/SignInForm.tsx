@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,8 +23,8 @@ import { useState } from 'react';
 import { Eye, EyeOff, Mail, KeyRound } from 'lucide-react';
 
 const formSchema = z.object({
-  email: z.string().email({ message: 'Invalid email address.' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+  email: z.string().email({ message: '유효한 이메일 주소를 입력해주세요.' }),
+  password: z.string().min(6, { message: '비밀번호는 최소 6자 이상이어야 합니다.' }),
 });
 
 export function SignInForm() {
@@ -45,11 +46,11 @@ export function SignInForm() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
-      toast({ title: 'Success', description: 'Signed in successfully.' });
+      toast({ title: '성공', description: '성공적으로 로그인되었습니다.' });
       const redirectUrl = searchParams.get('redirect') || '/';
       router.push(redirectUrl);
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Error', description: error.message });
+      toast({ variant: 'destructive', title: '오류', description: error.message });
     } finally {
       setLoading(false);
     }
@@ -60,11 +61,11 @@ export function SignInForm() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      toast({ title: 'Success', description: 'Signed in with Google successfully.' });
+      toast({ title: '성공', description: 'Google 계정으로 성공적으로 로그인되었습니다.' });
       const redirectUrl = searchParams.get('redirect') || '/';
       router.push(redirectUrl);
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Error', description: error.message });
+      toast({ variant: 'destructive', title: '오류', description: error.message });
     } finally {
       setLoading(false);
     }
@@ -72,7 +73,7 @@ export function SignInForm() {
 
   return (
     <>
-      <h2 className="font-headline text-3xl font-semibold text-center text-primary mb-6">Welcome Back</h2>
+      <h2 className="font-headline text-3xl font-semibold text-center text-primary mb-6">다시 오신 것을 환영합니다</h2>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
@@ -80,11 +81,11 @@ export function SignInForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-foreground/80">Email</FormLabel>
+                <FormLabel className="text-foreground/80">이메일</FormLabel>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <FormControl>
-                    <Input className="pl-10" placeholder="mystic@example.com" {...field} />
+                    <Input className="pl-10" placeholder="your@email.com" {...field} />
                   </FormControl>
                 </div>
                 <FormMessage />
@@ -96,7 +97,7 @@ export function SignInForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-foreground/80">Password</FormLabel>
+                <FormLabel className="text-foreground/80">비밀번호</FormLabel>
                 <div className="relative">
                   <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <FormControl>
@@ -113,7 +114,7 @@ export function SignInForm() {
                     size="icon"
                     className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" 
                     onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </Button>
@@ -123,7 +124,7 @@ export function SignInForm() {
             )}
           />
           <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={loading}>
-            {loading ? 'Signing In...' : 'Sign In'}
+            {loading ? '로그인 중...' : '로그인'}
           </Button>
         </form>
       </Form>
@@ -133,7 +134,7 @@ export function SignInForm() {
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-card px-2 text-muted-foreground">
-            Or continue with
+            또는 다음으로 계속
           </span>
         </div>
       </div>
@@ -142,9 +143,9 @@ export function SignInForm() {
         Google
       </Button>
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        Don't have an account?{' '}
+        계정이 없으신가요?{' '}
         <Link href="/sign-up" className="font-medium text-primary hover:underline">
-          Sign Up
+          회원가입
         </Link>
       </p>
     </>

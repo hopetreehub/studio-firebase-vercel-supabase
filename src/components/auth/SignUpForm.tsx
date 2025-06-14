@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,9 +23,9 @@ import { useState } from 'react';
 import { Eye, EyeOff, User, Mail, KeyRound } from 'lucide-react';
 
 const formSchema = z.object({
-  displayName: z.string().min(2, { message: 'Display name must be at least 2 characters.' }).max(50, { message: 'Display name must be at most 50 characters.' }),
-  email: z.string().email({ message: 'Invalid email address.' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+  displayName: z.string().min(2, { message: '닉네임은 최소 2자 이상이어야 합니다.' }).max(50, { message: '닉네임은 최대 50자까지 가능합니다.' }),
+  email: z.string().email({ message: '유효한 이메일 주소를 입력해주세요.' }),
+  password: z.string().min(6, { message: '비밀번호는 최소 6자 이상이어야 합니다.' }),
 });
 
 export function SignUpForm() {
@@ -48,11 +49,11 @@ export function SignUpForm() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       await updateProfile(userCredential.user, { displayName: values.displayName });
-      toast({ title: 'Success', description: 'Account created successfully. Please sign in.' });
-      const redirectUrl = searchParams.get('redirect') || '/sign-in'; // Redirect to sign-in after successful sign-up
+      toast({ title: '성공', description: '계정이 성공적으로 생성되었습니다. 로그인해주세요.' });
+      const redirectUrl = searchParams.get('redirect') || '/sign-in';
       router.push(redirectUrl);
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Error', description: error.message });
+      toast({ variant: 'destructive', title: '오류', description: error.message });
     } finally {
       setLoading(false);
     }
@@ -63,11 +64,11 @@ export function SignUpForm() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      toast({ title: 'Success', description: 'Signed up with Google successfully.' });
+      toast({ title: '성공', description: 'Google 계정으로 성공적으로 가입되었습니다.' });
       const redirectUrl = searchParams.get('redirect') || '/';
       router.push(redirectUrl);
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Error', description: error.message });
+      toast({ variant: 'destructive', title: '오류', description: error.message });
     } finally {
       setLoading(false);
     }
@@ -75,7 +76,7 @@ export function SignUpForm() {
 
   return (
     <>
-      <h2 className="font-headline text-3xl font-semibold text-center text-primary mb-6">Create Your Account</h2>
+      <h2 className="font-headline text-3xl font-semibold text-center text-primary mb-6">계정 만들기</h2>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
@@ -83,11 +84,11 @@ export function SignUpForm() {
             name="displayName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-foreground/80">Display Name</FormLabel>
+                <FormLabel className="text-foreground/80">닉네임</FormLabel>
                  <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <FormControl>
-                    <Input className="pl-10" placeholder="Mystic Seeker" {...field} />
+                    <Input className="pl-10" placeholder="사용할 닉네임" {...field} />
                   </FormControl>
                 </div>
                 <FormMessage />
@@ -99,11 +100,11 @@ export function SignUpForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-foreground/80">Email</FormLabel>
+                <FormLabel className="text-foreground/80">이메일</FormLabel>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <FormControl>
-                    <Input className="pl-10" placeholder="mystic@example.com" {...field} />
+                    <Input className="pl-10" placeholder="your@email.com" {...field} />
                   </FormControl>
                 </div>
                 <FormMessage />
@@ -115,7 +116,7 @@ export function SignUpForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-foreground/80">Password</FormLabel>
+                <FormLabel className="text-foreground/80">비밀번호</FormLabel>
                  <div className="relative">
                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <FormControl>
@@ -131,7 +132,7 @@ export function SignUpForm() {
                     size="icon"
                     className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" 
                     onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </Button>
@@ -141,7 +142,7 @@ export function SignUpForm() {
             )}
           />
           <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={loading}>
-            {loading ? 'Creating Account...' : 'Sign Up'}
+            {loading ? '계정 생성 중...' : '회원가입'}
           </Button>
         </form>
       </Form>
@@ -151,7 +152,7 @@ export function SignUpForm() {
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-card px-2 text-muted-foreground">
-            Or sign up with
+            또는 다음으로 가입
           </span>
         </div>
       </div>
@@ -160,9 +161,9 @@ export function SignUpForm() {
         Google
       </Button>
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        Already have an account?{' '}
+        이미 계정이 있으신가요?{' '}
         <Link href="/sign-in" className="font-medium text-primary hover:underline">
-          Sign In
+          로그인
         </Link>
       </p>
     </>

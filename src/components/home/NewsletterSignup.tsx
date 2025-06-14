@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,7 +18,7 @@ import { Mail } from 'lucide-react';
 import { useState } from 'react';
 
 const formSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
+  email: z.string().email({ message: '유효한 이메일 주소를 입력해주세요.' }),
 });
 
 export function NewsletterSignup() {
@@ -35,10 +36,10 @@ export function NewsletterSignup() {
     setLoading(true);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log('Newsletter signup:', values.email);
+    console.log('뉴스레터 구독:', values.email);
     toast({
-      title: 'Subscribed!',
-      description: "You've successfully signed up for our newsletter.",
+      title: '구독 완료!',
+      description: "뉴스레터 구독이 성공적으로 완료되었습니다.",
     });
     form.reset();
     setLoading(false);
@@ -49,10 +50,10 @@ export function NewsletterSignup() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <Mail className="mx-auto h-12 w-12 text-accent mb-4" />
         <h2 className="font-headline text-3xl sm:text-4xl font-semibold text-primary mb-4">
-          Stay Connected with MysticSight
+          InnerSpell 소식 받기
         </h2>
         <p className="text-lg text-foreground/80 mb-8 max-w-2xl mx-auto">
-          Subscribe to our newsletter for the latest updates, tarot insights, and exclusive offers.
+          뉴스레터를 구독하고 최신 업데이트, 타로 통찰, 특별 혜택을 받아보세요.
         </p>
         <Form {...form}>
           <form
@@ -69,7 +70,7 @@ export function NewsletterSignup() {
                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                       <Input 
                         type="email" 
-                        placeholder="Enter your email address" 
+                        placeholder="이메일 주소를 입력하세요" 
                         className="pl-10 h-12 text-base"
                         {...field} />
                     </div>
@@ -79,7 +80,7 @@ export function NewsletterSignup() {
               )}
             />
             <Button type="submit" size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground h-12 shadow-md" disabled={loading}>
-              {loading ? 'Subscribing...' : 'Subscribe'}
+              {loading ? '구독 중...' : '구독하기'}
             </Button>
           </form>
         </Form>

@@ -1,9 +1,10 @@
+
 import { SignUpForm } from '@/components/auth/SignUpForm';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Sign Up - MysticSight Tarot',
-  description: 'Create your MysticSight Tarot account.',
+  title: '회원가입 - InnerSpell',
+  description: 'InnerSpell 계정을 만드세요.',
 };
 
 export default function SignUpPage() {

@@ -1,5 +1,6 @@
+
 import { getCardById, tarotDeck } from '@/lib/tarot-data';
-import type { TarotCard }_ from '@/types'; // Renamed to avoid conflict with component
+import type { TarotCard as TarotCardType } from '@/types'; // Renamed to avoid conflict
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -8,7 +9,7 @@ import { WandIcon } from '@/components/icons/WandIcon';
 import { CupIcon } from '@/components/icons/CupIcon';
 import { SwordIcon } from '@/components/icons/SwordIcon';
 import { PentacleIcon } from '@/components/icons/PentacleIcon';
-import { Star, Sparkles, Users, Brain, Anchor, Zap } from 'lucide-react'; // Added more icons
+import { Star, Sparkles, Users, Brain, Anchor, Zap, BookOpenText } from 'lucide-react';
 import type { Metadata, ResolvingMetadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -23,12 +24,12 @@ export async function generateMetadata(
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const card = getCardById(params.cardId);
-  const cardName = card ? card.name : 'Card Not Found';
+  const cardName = card ? card.name : '카드를 찾을 수 없습니다';
   const previousImages = (await parent).openGraph?.images || [];
 
   return {
-    title: `${cardName} - Tarot Encyclopedia - MysticSight Tarot`,
-    description: card ? `Meaning and keywords for ${card.name}. ${card.meaningUpright.substring(0,100)}...` : 'Tarot card details.',
+    title: `${cardName} - 타로 백과사전 - InnerSpell`,
+    description: card ? `${cardName}의 의미와 키워드. ${card.meaningUpright.substring(0,100)}...` : '타로 카드 상세 정보.',
     openGraph: {
       images: card ? [card.imageSrc, ...previousImages] : previousImages,
     },
@@ -41,7 +42,7 @@ export async function generateStaticParams() {
   }));
 }
 
-const SuitIconDetail = ({ suit, className }: { suit: TarotCard_['suit'], className?: string }) => {
+const SuitIconDetail = ({ suit, className }: { suit: TarotCardType['suit'], className?: string }) => {
   const props = { className: className || "w-5 h-5" };
   switch (suit) {
     case 'wands': return <WandIcon {...props} />;
@@ -69,11 +70,11 @@ export default function CardDetailPage({ params }: Props) {
   if (!card) {
     return (
       <div className="text-center py-10">
-        <h1 className="font-headline text-3xl text-destructive mb-4">Card Not Found</h1>
-        <p className="text-muted-foreground">The tarot card you are looking for does not exist.</p>
+        <h1 className="font-headline text-3xl text-destructive mb-4">카드를 찾을 수 없습니다</h1>
+        <p className="text-muted-foreground">찾으시는 타로 카드가 존재하지 않습니다.</p>
         <Button asChild variant="link" className="mt-4 text-primary">
           <Link href="/encyclopedia">
-            <ChevronLeft className="mr-2 h-4 w-4" /> Back to Encyclopedia
+            <ChevronLeft className="mr-2 h-4 w-4" /> 백과사전으로 돌아가기
           </Link>
         </Button>
       </div>
@@ -85,7 +86,7 @@ export default function CardDetailPage({ params }: Props) {
       <Button asChild variant="outline" className="mb-6 group hover:bg-primary/5">
         <Link href="/encyclopedia">
           <ChevronLeft className="mr-2 h-4 w-4 group-hover:text-primary transition-colors" /> 
-          Back to Encyclopedia
+          백과사전으로 돌아가기
         </Link>
       </Button>
 
@@ -93,7 +94,7 @@ export default function CardDetailPage({ params }: Props) {
         <div className="grid md:grid-cols-3">
           <div className="md:col-span-1 p-4 sm:p-6 bg-primary/5 flex justify-center items-center">
             <Image
-              src={card.imageSrc}
+              src={card.imageSrc} // Ensure this path points to where user will place images
               alt={card.name}
               width={300}
               height={500}
@@ -107,7 +108,7 @@ export default function CardDetailPage({ params }: Props) {
               <div className="flex items-center justify-between mb-2">
                 <Badge variant={card.suit === 'major' ? 'default' : 'secondary'} className="capitalize text-sm px-2 py-1">
                   <SuitIconDetail suit={card.suit} className="w-4 h-4 mr-1.5" />
-                  {card.suit} Arcana
+                  {card.suit} 아르카나
                 </Badge>
                 {card.number !== undefined && (
                   <span className="font-mono text-lg text-primary font-semibold">
@@ -122,15 +123,15 @@ export default function CardDetailPage({ params }: Props) {
             <Separator className="my-6 bg-primary/20" />
 
             <CardContent className="p-0 space-y-6">
-              <DetailSection title="Keywords" icon={<Sparkles className="w-5 h-5 text-accent" />}>
+              <DetailSection title="키워드" icon={<Sparkles className="w-5 h-5 text-accent" />}>
                 <div>
-                  <h4 className="font-semibold text-primary/90">Upright:</h4>
+                  <h4 className="font-semibold text-primary/90">정방향:</h4>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {card.keywordsUpright.map(keyword => <Badge key={keyword} variant="outline" className="bg-accent/5 border-accent/30 text-accent">{keyword}</Badge>)}
                   </div>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-primary/90">Reversed:</h4>
+                  <h4 className="font-semibold text-primary/90">역방향:</h4>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {card.keywordsReversed.map(keyword => <Badge key={keyword} variant="outline" className="bg-muted/50 border-muted-foreground/30 text-muted-foreground">{keyword}</Badge>)}
                   </div>
@@ -139,13 +140,13 @@ export default function CardDetailPage({ params }: Props) {
 
               <Separator className="my-4 bg-primary/10" />
 
-              <DetailSection title="Meanings" icon={<BookOpenText className="w-5 h-5 text-accent" />}>
+              <DetailSection title="의미" icon={<BookOpenText className="w-5 h-5 text-accent" />}>
                 <div>
-                  <h4 className="font-semibold text-primary/90">Upright:</h4>
+                  <h4 className="font-semibold text-primary/90">정방향:</h4>
                   <p className="leading-relaxed">{card.meaningUpright}</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-primary/90">Reversed:</h4>
+                  <h4 className="font-semibold text-primary/90">역방향:</h4>
                   <p className="leading-relaxed">{card.meaningReversed}</p>
                 </div>
               </DetailSection>
@@ -153,7 +154,7 @@ export default function CardDetailPage({ params }: Props) {
               {card.fortuneTelling && card.fortuneTelling.length > 0 && (
                 <>
                   <Separator className="my-4 bg-primary/10" />
-                  <DetailSection title="Fortune Telling" icon={<Zap className="w-5 h-5 text-accent" />}>
+                  <DetailSection title="점괘" icon={<Zap className="w-5 h-5 text-accent" />}>
                     <ul className="list-disc list-inside space-y-1">
                       {card.fortuneTelling.map((fortune, i) => <li key={i}>{fortune}</li>)}
                     </ul>
@@ -164,7 +165,7 @@ export default function CardDetailPage({ params }: Props) {
               {card.questionsToAsk && card.questionsToAsk.length > 0 && (
                 <>
                   <Separator className="my-4 bg-primary/10" />
-                  <DetailSection title="Questions to Ask" icon={<Brain className="w-5 h-5 text-accent" />}>
+                  <DetailSection title="질문해볼 것들" icon={<Brain className="w-5 h-5 text-accent" />}>
                      <ul className="list-disc list-inside space-y-1">
                       {card.questionsToAsk.map((question, i) => <li key={i}>{question}</li>)}
                     </ul>
@@ -175,9 +176,9 @@ export default function CardDetailPage({ params }: Props) {
               {(card.astrology || card.element) && (
                 <>
                   <Separator className="my-4 bg-primary/10" />
-                  <DetailSection title="Correspondences" icon={<Anchor className="w-5 h-5 text-accent" />}>
-                    {card.astrology && <p><span className="font-semibold">Astrology:</span> {card.astrology}</p>}
-                    {card.element && <p><span className="font-semibold">Element:</span> {card.element}</p>}
+                  <DetailSection title="상응 관계" icon={<Anchor className="w-5 h-5 text-accent" />}>
+                    {card.astrology && <p><span className="font-semibold">점성술:</span> {card.astrology}</p>}
+                    {card.element && <p><span className="font-semibold">원소:</span> {card.element}</p>}
                   </DetailSection>
                 </>
               )}
@@ -185,7 +186,7 @@ export default function CardDetailPage({ params }: Props) {
               {card.affirmation && (
                  <>
                   <Separator className="my-4 bg-primary/10" />
-                  <DetailSection title="Affirmation" icon={<Users className="w-5 h-5 text-accent" />}>
+                  <DetailSection title="확언" icon={<Users className="w-5 h-5 text-accent" />}>
                     <p className="italic">"{card.affirmation}"</p>
                   </DetailSection>
                 </>
