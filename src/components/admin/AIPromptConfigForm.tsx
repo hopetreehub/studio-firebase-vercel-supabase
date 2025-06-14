@@ -109,7 +109,7 @@ Interpretation: `,
     }
   };
 
-  const formContent = (
+  return (
     <Card className="shadow-lg border-primary/10">
       <CardHeader>
         <CardTitle className="font-headline text-2xl text-primary">AI Settings</CardTitle>
@@ -218,6 +218,4 @@ Interpretation: `,
       </CardContent>
     </Card>
   );
-
-  return formContent;
 }
