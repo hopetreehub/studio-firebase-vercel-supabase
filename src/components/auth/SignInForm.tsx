@@ -24,8 +24,11 @@ import { Eye, EyeOff, Mail, KeyRound } from 'lucide-react';
 
 const formSchema = z.object({
   email: z.string().email({ message: '유효한 이메일 주소를 입력해주세요.' }),
-  password: z.string().min(6, { message: '비밀번호는 최소 6자 이상이어야 합니다.' }),
+  password: z.string().min(1, { message: '비밀번호를 입력해주세요.' }), // 최소 1자 이상으로 변경 (Firebase가 6자 미만 감지)
 });
+
+const DISABLE_REDIRECT =
+  process.env.NEXT_PUBLIC_DISABLE_AUTH_REDIRECT === 'true';
 
 export function SignInForm() {
   const { toast } = useToast();
@@ -46,11 +49,21 @@ export function SignInForm() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
-      toast({ title: '성공', description: '성공적으로 로그인되었습니다.' });
-      const redirectUrl = searchParams.get('redirect') || '/';
-      router.push(redirectUrl);
+      toast({ title: '로그인 성공', description: 'InnerSpell에 오신 것을 환영합니다!' });
+      if (!DISABLE_REDIRECT) {
+        const redirectUrl = searchParams.get('redirect') || '/';
+        router.push(redirectUrl);
+      }
     } catch (error: any) {
-      toast({ variant: 'destructive', title: '오류', description: error.message });
+      let errorMessage = '로그인 중 오류가 발생했습니다. 이메일 또는 비밀번호를 확인해주세요.';
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        errorMessage = '이메일 또는 비밀번호가 올바르지 않습니다.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = '너무 많은 로그인 시도를 하셨습니다. 잠시 후 다시 시도해주세요.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      toast({ variant: 'destructive', title: '로그인 오류', description: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -61,11 +74,21 @@ export function SignInForm() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      toast({ title: '성공', description: 'Google 계정으로 성공적으로 로그인되었습니다.' });
-      const redirectUrl = searchParams.get('redirect') || '/';
-      router.push(redirectUrl);
+      toast({ title: 'Google 로그인 성공', description: 'InnerSpell에 오신 것을 환영합니다!' });
+      if (!DISABLE_REDIRECT) {
+        const redirectUrl = searchParams.get('redirect') || '/';
+        router.push(redirectUrl);
+      }
     } catch (error: any) {
-      toast({ variant: 'destructive', title: '오류', description: error.message });
+      let errorMessage = 'Google 로그인 중 오류가 발생했습니다.';
+       if (error.code === 'auth/account-exists-with-different-credential') {
+        errorMessage = '이미 다른 방식으로 가입된 이메일입니다. 다른 로그인 방식을 시도해주세요.';
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'Google 로그인 팝업이 닫혔습니다. 다시 시도해주세요.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      toast({ variant: 'destructive', title: 'Google 로그인 오류', description: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -101,18 +124,18 @@ export function SignInForm() {
                 <div className="relative">
                   <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <FormControl>
-                    <Input 
+                    <Input
                       className="pr-10 pl-10"
-                      type={showPassword ? 'text' : 'password'} 
-                      placeholder="••••••••" 
-                      {...field} 
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      {...field}
                     />
                   </FormControl>
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
+                  <Button
+                    type="button"
+                    variant="ghost"
                     size="icon"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" 
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
                   >
@@ -140,7 +163,7 @@ export function SignInForm() {
       </div>
       <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={loading}>
         <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path></svg>
-        Google
+        Google 계정으로 로그인
       </Button>
       <p className="mt-6 text-center text-sm text-muted-foreground">
         계정이 없으신가요?{' '}
