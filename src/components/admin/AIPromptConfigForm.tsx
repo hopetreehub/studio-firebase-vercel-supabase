@@ -1,6 +1,7 @@
 
 'use client';
 
+import React from 'react'; // Explicitly import React
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useFieldArray } from 'react-hook-form';
 import * as z from 'zod';
