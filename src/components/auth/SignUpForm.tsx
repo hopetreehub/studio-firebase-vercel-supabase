@@ -49,11 +49,18 @@ export function SignUpForm() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       await updateProfile(userCredential.user, { displayName: values.displayName });
-      toast({ title: '성공', description: '계정이 성공적으로 생성되었습니다. 로그인해주세요.' });
-      const redirectUrl = searchParams.get('redirect') || '/sign-in';
+      toast({ title: '성공', description: '계정이 성공적으로 생성되었습니다.' });
+      // SignUp 성공 후 사용자는 이미 인증된 상태이므로, 원래 가려던 곳이나 홈페이지로 이동시킵니다.
+      const redirectUrl = searchParams.get('redirect') || '/';
       router.push(redirectUrl);
     } catch (error: any) {
-      toast({ variant: 'destructive', title: '오류', description: error.message });
+      let errorMessage = error.message;
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = '이미 사용 중인 이메일입니다. 다른 이메일을 사용해주세요.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = '비밀번호는 6자 이상이어야 합니다.';
+      }
+      toast({ variant: 'destructive', title: '오류', description: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -64,7 +71,7 @@ export function SignUpForm() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      toast({ title: '성공', description: 'Google 계정으로 성공적으로 가입되었습니다.' });
+      toast({ title: '성공', description: 'Google 계정으로 성공적으로 가입 및 로그인되었습니다.' });
       const redirectUrl = searchParams.get('redirect') || '/';
       router.push(redirectUrl);
     } catch (error: any) {
