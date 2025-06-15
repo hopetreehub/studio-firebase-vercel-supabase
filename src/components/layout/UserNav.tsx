@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -40,14 +41,18 @@ export function UserNav() {
       <div className="flex items-center space-x-2">
         <Button variant="ghost" size="sm" asChild>
           <Link href="/sign-in">
-            <LogIn className="mr-2 h-4 w-4" />
-            Sign In
+            <span className="flex items-center">
+              <LogIn className="mr-2 h-4 w-4" />
+              Sign In
+            </span>
           </Link>
         </Button>
         <Button variant="default" size="sm" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
           <Link href="/sign-up">
-             <UserPlus className="mr-2 h-4 w-4" />
-            Sign Up
+            <span className="flex items-center">
+              <UserPlus className="mr-2 h-4 w-4" />
+              Sign Up
+            </span>
           </Link>
         </Button>
       </div>
@@ -77,11 +82,11 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => router.push('/profile')}> {/* Placeholder for profile page */}
+          <DropdownMenuItem onClick={() => router.push('/profile')}>
             <UserCircle className="mr-2 h-4 w-4" />
             <span>Profile</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => router.push('/settings')}> {/* Placeholder for settings page */}
+          <DropdownMenuItem onClick={() => router.push('/settings')}>
             <Settings className="mr-2 h-4 w-4" />
             <span>Settings</span>
           </DropdownMenuItem>

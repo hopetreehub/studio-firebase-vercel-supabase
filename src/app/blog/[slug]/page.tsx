@@ -34,7 +34,7 @@ export async function generateMetadata(
       title: post.title,
       description: post.excerpt,
       type: 'article',
-      publishedTime: new Date(post.date).toISOString(), // 'YYYY-MM-DD'는 ISOString으로 변환 가능
+      publishedTime: new Date(post.date).toISOString(),
       authors: post.author ? [post.author] : undefined,
       tags: post.tags,
       images: [
@@ -119,8 +119,10 @@ export default function BlogPostPage({ params }: Props) {
 
       <Button asChild variant="outline" className="mt-8 group hover:bg-primary/5">
         <Link href="/blog">
-          <ChevronLeft className="mr-2 h-4 w-4 group-hover:text-primary transition-colors" />
-          블로그로 돌아가기
+          <span className="flex items-center">
+            <ChevronLeft className="mr-2 h-4 w-4 group-hover:text-primary transition-colors" />
+            블로그로 돌아가기
+          </span>
         </Link>
       </Button>
     </div>

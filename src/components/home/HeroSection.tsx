@@ -28,8 +28,10 @@ export function HeroSection() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
               <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-md transition-transform hover:scale-105">
                 <Link href="/reading">
-                  타로 읽기 시작
-                  <ChevronRight className="ml-2 h-5 w-5" />
+                  <span className="flex items-center">
+                    타로 읽기 시작
+                    <ChevronRight className="ml-2 h-5 w-5" />
+                  </span>
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild className="border-primary/50 text-primary hover:bg-primary/5 shadow-md transition-transform hover:scale-105">

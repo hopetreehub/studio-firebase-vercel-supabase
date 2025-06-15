@@ -74,7 +74,9 @@ export default function CardDetailPage({ params }: Props) {
         <p className="text-muted-foreground">찾으시는 타로 카드가 존재하지 않습니다.</p>
         <Button asChild variant="link" className="mt-4 text-primary">
           <Link href="/encyclopedia">
-            <ChevronLeft className="mr-2 h-4 w-4" /> 백과사전으로 돌아가기
+            <span className="flex items-center">
+              <ChevronLeft className="mr-2 h-4 w-4" /> 백과사전으로 돌아가기
+            </span>
           </Link>
         </Button>
       </div>
@@ -82,12 +84,12 @@ export default function CardDetailPage({ params }: Props) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 py-8"> {/* Added py-8 for consistent padding */}
+    <div className="max-w-4xl mx-auto space-y-8 py-8">
       <Card className="overflow-hidden shadow-xl border-primary/10">
         <div className="grid md:grid-cols-3">
           <div className="md:col-span-1 p-4 sm:p-6 bg-primary/5 flex justify-center items-center">
             <Image
-              src={card.imageSrc} // Ensure this path points to where user will place images
+              src={card.imageSrc} 
               alt={card.name}
               width={300}
               height={500}
@@ -190,10 +192,12 @@ export default function CardDetailPage({ params }: Props) {
         </div>
       </Card>
 
-      <Button asChild variant="outline" className="mt-8 group hover:bg-primary/5"> {/* Added mt-8 for spacing */}
+      <Button asChild variant="outline" className="mt-8 group hover:bg-primary/5">
         <Link href="/encyclopedia">
-          <ChevronLeft className="mr-2 h-4 w-4 group-hover:text-primary transition-colors" /> 
-          백과사전으로 돌아가기
+          <span className="flex items-center">
+            <ChevronLeft className="mr-2 h-4 w-4 group-hover:text-primary transition-colors" /> 
+            백과사전으로 돌아가기
+          </span>
         </Link>
       </Button>
     </div>
