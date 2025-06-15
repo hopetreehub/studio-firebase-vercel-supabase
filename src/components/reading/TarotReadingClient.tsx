@@ -621,16 +621,7 @@ export function TarotReadingClient() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div
-                className={`grid gap-4 ${
-                  selectedCardsForReading.length === 1
-                    ? 'mx-auto max-w-xs'
-                    : `grid-cols-2 sm:grid-cols-3 md:grid-cols-${Math.min(
-                        selectedCardsForReading.length,
-                        5,
-                      )}`
-                }`}
-              >
+              <div className="flex flex-wrap justify-center gap-4">
                 {selectedCardsForReading.map((card, index) => (
                   <motion.div
                     key={`${card.id}-selected-${index}`}
@@ -638,7 +629,7 @@ export function TarotReadingClient() {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.3 }}
-                    className="transform-gpu"
+                    className="w-32 transform-gpu"
                   >
                     <div
                       className={`flex h-full flex-col overflow-hidden rounded-lg shadow-lg ${
@@ -656,7 +647,7 @@ export function TarotReadingClient() {
                           src={card.imageSrc} // Show front for selected cards
                           alt={card.name}
                           fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 20vw"
+                          sizes="128px"
                           className="h-full w-full object-cover rounded-t-lg"
                           data-ai-hint={card.dataAiHint}
                         />
@@ -730,3 +721,4 @@ export function TarotReadingClient() {
     </div>
   );
 }
+
