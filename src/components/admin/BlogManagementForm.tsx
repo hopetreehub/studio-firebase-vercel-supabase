@@ -82,19 +82,34 @@ export function BlogManagementForm() {
 
     const result = await submitBlogPost(formData);
 
-    if (result.success && result.post) {
+    if (result.success && result.postId) {
       toast({
-        title: '게시물 데이터 준비 완료',
-        description: `"${result.post.title}" 게시물 객체가 생성되었습니다. 이 내용을 AI에게 전달하여 블로그에 게시하세요. (실제 저장은 AI 응답을 통해 src/lib/blog-data.ts 파일이 업데이트되어야 반영됩니다.)`,
-        duration: 9000, // Longer duration for user to see the message
+        title: '게시물 저장 성공',
+        description: `"${values.title}" 게시물이 데이터베이스에 성공적으로 저장되었습니다. (ID: ${result.postId}) 블로그 페이지에서 확인하세요.`,
+        duration: 7000,
       });
-      // console.log("New Post Data:", result.post); // For user to copy if needed
-      // form.reset(); // Optionally reset form on success
+      form.reset(); 
+      // Optionally, re-enable autoSlug or reset specific fields
+      form.setValue('author', 'InnerSpell 팀');
+      setAutoSlug(true); 
     } else {
+        let description = '알 수 없는 오류가 발생했습니다.';
+        if (typeof result.error === 'string') {
+            description = result.error;
+        } else if (typeof result.error === 'object' && result.error !== null) {
+            // Handle Zod field errors or specific slug error
+            const fieldErrors = result.error as any;
+            if (fieldErrors.slug) {
+                 // @ts-ignore
+                description = fieldErrors.slug; // If slug error is a direct string message
+            } else {
+                description = Object.values(fieldErrors).flat().join(' ');
+            }
+        }
       toast({
         variant: 'destructive',
         title: '게시물 저장 실패',
-        description: result.error || '알 수 없는 오류가 발생했습니다.',
+        description: description,
       });
     }
     setLoading(false);

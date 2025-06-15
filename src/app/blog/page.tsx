@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { CalendarDays, Feather } from 'lucide-react';
 import type { Metadata } from 'next';
-import { getAllPosts } from '@/lib/blog-data'; // Import from new location
+import { getAllPosts } from '@/lib/blog-data';
 import { format } from 'date-fns';
 
 export const metadata: Metadata = {
@@ -13,8 +13,11 @@ export const metadata: Metadata = {
   description: '타로, 영성, 자아 발견에 대한 기사와 통찰.',
 };
 
-export default function BlogPage() {
-  const posts = getAllPosts();
+// Revalidate this page every 60 seconds (or choose a suitable interval)
+export const revalidate = 60; 
+
+export default async function BlogPage() { // Changed to async
+  const posts = await getAllPosts(); // Changed to await
 
   return (
     <div className="space-y-8">
@@ -62,6 +65,11 @@ export default function BlogPage() {
           );
         })}
       </div>
+       {posts.length === 0 && (
+        <p className="text-center text-muted-foreground py-10 text-lg">
+          아직 게시된 글이 없습니다. 곧 흥미로운 내용으로 찾아뵙겠습니다!
+        </p>
+      )}
     </div>
   );
 }

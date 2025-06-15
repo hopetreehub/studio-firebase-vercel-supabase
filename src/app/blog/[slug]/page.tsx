@@ -17,7 +17,7 @@ export async function generateMetadata(
   { params }: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const post = getPostBySlug(params.slug);
+  const post = await getPostBySlug(params.slug); // Changed to await
 
   if (!post) {
     return {
@@ -57,21 +57,21 @@ export async function generateMetadata(
 }
 
 export async function generateStaticParams() {
-  const posts = getAllPosts();
+  const posts = await getAllPosts(); // Changed to await
   return posts.map((post) => ({
     slug: post.slug,
   }));
 }
 
-export default function BlogPostPage({ params }: Props) {
-  const post = getPostBySlug(params.slug);
+export default async function BlogPostPage({ params }: Props) { // Changed to async
+  const post = await getPostBySlug(params.slug); // Changed to await
 
   if (!post) {
     notFound();
   }
 
-  const previousPost = getPreviousPost(params.slug);
-  const nextPost = getNextPost(params.slug);
+  const previousPost = await getPreviousPost(params.slug); // Changed to await
+  const nextPost = await getNextPost(params.slug); // Changed to await
 
   const displayDate = format(new Date(post.date), 'yyyy년 MM월 dd일');
 
