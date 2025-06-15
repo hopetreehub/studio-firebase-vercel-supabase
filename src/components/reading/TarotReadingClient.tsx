@@ -115,7 +115,7 @@ export function TarotReadingClient() {
 
     setIsShufflingAnimationActive(true);
     setStage('shuffling');
-    setRevealedSpreadCards([]);
+    setRevealedSpreadCards([]); // Clear revealed cards when shuffling
     setSelectedCardsForReading([]);
     setInterpretation('');
     setDisplayedInterpretation('');
@@ -209,14 +209,14 @@ export function TarotReadingClient() {
       });
       return;
     }
-    const drawnPool = [...deck].map((card) => ({ ...card, isFaceUp: false, isReversed: Math.random() > 0.5 }));
+    const drawnPool = [...deck].slice(0, Math.min(deck.length, 30)).map((card) => ({ ...card, isFaceUp: false, isReversed: Math.random() > 0.5 })); // Limit to e.g. 30 cards for performance if deck is huge
     setRevealedSpreadCards(drawnPool);
     setStage('spread_revealed');
   };
 
   const handleCardSelectFromSpread = (clickedSpreadCard: TarotCardType, indexInSpread: number) => {
      const existingSelectedCardIndex = selectedCardsForReading.findIndex(
-      (c) => c.id === clickedSpreadCard.id
+      (c) => c.id === clickedSpreadCard.id && c.isReversed === clickedSpreadCard.isReversed // Ensure exact card instance is considered
     );
 
     if (selectedCardsForReading.length >= selectedSpread.numCards && existingSelectedCardIndex === -1) {
@@ -230,7 +230,7 @@ export function TarotReadingClient() {
 
     if (existingSelectedCardIndex !== -1) {
       newSelectedCards = selectedCardsForReading.filter(
-        (_, i) => i !== existingSelectedCardIndex,
+        (c, i) => !(c.id === clickedSpreadCard.id && c.isReversed === clickedSpreadCard.isReversed) // More robust removal
       );
     } else {
       const originalCardData = allCards.find(c => c.id === clickedSpreadCard.id);
@@ -241,7 +241,7 @@ export function TarotReadingClient() {
       const cardToAdd = {
         ...originalCardData,
         isReversed: clickedSpreadCard.isReversed,
-        isFaceUp: true,
+        isFaceUp: true, // Selected cards are face up for the "selected cards" display
       };
       newSelectedCards = [...selectedCardsForReading, cardToAdd];
     }
@@ -357,7 +357,7 @@ export function TarotReadingClient() {
             alt="카드 뒷면 뭉치"
             width={IMAGE_ORIGINAL_WIDTH}
             height={IMAGE_ORIGINAL_HEIGHT}
-            className="h-full w-full object-contain rounded-lg"
+            className="h-full w-auto object-contain rounded-lg"
             sizes={CARD_IMAGE_SIZES}
             priority={i < N_ANIMATING_CARDS_FOR_SHUFFLE}
           />
@@ -480,69 +480,62 @@ export function TarotReadingClient() {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center space-y-6 p-6 md:p-8 min-h-[400px]">
-          {(stage === 'deck_ready' ||
-            stage === 'shuffled' ||
-            stage === 'shuffling') &&
-            !revealedSpreadCards.length && (
-              <div className="mb-6 flex justify-center">{cardStack}</div>
-            )}
           
-          <div className="flex flex-col items-center justify-around gap-4 sm:flex-row w-full">
-            <Button
-              onClick={handleShuffle}
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto"
-              disabled={
-                isShufflingAnimationActive || stage === 'interpreting'
-              }
-            >
-              {isShufflingAnimationActive || stage === 'shuffling' ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              ) : (
-                <Shuffle className="mr-2 h-5 w-5" />
-              )}
-              {isShufflingAnimationActive || stage === 'shuffling'
-                ? '섞는 중...'
-                : '카드 섞기'}
-            </Button>
-            <Button
-              onClick={handleRevealSpread}
-              disabled={isShufflingAnimationActive || stage !== 'shuffled'}
-              className="w-full sm:w-auto"
-            >
-              <Layers className="mr-2 h-5 w-5" />
-              카드 펼치기
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {revealedSpreadCards.length > 0 &&
-        (stage === 'spread_revealed' || stage === 'cards_selected') && (
-          <Card className="animate-fade-in">
-            <CardHeader>
-              <CardTitle className="font-headline text-2xl text-primary">
-                펼쳐진 카드 ({selectedCardsForReading.length}/
-                {selectedSpread.numCards} 선택됨)
-              </CardTitle>
-              <CardDescription>
-                {selectedSpread.description} 카드를 클릭하여{' '}
-                {selectedSpread.numCards}장 선택하세요.
-              </CardDescription>
-            </CardHeader>
-            <CardContent
-              ref={spreadContainerRef}
-              className="scrollbar-track-primary/10 scrollbar-thumb-primary/50 scrollbar-thin bg-primary/5 p-4 overflow-x-auto"
-            >
-              <div className={`flex min-w-max items-start justify-start h-[280px] py-2`}> 
+          {revealedSpreadCards.length === 0 && (stage === 'deck_ready' || stage === 'shuffled' || stage === 'shuffling') && (
+            <>
+              <div className="mb-6 flex justify-center">{cardStack}</div>
+              <div className="flex flex-col items-center justify-around gap-4 sm:flex-row w-full">
+                <Button
+                  onClick={handleShuffle}
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto"
+                  disabled={
+                    isShufflingAnimationActive || stage === 'interpreting'
+                  }
+                >
+                  {isShufflingAnimationActive || stage === 'shuffling' ? (
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  ) : (
+                    <Shuffle className="mr-2 h-5 w-5" />
+                  )}
+                  {isShufflingAnimationActive || stage === 'shuffling'
+                    ? '섞는 중...'
+                    : '카드 섞기'}
+                </Button>
+                <Button
+                  onClick={handleRevealSpread}
+                  disabled={isShufflingAnimationActive || stage !== 'shuffled'}
+                  className="w-full sm:w-auto"
+                >
+                  <Layers className="mr-2 h-5 w-5" />
+                  카드 펼치기
+                </Button>
+              </div>
+            </>
+          )}
+          
+          {revealedSpreadCards.length > 0 && (stage === 'spread_revealed' || stage === 'cards_selected') && (
+            <>
+              <div className="w-full text-center mb-4">
+                <h3 className="font-headline text-xl text-primary">
+                  펼쳐진 카드 ({selectedCardsForReading.length}/{selectedSpread.numCards} 선택됨)
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {selectedSpread.description} 카드를 클릭하여 {selectedSpread.numCards}장 선택하세요.
+                </p>
+              </div>
+              <div
+                ref={spreadContainerRef}
+                className="flex flex-wrap justify-center gap-3 p-2 w-full"
+              >
                 <AnimatePresence>
                   {revealedSpreadCards.map((cardInSpread, index) => {
                     const isSelected = selectedCardsForReading.some(
-                      (sc) => sc.id === cardInSpread.id
+                       (sc) => sc.id === cardInSpread.id && sc.isReversed === cardInSpread.isReversed
                     );
 
                     return (
                       <motion.div
-                        key={`${cardInSpread.id}-revealed-${index}`}
+                        key={`${cardInSpread.id}-revealed-${index}-${cardInSpread.isReversed}`} // Add isReversed to key for unique cards
                         initial={{ opacity: 0, y: 50 }}
                         animate={{
                           opacity: 1,
@@ -558,7 +551,7 @@ export function TarotReadingClient() {
                         }}
                         transition={{ duration: 0.3, delay: index * 0.01 }}
                         onClick={() => handleCardSelectFromSpread(cardInSpread, index)}
-                        className={`${TARGET_CARD_HEIGHT_CLASS} w-auto shrink-0 cursor-pointer transform transition-all duration-200 hover:scale-105 hover:z-20 -mr-28`} 
+                        className={`${TARGET_CARD_HEIGHT_CLASS} shrink-0 cursor-pointer transform transition-all duration-200 hover:scale-105 hover:z-20`} 
                         style={{ aspectRatio: `${IMAGE_ORIGINAL_WIDTH} / ${IMAGE_ORIGINAL_HEIGHT}` }}
                       >
                         <motion.div
@@ -573,7 +566,7 @@ export function TarotReadingClient() {
                             alt={`카드 ${index + 1} 뒷면`}
                             width={IMAGE_ORIGINAL_WIDTH}
                             height={IMAGE_ORIGINAL_HEIGHT}
-                            className="h-full w-full object-contain rounded-lg"
+                            className="h-full w-auto object-contain rounded-lg"
                             sizes={CARD_IMAGE_SIZES}
                           />
                         </motion.div>
@@ -582,9 +575,24 @@ export function TarotReadingClient() {
                   })}
                 </AnimatePresence>
               </div>
-            </CardContent>
-          </Card>
-        )}
+               {/* Add a button to go back to shuffling if needed or clear selection */}
+               {selectedCardsForReading.length > 0 && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    setSelectedCardsForReading([]);
+                    setStage('spread_revealed'); // Go back to spread selection
+                  }}
+                  className="mt-4"
+                >
+                  선택 초기화
+                </Button>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
       
       {selectedCardsForReading.length > 0 && (stage === 'cards_selected' || stage === 'interpreting' || stage === 'interpretation_ready') && (
         <Card className="animate-fade-in mt-8">
@@ -601,7 +609,7 @@ export function TarotReadingClient() {
             <div className="flex flex-wrap justify-center gap-3"> 
               {selectedCardsForReading.map((card, index) => (
                 <motion.div
-                  key={`${card.id}-selected-${index}`}
+                  key={`${card.id}-selected-${index}-${card.isReversed}`} // Add isReversed
                   layout
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
