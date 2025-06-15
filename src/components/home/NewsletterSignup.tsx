@@ -14,8 +14,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Mail } from 'lucide-react';
+import { Mail, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { subscribeToNewsletter, type NewsletterSubscriptionFormData } from '@/actions/newsletterActions';
 
 const formSchema = z.object({
   email: z.string().email({ message: '유효한 이메일 주소를 입력해주세요.' }),
@@ -32,16 +33,23 @@ export function NewsletterSignup() {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: NewsletterSubscriptionFormData) => {
     setLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log('뉴스레터 구독:', values.email);
-    toast({
-      title: '구독 완료!',
-      description: "뉴스레터 구독이 성공적으로 완료되었습니다.",
-    });
-    form.reset();
+    const result = await subscribeToNewsletter(values);
+    
+    if (result.success) {
+      toast({
+        title: '구독 처리 완료',
+        description: result.message,
+      });
+      form.reset();
+    } else {
+      toast({
+        variant: 'destructive',
+        title: '구독 실패',
+        description: result.message,
+      });
+    }
     setLoading(false);
   };
 
@@ -80,10 +88,14 @@ export function NewsletterSignup() {
               )}
             />
             <Button type="submit" size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground h-12 shadow-md" disabled={loading}>
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               {loading ? '구독 중...' : '구독하기'}
             </Button>
           </form>
         </Form>
+         <p className="text-xs text-muted-foreground mt-4">
+            구독 시 <a href="mailto:junsupark9999@gmail.com" className="underline hover:text-accent">junsupark9999@gmail.com</a>에서 발송되는 뉴스레터를 수신하게 됩니다. (실제 발송은 현재 구현되지 않았습니다.)
+        </p>
       </div>
     </section>
   );
