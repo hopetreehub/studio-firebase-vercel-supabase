@@ -58,9 +58,9 @@ const N_ANIMATING_CARDS_FOR_SHUFFLE = 7;
 
 // Card visual constants
 const TARGET_CARD_HEIGHT_CLASS = "h-60"; // approx 240px
-const IMAGE_ORIGINAL_WIDTH = 275; // Example original width of your card images
-const IMAGE_ORIGINAL_HEIGHT = 475; // Example original height of your card images
-// Approx width for 240px height given 275/475 ratio is ~139px. Let's use 140px for sizes.
+const IMAGE_ORIGINAL_WIDTH = 275;
+const IMAGE_ORIGINAL_HEIGHT = 475;
+// Approx width for 240px height given 275/475 ratio is ~139px.
 const CARD_IMAGE_SIZES = "140px"; 
 
 
@@ -100,7 +100,7 @@ export function TarotReadingClient() {
     visualCardAnimControls.forEach((controls, i) => {
       controls.start(
         {
-          x: i * 0.2, // Slight offset for stacking appearance
+          x: i * 0.2, 
           y: i * -0.2,
           zIndex: NUM_VISUAL_CARDS_IN_STACK - i,
           rotate: 0,
@@ -122,9 +122,7 @@ export function TarotReadingClient() {
     setInterpretation('');
     setDisplayedInterpretation('');
 
-    // Approximate width of a card based on h-60 and its aspect ratio
-    // const cardWidthPx = (240 / IMAGE_ORIGINAL_HEIGHT) * IMAGE_ORIGINAL_WIDTH;
-    const pileSpacing = 120; // Adjusted spacing
+    const pileSpacing = 120; 
     const cardOffsetY = 2;
     const shufflePileCardRotation = -8;
     
@@ -142,10 +140,10 @@ export function TarotReadingClient() {
     leftPileAnimatingIndices.forEach((controlIndex, pileOrder) => {
       splitPromises.push(
         animatingControls[controlIndex].start({
-          x: -pileSpacing, // Move to the left pile
-          y: pileOrder * cardOffsetY, // Slight vertical stacking in pile
+          x: -pileSpacing, 
+          y: pileOrder * cardOffsetY, 
           rotate: shufflePileCardRotation,
-          zIndex: NUM_VISUAL_CARDS_IN_STACK + pileOrder, // Ensure on top
+          zIndex: NUM_VISUAL_CARDS_IN_STACK + pileOrder, 
           transition: { duration: 0.25, ease: 'easeOut', delay: pileOrder * 0.04 },
         }),
       );
@@ -153,7 +151,7 @@ export function TarotReadingClient() {
     rightPileAnimatingIndices.forEach((controlIndex, pileOrder) => {
       splitPromises.push(
         animatingControls[controlIndex].start({
-          x: pileSpacing, // Move to the right pile
+          x: pileSpacing, 
           y: pileOrder * cardOffsetY,
           rotate: -shufflePileCardRotation,
           zIndex: NUM_VISUAL_CARDS_IN_STACK + pileOrder,
@@ -162,9 +160,8 @@ export function TarotReadingClient() {
       );
     });
     await Promise.all(splitPromises);
-    await new Promise((r) => setTimeout(r, 150)); // Pause
+    await new Promise((r) => setTimeout(r, 150)); 
 
-    // Interleave cards back to center
     const interleaveOrderDefinition: number[] = [];
     const maxPileLength = Math.max(leftPileAnimatingIndices.length, rightPileAnimatingIndices.length);
     for (let i = 0; i < maxPileLength; i++) {
@@ -175,19 +172,18 @@ export function TarotReadingClient() {
     for (let i = 0; i < interleaveOrderDefinition.length; i++) {
       const controlIndex = interleaveOrderDefinition[i];
       await animatingControls[controlIndex].start({
-        x: 0 + i * 0.2, // Center stack x-position, with cascade
-        y: 0 + i * -0.2, // Center stack y-position, with cascade
+        x: 0 + i * 0.2, 
+        y: 0 + i * -0.2, 
         rotate: 0,
-        zIndex: NUM_VISUAL_CARDS_IN_STACK * 2 + i, // Ensure they are on top during re-stack
+        zIndex: NUM_VISUAL_CARDS_IN_STACK * 2 + i, 
         transition: { duration: 0.1, ease: 'easeIn' },
       });
     }
-    await new Promise((r) => setTimeout(r, 200)); // Pause
+    await new Promise((r) => setTimeout(r, 200)); 
 
     setDeck([...allCards].sort(() => 0.5 - Math.random()));
     setStage('shuffled');
 
-    // Reset all visual cards to initial stack position
      visualCardAnimControls.forEach((controls, i) => {
       controls.start({
         x: i * 0.2, 
@@ -348,7 +344,7 @@ export function TarotReadingClient() {
       {visualCardAnimControls.map((controls, i) => (
         <motion.div
           key={`visual-card-${i}`}
-          className={`absolute top-0 left-0 ${TARGET_CARD_HEIGHT_CLASS} w-full rounded-lg overflow-hidden`} // Ensure w-full for aspect ratio to work with height
+          className={`absolute top-0 left-0 h-full w-full rounded-lg overflow-hidden`}
           animate={controls}
           initial={{
             x: i * 0.2,
@@ -363,7 +359,7 @@ export function TarotReadingClient() {
             alt="카드 뒷면 뭉치"
             width={IMAGE_ORIGINAL_WIDTH}
             height={IMAGE_ORIGINAL_HEIGHT}
-            className="h-full w-auto object-contain rounded-lg" // was w-full, changed to w-auto for consistency
+            className="h-full w-full object-contain rounded-lg"
             sizes={CARD_IMAGE_SIZES}
             priority={i < N_ANIMATING_CARDS_FOR_SHUFFLE}
           />
@@ -537,7 +533,6 @@ export function TarotReadingClient() {
               ref={spreadContainerRef}
               className="scrollbar-track-primary/10 scrollbar-thumb-primary/50 scrollbar-thin bg-primary/5 p-4 overflow-x-auto"
             >
-              {/* Container for horizontally scrolled cards, ensure height accommodates cards */}
               <div className={`flex min-w-max items-start justify-start h-[280px] py-2`}> 
                 <AnimatePresence>
                   {revealedSpreadCards.map((cardInSpread, index) => {
@@ -564,7 +559,6 @@ export function TarotReadingClient() {
                         transition={{ duration: 0.3, delay: index * 0.01 }}
                         onClick={() => handleCardSelectFromSpread(cardInSpread, index)}
                         className={`${TARGET_CARD_HEIGHT_CLASS} w-auto shrink-0 cursor-pointer transform transition-all duration-200 hover:scale-105 hover:z-20 -mr-28`} 
-                        // Applying direct aspect ratio to the motion.div
                         style={{ aspectRatio: `${IMAGE_ORIGINAL_WIDTH} / ${IMAGE_ORIGINAL_HEIGHT}` }}
                       >
                         <motion.div
@@ -579,7 +573,7 @@ export function TarotReadingClient() {
                             alt={`카드 ${index + 1} 뒷면`}
                             width={IMAGE_ORIGINAL_WIDTH}
                             height={IMAGE_ORIGINAL_HEIGHT}
-                            className="h-full w-auto object-contain rounded-lg" // Image scales within its container
+                            className="h-full w-full object-contain rounded-lg"
                             sizes={CARD_IMAGE_SIZES}
                           />
                         </motion.div>
@@ -604,7 +598,7 @@ export function TarotReadingClient() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap justify-center gap-4"> 
+            <div className="flex flex-wrap justify-center gap-3"> 
               {selectedCardsForReading.map((card, index) => (
                 <motion.div
                   key={`${card.id}-selected-${index}`}
@@ -612,7 +606,7 @@ export function TarotReadingClient() {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.3 }}
-                  className={`${TARGET_CARD_HEIGHT_CLASS} w-auto overflow-hidden rounded-lg`}
+                  className={`${TARGET_CARD_HEIGHT_CLASS} overflow-hidden rounded-lg`}
                   style={{ aspectRatio: `${IMAGE_ORIGINAL_WIDTH} / ${IMAGE_ORIGINAL_HEIGHT}` }}
                 >
                   <motion.div
@@ -625,7 +619,7 @@ export function TarotReadingClient() {
                       alt={card.name}
                       width={IMAGE_ORIGINAL_WIDTH}
                       height={IMAGE_ORIGINAL_HEIGHT}
-                      className="h-full w-auto object-contain rounded-lg"
+                      className="h-full w-full object-contain rounded-lg"
                       data-ai-hint={card.dataAiHint}
                       sizes={CARD_IMAGE_SIZES}
                     />
@@ -634,7 +628,6 @@ export function TarotReadingClient() {
               ))}
             </div>
           </CardContent>
-          {/* "AI 해석 받기" button moved here, inside CardFooter for better structure */}
           <CardFooter className="mt-6 flex justify-center">
             <Button
               onClick={handleGetInterpretation}
