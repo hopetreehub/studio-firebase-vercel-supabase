@@ -98,9 +98,20 @@ export function SignUpForm() {
         router.push(redirectUrl);
       }
     } catch (error: any) {
+      console.error("Google Sign-Up/In Error:", error); // 상세 로깅 추가
       let errorMessage = 'Google 로그인 중 오류가 발생했습니다.';
       if (error.code === 'auth/account-exists-with-different-credential') {
         errorMessage = '이미 다른 방식으로 가입된 이메일입니다. 다른 로그인 방식을 시도해주세요.';
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'Google 로그인 팝업이 닫혔습니다. 다시 시도해주세요.';
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = 'Google 로그인 팝업이 차단되었습니다. 브라우저의 팝업 차단 설정을 확인해주세요.';
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        errorMessage = 'Google 로그인 요청이 여러 번 발생하여 취소되었습니다. 잠시 후 다시 시도해주세요.';
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = 'Google 로그인이 Firebase 프로젝트에서 활성화되지 않았습니다. 관리자에게 문의하세요.';
+      } else if (error.code) {
+        errorMessage = `오류 (${error.code}): ${error.message}`;
       } else if (error.message) {
         errorMessage = error.message;
       }
