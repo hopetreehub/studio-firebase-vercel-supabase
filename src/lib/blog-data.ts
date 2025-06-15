@@ -5,7 +5,7 @@ export const blogPosts: BlogPost[] = [
   {
     id: '1',
     title: '타로 리딩 초보자 가이드',
-    date: '2023-10-26', // YYYY-MM-DD 형식으로 변경
+    date: '2023-10-26',
     excerpt: '타로가 처음이신가요? 이 가이드는 첫 덱 선택부터 카드 의미 이해까지 타로 리딩의 기초를 안내합니다.',
     imageSrc: 'https://placehold.co/600x400.png',
     dataAiHint: 'tarot cards guide',
@@ -36,7 +36,7 @@ export const blogPosts: BlogPost[] = [
   {
     id: '2',
     title: '메이저 아르카나 이해하기: 원형의 여정',
-    date: '2023-11-05', // YYYY-MM-DD 형식으로 변경
+    date: '2023-11-05',
     excerpt: '메이저 아르카나에 깊이 빠져들어 우리 삶의 여정을 안내하는 강력한 원형 에너지를 탐험하세요.',
     imageSrc: 'https://placehold.co/600x400.png',
     dataAiHint: 'major arcana',
@@ -53,7 +53,7 @@ export const blogPosts: BlogPost[] = [
   {
     id: '3',
     title: 'AI는 어떻게 타로 리딩을 혁신하고 있는가',
-    date: '2023-11-15', // YYYY-MM-DD 형식으로 변경
+    date: '2023-11-15',
     excerpt: '고대 지혜와 현대 기술의 교차점을 탐험하세요. AI는 타로에 대한 우리의 이해와 경험을 어떻게 향상시킬 수 있을까요?',
     imageSrc: 'https://placehold.co/600x400.png',
     dataAiHint: 'AI tarot',
@@ -73,10 +73,34 @@ InnerSpell과 같은 AI 기반 타로 서비스는 다음과 같은 장점을 �
   },
 ];
 
+// Helper function to sort posts by date (ascending: oldest first)
+const getSortedPosts = (): BlogPost[] => {
+  return [...blogPosts].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+};
+
 export function getPostBySlug(slug: string): BlogPost | undefined {
   return blogPosts.find((post) => post.slug === slug);
 }
 
 export function getAllPosts(): BlogPost[] {
-  return blogPosts;
+  // Return posts sorted by date, newest first for blog listing page
+  return [...blogPosts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+
+export function getPreviousPost(currentSlug: string): BlogPost | undefined {
+  const sortedPosts = getSortedPosts(); // oldest first
+  const currentIndex = sortedPosts.findIndex(post => post.slug === currentSlug);
+  if (currentIndex > 0) {
+    return sortedPosts[currentIndex - 1];
+  }
+  return undefined;
+}
+
+export function getNextPost(currentSlug: string): BlogPost | undefined {
+  const sortedPosts = getSortedPosts(); // oldest first
+  const currentIndex = sortedPosts.findIndex(post => post.slug === currentSlug);
+  if (currentIndex !== -1 && currentIndex < sortedPosts.length - 1) {
+    return sortedPosts[currentIndex + 1];
+  }
+  return undefined;
 }

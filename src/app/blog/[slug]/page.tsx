@@ -1,10 +1,10 @@
 
-import { getPostBySlug, getAllPosts } from '@/lib/blog-data';
+import { getPostBySlug, getAllPosts, getPreviousPost, getNextPost } from '@/lib/blog-data';
 import type { BlogPost } from '@/types';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, CalendarDays, User } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarDays, User } from 'lucide-react';
 import type { Metadata, ResolvingMetadata } from 'next';
 import { notFound } from 'next/navigation';
 import { format } from 'date-fns';
@@ -40,8 +40,8 @@ export async function generateMetadata(
       images: [
         {
           url: post.imageSrc,
-          width: 1200, // Example width
-          height: 630, // Example height
+          width: 1200, 
+          height: 630, 
           alt: post.title,
         },
         ...previousImages,
@@ -69,6 +69,9 @@ export default function BlogPostPage({ params }: Props) {
   if (!post) {
     notFound();
   }
+
+  const previousPost = getPreviousPost(params.slug);
+  const nextPost = getNextPost(params.slug);
 
   const displayDate = format(new Date(post.date), 'yyyy년 MM월 dd일');
 
@@ -117,14 +120,41 @@ export default function BlogPostPage({ params }: Props) {
         </div>
       </article>
 
-      <Button asChild variant="outline" className="mt-8 group hover:bg-primary/5">
-        <Link href="/blog">
-          <span className="flex items-center">
-            <ChevronLeft className="mr-2 h-4 w-4 group-hover:text-primary transition-colors" />
-            블로그로 돌아가기
-          </span>
-        </Link>
-      </Button>
+      <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+        {previousPost ? (
+          <Button asChild variant="outline" size="sm" className="group hover:bg-primary/5 w-full sm:w-auto">
+            <Link href={`/blog/${previousPost.slug}`}>
+              <span className="flex items-center justify-center">
+                <ChevronLeft className="mr-1 h-4 w-4 group-hover:text-primary transition-colors" />
+                이전 글
+              </span>
+            </Link>
+          </Button>
+        ) : (
+          <div className="w-full sm:w-auto" /> 
+        )}
+
+        <Button asChild variant="outline" className="group hover:bg-primary/5 w-full sm:w-auto">
+          <Link href="/blog">
+            <span className="flex items-center justify-center">
+              블로그로 돌아가기
+            </span>
+          </Link>
+        </Button>
+
+        {nextPost ? (
+          <Button asChild variant="outline" size="sm" className="group hover:bg-primary/5 w-full sm:w-auto">
+            <Link href={`/blog/${nextPost.slug}`}>
+              <span className="flex items-center justify-center">
+                다음 글
+                <ChevronRight className="ml-1 h-4 w-4 group-hover:text-primary transition-colors" />
+              </span>
+            </Link>
+          </Button>
+        ) : (
+          <div className="w-full sm:w-auto" />
+        )}
+      </div>
     </div>
   );
 }
