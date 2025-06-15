@@ -71,7 +71,6 @@ export function TarotReadingClient() {
     useState<TarotInterpretationMethod>(interpretationMethods[0]);
 
   const [deck, setDeck] = useState<TarotCardType[]>([]);
-  // revealedSpreadCards will store all 78 cards with their initial orientation
   const [revealedSpreadCards, setRevealedSpreadCards] = useState<TarotCardType[]>([]);
   const [selectedCardsForReading, setSelectedCardsForReading] = useState<
     TarotCardType[]
@@ -210,38 +209,37 @@ export function TarotReadingClient() {
     }
     const drawnPool = [...deck].map((card) => ({ ...card, isFaceUp: false, isReversed: Math.random() > 0.5 }));
     setRevealedSpreadCards(drawnPool);
-    setSelectedCardsForReading([]); // Clear previous selections when revealing new spread
+    setSelectedCardsForReading([]); 
     setStage('spread_revealed');
   };
 
-  const handleCardSelectFromSpread = (clickedSpreadCard: TarotCardType, indexInSpread: number) => {
+  const handleCardSelectFromSpread = (clickedSpreadCard: TarotCardType) => {
      const cardAlreadySelected = selectedCardsForReading.find(
       (c) => c.id === clickedSpreadCard.id && c.isReversed === clickedSpreadCard.isReversed
     );
 
     let newSelectedCards: TarotCardType[];
 
-    if (cardAlreadySelected) { // Card is being deselected
+    if (cardAlreadySelected) { 
       newSelectedCards = selectedCardsForReading.filter(
         (c) => !(c.id === clickedSpreadCard.id && c.isReversed === clickedSpreadCard.isReversed)
       );
-    } else { // Card is being selected
+    } else { 
       if (selectedCardsForReading.length >= selectedSpread.numCards) {
         toast({
           description: `최대 ${selectedSpread.numCards}장까지 선택할 수 있습니다.`,
         });
         return;
       }
-      // Find the original card data to ensure we're using the master list's details
       const originalCardData = allCards.find(c => c.id === clickedSpreadCard.id);
       if (!originalCardData) {
         toast({ variant: 'destructive', title: '오류', description: '선택한 카드를 찾을 수 없습니다.'});
         return;
       }
       const cardToAdd = {
-        ...originalCardData, // Use properties from allCards
-        isReversed: clickedSpreadCard.isReversed, // Keep the orientation from the revealed spread
-        isFaceUp: true, // Selected cards are shown face up
+        ...originalCardData, 
+        isReversed: clickedSpreadCard.isReversed, 
+        isFaceUp: true, 
       };
       newSelectedCards = [...selectedCardsForReading, cardToAdd];
     }
@@ -329,7 +327,7 @@ export function TarotReadingClient() {
 
   const cardStack = (
     <div
-      className={`relative mx-auto ${TARGET_CARD_HEIGHT_CLASS} cursor-pointer group`}
+      className={`relative mx-auto ${TARGET_CARD_HEIGHT_CLASS} cursor-pointer group mb-6`}
       style={{ aspectRatio: `${IMAGE_ORIGINAL_WIDTH} / ${IMAGE_ORIGINAL_HEIGHT}` }}
       onClick={
         (stage === 'deck_ready' || stage === 'shuffled') &&
@@ -379,7 +377,6 @@ export function TarotReadingClient() {
     </div>
   );
 
-  // Filter revealed cards: only show those not yet in selectedCardsForReading
   const displayableRevealedCards = revealedSpreadCards.filter(
     rc => !selectedCardsForReading.some(sc => sc.id === rc.id && sc.isReversed === rc.isReversed)
   );
@@ -488,7 +485,7 @@ export function TarotReadingClient() {
           
           {(stage === 'deck_ready' || stage === 'shuffled' || stage === 'shuffling') && revealedSpreadCards.length === 0 && selectedCardsForReading.length === 0 && (
             <>
-              <div className="mb-6 flex justify-center">{cardStack}</div>
+              {cardStack}
               <div className="flex flex-col items-center justify-around gap-4 sm:flex-row w-full">
                 <Button
                   onClick={handleShuffle}
@@ -530,17 +527,13 @@ export function TarotReadingClient() {
               </div>
               <div
                 ref={spreadContainerRef}
-                className="flex justify-center overflow-x-auto p-2 w-full" 
+                className="flex items-center overflow-x-auto p-2 w-full" 
               >
-                <div className="flex"> {/* Inner flex container for the cards */}
+                <div className="flex"> 
                   <AnimatePresence>
-                    {displayableRevealedCards.map((cardInSpread, index) => {
-                      const uniqueKey = `${cardInSpread.id}-revealed-${cardInSpread.isReversed ? 'rev' : 'upr'}-${index}`;
-
-                      return (
+                    {displayableRevealedCards.map((cardInSpread, index) => (
                         <motion.div
-                          key={uniqueKey}
-                          layout 
+                          key={cardInSpread.id + (cardInSpread.isReversed ? '-rev' : '-upr')}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{
                             opacity: 1,
@@ -553,8 +546,8 @@ export function TarotReadingClient() {
                             scale: 0.8,
                             transition: { duration: 0.3, ease: "easeIn" },
                           }}
-                          transition={{ duration: 0.3, delay: index * 0.005 }} // Faster delay for many cards
-                          onClick={() => handleCardSelectFromSpread(cardInSpread, index)}
+                          transition={{ duration: 0.3, delay: index * 0.005 }}
+                          onClick={() => handleCardSelectFromSpread(cardInSpread)}
                           className={`${TARGET_CARD_HEIGHT_CLASS} shrink-0 cursor-pointer transform transition-all duration-200 hover:scale-105 hover:z-20 ${index < displayableRevealedCards.length - 1 ? '-mr-[100px]' : ''}`}
                           style={{ aspectRatio: `${IMAGE_ORIGINAL_WIDTH} / ${IMAGE_ORIGINAL_HEIGHT}` }}
                         >
@@ -563,17 +556,16 @@ export function TarotReadingClient() {
                           >
                             <Image
                               src={CARD_BACK_IMAGE}
-                              alt={`카드 ${index + 1} 뒷면`}
+                              alt={`카드 뒷면`}
                               width={IMAGE_ORIGINAL_WIDTH}
                               height={IMAGE_ORIGINAL_HEIGHT}
                               className="h-full w-auto object-contain rounded-lg"
                               sizes={CARD_IMAGE_SIZES}
-                              priority={index < 10} // Prioritize loading first few cards
+                              priority={index < 10} 
                             />
                           </motion.div>
                         </motion.div>
-                      );
-                    })}
+                      ))}
                   </AnimatePresence>
                 </div>
               </div>
@@ -583,8 +575,6 @@ export function TarotReadingClient() {
                   size="sm" 
                   onClick={() => {
                     setSelectedCardsForReading([]);
-                    // Re-populate revealedSpreadCards if needed, or just ensure displayableRevealedCards updates
-                    // For simplicity, if revealedSpreadCards is always full deck, this is fine.
                     setStage('spread_revealed'); 
                   }}
                   className="mt-4"
@@ -597,7 +587,7 @@ export function TarotReadingClient() {
         </CardContent>
       </Card>
       
-      {selectedCardsForReading.length > 0 && (stage === 'cards_selected' || stage === 'interpreting' || stage === 'interpretation_ready') && (
+      {(stage === 'cards_selected' || stage === 'interpreting' || stage === 'interpretation_ready') && (
         <Card className="animate-fade-in mt-8">
           <CardHeader>
             <CardTitle className="font-headline text-2xl text-primary">
@@ -614,8 +604,8 @@ export function TarotReadingClient() {
                 <AnimatePresence>
                   {selectedCardsForReading.map((card, index) => (
                     <motion.div
-                      key={`${card.id}-selected-${card.isReversed ? 'rev' : 'upr'}-${index}`}
-                      layoutId={`${card.id}-revealed-${card.isReversed ? 'rev' : 'upr'}-${revealedSpreadCards.findIndex(rc => rc.id === card.id && rc.isReversed === card.isReversed)}`} // Attempt for shared layout
+                      key={card.id + (card.isReversed ? '-rev' : '-upr')}
+                      layoutId={card.id + (card.isReversed ? '-rev' : '-upr')}
                       initial={{ opacity: 0, scale: 0.8, y: -20 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.8, y: 20, transition: {duration: 0.2} }}
