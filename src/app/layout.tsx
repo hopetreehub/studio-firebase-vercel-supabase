@@ -1,10 +1,10 @@
 
 import type { Metadata } from 'next';
 import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from '@/context/AuthContext';
-import RootLayoutClient from './RootLayoutClient'; // New client component
+// import { AuthProvider } from '@/context/AuthContext'; // AuthProvider 제거
+import RootLayoutClient from './RootLayoutClient';
 import './globals.css';
-import { ThemeProvider } from '@/components/layout/ThemeProvider'; // Added ThemeProvider
+import { ThemeProvider } from '@/components/layout/ThemeProvider';
 
 export const metadata: Metadata = {
   title: 'InnerSpell - 당신의 내면을 탐험하세요',
@@ -33,10 +33,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
+          {/* <AuthProvider> */} {/* AuthProvider 제거 */}
             <RootLayoutClient>{children}</RootLayoutClient>
             <Toaster />
-          </AuthProvider>
+          {/* </AuthProvider> */} {/* AuthProvider 제거 */}
         </ThemeProvider>
       </body>
     </html>
