@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 
 import { useToast } from '@/hooks/use-toast';
-import { AnimatePresence, motion, useAnimation } from 'framer-motion';
+import { AnimatePresence, motion, useAnimation, LayoutGroup } from 'framer-motion';
 
 type ReadingStage =
   | 'setup'
@@ -52,7 +52,7 @@ type ReadingStage =
   | 'interpreting'
   | 'interpretation_ready';
 
-const CARD_BACK_IMAGE = '/images/tarot/back.png'; // Updated card back image
+const CARD_BACK_IMAGE = '/images/tarot/back.png';
 const NUM_VISUAL_CARDS_IN_STACK = 15;
 const N_ANIMATING_CARDS_FOR_SHUFFLE = 7;
 
@@ -71,9 +71,8 @@ export function TarotReadingClient() {
     useState<TarotInterpretationMethod>(interpretationMethods[0]);
 
   const [deck, setDeck] = useState<TarotCardType[]>([]);
-  const [revealedSpreadCards, setRevealedSpreadCards] = useState<TarotCardType[]>(
-    [],
-  );
+  // revealedSpreadCards will store all 78 cards with their initial orientation
+  const [revealedSpreadCards, setRevealedSpreadCards] = useState<TarotCardType[]>([]);
   const [selectedCardsForReading, setSelectedCardsForReading] = useState<
     TarotCardType[]
   >([]);
@@ -209,40 +208,40 @@ export function TarotReadingClient() {
       });
       return;
     }
-    // Reveal all cards from the deck
     const drawnPool = [...deck].map((card) => ({ ...card, isFaceUp: false, isReversed: Math.random() > 0.5 }));
     setRevealedSpreadCards(drawnPool);
+    setSelectedCardsForReading([]); // Clear previous selections when revealing new spread
     setStage('spread_revealed');
   };
 
   const handleCardSelectFromSpread = (clickedSpreadCard: TarotCardType, indexInSpread: number) => {
-     const existingSelectedCardIndex = selectedCardsForReading.findIndex(
+     const cardAlreadySelected = selectedCardsForReading.find(
       (c) => c.id === clickedSpreadCard.id && c.isReversed === clickedSpreadCard.isReversed
     );
 
-    if (selectedCardsForReading.length >= selectedSpread.numCards && existingSelectedCardIndex === -1) {
-      toast({
-        description: `최대 ${selectedSpread.numCards}장까지 선택할 수 있습니다.`,
-      });
-      return;
-    }
-
     let newSelectedCards: TarotCardType[];
 
-    if (existingSelectedCardIndex !== -1) {
+    if (cardAlreadySelected) { // Card is being deselected
       newSelectedCards = selectedCardsForReading.filter(
-        (c, i) => !(c.id === clickedSpreadCard.id && c.isReversed === clickedSpreadCard.isReversed)
+        (c) => !(c.id === clickedSpreadCard.id && c.isReversed === clickedSpreadCard.isReversed)
       );
-    } else {
+    } else { // Card is being selected
+      if (selectedCardsForReading.length >= selectedSpread.numCards) {
+        toast({
+          description: `최대 ${selectedSpread.numCards}장까지 선택할 수 있습니다.`,
+        });
+        return;
+      }
+      // Find the original card data to ensure we're using the master list's details
       const originalCardData = allCards.find(c => c.id === clickedSpreadCard.id);
       if (!originalCardData) {
         toast({ variant: 'destructive', title: '오류', description: '선택한 카드를 찾을 수 없습니다.'});
         return;
       }
       const cardToAdd = {
-        ...originalCardData,
-        isReversed: clickedSpreadCard.isReversed,
-        isFaceUp: true, 
+        ...originalCardData, // Use properties from allCards
+        isReversed: clickedSpreadCard.isReversed, // Keep the orientation from the revealed spread
+        isFaceUp: true, // Selected cards are shown face up
       };
       newSelectedCards = [...selectedCardsForReading, cardToAdd];
     }
@@ -380,6 +379,11 @@ export function TarotReadingClient() {
     </div>
   );
 
+  // Filter revealed cards: only show those not yet in selectedCardsForReading
+  const displayableRevealedCards = revealedSpreadCards.filter(
+    rc => !selectedCardsForReading.some(sc => sc.id === rc.id && sc.isReversed === rc.isReversed)
+  );
+
   return (
     <div className="space-y-8">
       <Card>
@@ -482,7 +486,7 @@ export function TarotReadingClient() {
         </CardHeader>
         <CardContent className="flex flex-col items-center space-y-6 p-6 md:p-8 min-h-[400px]">
           
-          {(stage === 'deck_ready' || stage === 'shuffled' || stage === 'shuffling') && revealedSpreadCards.length === 0 && (
+          {(stage === 'deck_ready' || stage === 'shuffled' || stage === 'shuffling') && revealedSpreadCards.length === 0 && selectedCardsForReading.length === 0 && (
             <>
               <div className="mb-6 flex justify-center">{cardStack}</div>
               <div className="flex flex-col items-center justify-around gap-4 sm:flex-row w-full">
@@ -514,7 +518,7 @@ export function TarotReadingClient() {
             </>
           )}
           
-          {revealedSpreadCards.length > 0 && (stage === 'spread_revealed' || stage === 'cards_selected') && (
+          {(stage === 'spread_revealed' || stage === 'cards_selected') && revealedSpreadCards.length > 0 && (
             <>
               <div className="w-full text-center mb-4">
                 <h3 className="font-headline text-xl text-primary">
@@ -526,55 +530,52 @@ export function TarotReadingClient() {
               </div>
               <div
                 ref={spreadContainerRef}
-                className="flex items-center overflow-x-auto p-2 w-full"
+                className="flex justify-center overflow-x-auto p-2 w-full" 
               >
-                <AnimatePresence>
-                  {revealedSpreadCards.map((cardInSpread, index) => {
-                    const isSelected = selectedCardsForReading.some(
-                       (sc) => sc.id === cardInSpread.id && sc.isReversed === cardInSpread.isReversed
-                    );
+                <div className="flex"> {/* Inner flex container for the cards */}
+                  <AnimatePresence>
+                    {displayableRevealedCards.map((cardInSpread, index) => {
+                      const uniqueKey = `${cardInSpread.id}-revealed-${cardInSpread.isReversed ? 'rev' : 'upr'}-${index}`;
 
-                    return (
-                      <motion.div
-                        key={`${cardInSpread.id}-revealed-${index}-${cardInSpread.isReversed}`}
-                        initial={{ opacity: 0, y: 50 }}
-                        animate={{
-                          opacity: 1,
-                          y: isSelected ? -10 : 0,
-                          scale: isSelected ? 1.03 : 1,
-                          zIndex: isSelected ? 10 : 1,
-                        }}
-                        exit={{
-                          opacity: 0,
-                          y: -50,
-                          scale: 0.8,
-                          zIndex: 0,
-                        }}
-                        transition={{ duration: 0.3, delay: index * 0.01 }}
-                        onClick={() => handleCardSelectFromSpread(cardInSpread, index)}
-                        className={`${TARGET_CARD_HEIGHT_CLASS} shrink-0 cursor-pointer transform transition-all duration-200 hover:scale-105 hover:z-20 ${index < revealedSpreadCards.length - 1 ? '-mr-[128px]' : ''}`} 
-                        style={{ aspectRatio: `${IMAGE_ORIGINAL_WIDTH} / ${IMAGE_ORIGINAL_HEIGHT}` }}
-                      >
+                      return (
                         <motion.div
-                          className={`relative h-full w-full overflow-hidden rounded-lg transition-all duration-200 ease-in-out ${
-                            isSelected
-                              ? 'ring-2 ring-accent ring-offset-1 ring-offset-background'
-                              : ''
-                          }`}
+                          key={uniqueKey}
+                          layout 
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{
+                            opacity: 1,
+                            y: 0,
+                            scale: 1,
+                          }}
+                          exit={{ 
+                            opacity: 0,
+                            y: 40, 
+                            scale: 0.8,
+                            transition: { duration: 0.3, ease: "easeIn" },
+                          }}
+                          transition={{ duration: 0.3, delay: index * 0.005 }} // Faster delay for many cards
+                          onClick={() => handleCardSelectFromSpread(cardInSpread, index)}
+                          className={`${TARGET_CARD_HEIGHT_CLASS} shrink-0 cursor-pointer transform transition-all duration-200 hover:scale-105 hover:z-20 ${index < displayableRevealedCards.length - 1 ? '-mr-[100px]' : ''}`}
+                          style={{ aspectRatio: `${IMAGE_ORIGINAL_WIDTH} / ${IMAGE_ORIGINAL_HEIGHT}` }}
                         >
-                          <Image
-                            src={CARD_BACK_IMAGE}
-                            alt={`카드 ${index + 1} 뒷면`}
-                            width={IMAGE_ORIGINAL_WIDTH}
-                            height={IMAGE_ORIGINAL_HEIGHT}
-                            className="h-full w-auto object-contain rounded-lg"
-                            sizes={CARD_IMAGE_SIZES}
-                          />
+                          <motion.div
+                            className={`relative h-full w-full overflow-hidden rounded-lg transition-all duration-200 ease-in-out`}
+                          >
+                            <Image
+                              src={CARD_BACK_IMAGE}
+                              alt={`카드 ${index + 1} 뒷면`}
+                              width={IMAGE_ORIGINAL_WIDTH}
+                              height={IMAGE_ORIGINAL_HEIGHT}
+                              className="h-full w-auto object-contain rounded-lg"
+                              sizes={CARD_IMAGE_SIZES}
+                              priority={index < 10} // Prioritize loading first few cards
+                            />
+                          </motion.div>
                         </motion.div>
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
+                      );
+                    })}
+                  </AnimatePresence>
+                </div>
               </div>
                {selectedCardsForReading.length > 0 && (
                 <Button 
@@ -582,6 +583,8 @@ export function TarotReadingClient() {
                   size="sm" 
                   onClick={() => {
                     setSelectedCardsForReading([]);
+                    // Re-populate revealedSpreadCards if needed, or just ensure displayableRevealedCards updates
+                    // For simplicity, if revealedSpreadCards is always full deck, this is fine.
                     setStage('spread_revealed'); 
                   }}
                   className="mt-4"
@@ -606,35 +609,40 @@ export function TarotReadingClient() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap justify-center gap-3"> 
-              {selectedCardsForReading.map((card, index) => (
-                <motion.div
-                  key={`${card.id}-selected-${index}-${card.isReversed}`}
-                  layout
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3 }}
-                  className={`${TARGET_CARD_HEIGHT_CLASS} overflow-hidden rounded-lg`}
-                  style={{ aspectRatio: `${IMAGE_ORIGINAL_WIDTH} / ${IMAGE_ORIGINAL_HEIGHT}` }}
-                >
-                  <motion.div
-                    className={`relative h-full w-full overflow-hidden rounded-lg ${
-                      card.isReversed ? 'rotate-180 transform' : ''
-                    }`}
-                  >
-                    <Image
-                      src={card.imageSrc}
-                      alt={card.name}
-                      width={IMAGE_ORIGINAL_WIDTH}
-                      height={IMAGE_ORIGINAL_HEIGHT}
-                      className="h-full w-full object-contain rounded-lg"
-                      data-ai-hint={card.dataAiHint}
-                      sizes={CARD_IMAGE_SIZES}
-                    />
-                  </motion.div>
-                </motion.div>
-              ))}
-            </div>
+            <LayoutGroup>
+              <div className="flex flex-wrap justify-center gap-3"> 
+                <AnimatePresence>
+                  {selectedCardsForReading.map((card, index) => (
+                    <motion.div
+                      key={`${card.id}-selected-${card.isReversed ? 'rev' : 'upr'}-${index}`}
+                      layoutId={`${card.id}-revealed-${card.isReversed ? 'rev' : 'upr'}-${revealedSpreadCards.findIndex(rc => rc.id === card.id && rc.isReversed === card.isReversed)}`} // Attempt for shared layout
+                      initial={{ opacity: 0, scale: 0.8, y: -20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.8, y: 20, transition: {duration: 0.2} }}
+                      transition={{ duration: 0.3 }}
+                      className={`${TARGET_CARD_HEIGHT_CLASS} overflow-hidden rounded-lg`}
+                      style={{ aspectRatio: `${IMAGE_ORIGINAL_WIDTH} / ${IMAGE_ORIGINAL_HEIGHT}` }}
+                    >
+                      <motion.div
+                        className={`relative h-full w-full overflow-hidden rounded-lg ${
+                          card.isReversed ? 'rotate-180 transform' : ''
+                        }`}
+                      >
+                        <Image
+                          src={card.imageSrc}
+                          alt={card.name}
+                          width={IMAGE_ORIGINAL_WIDTH}
+                          height={IMAGE_ORIGINAL_HEIGHT}
+                          className="h-full w-full object-contain rounded-lg"
+                          data-ai-hint={card.dataAiHint}
+                          sizes={CARD_IMAGE_SIZES}
+                        />
+                      </motion.div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </LayoutGroup>
           </CardContent>
           <CardFooter className="mt-6 flex justify-center">
             <Button
