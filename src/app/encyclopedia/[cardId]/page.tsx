@@ -82,14 +82,7 @@ export default function CardDetailPage({ params }: Props) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <Button asChild variant="outline" className="mb-6 group hover:bg-primary/5">
-        <Link href="/encyclopedia">
-          <ChevronLeft className="mr-2 h-4 w-4 group-hover:text-primary transition-colors" /> 
-          백과사전으로 돌아가기
-        </Link>
-      </Button>
-
+    <div className="max-w-4xl mx-auto space-y-8 py-8"> {/* Added py-8 for consistent padding */}
       <Card className="overflow-hidden shadow-xl border-primary/10">
         <div className="grid md:grid-cols-3">
           <div className="md:col-span-1 p-4 sm:p-6 bg-primary/5 flex justify-center items-center">
@@ -196,6 +189,13 @@ export default function CardDetailPage({ params }: Props) {
           </div>
         </div>
       </Card>
+
+      <Button asChild variant="outline" className="mt-8 group hover:bg-primary/5"> {/* Added mt-8 for spacing */}
+        <Link href="/encyclopedia">
+          <ChevronLeft className="mr-2 h-4 w-4 group-hover:text-primary transition-colors" /> 
+          백과사전으로 돌아가기
+        </Link>
+      </Button>
     </div>
   );
 }

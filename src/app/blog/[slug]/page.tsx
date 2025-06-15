@@ -74,13 +74,6 @@ export default function BlogPostPage({ params }: Props) {
 
   return (
     <div className="max-w-3xl mx-auto space-y-8 py-8">
-      <Button asChild variant="outline" className="mb-6 group hover:bg-primary/5">
-        <Link href="/blog">
-          <ChevronLeft className="mr-2 h-4 w-4 group-hover:text-primary transition-colors" />
-          블로그로 돌아가기
-        </Link>
-      </Button>
-
       <article className="bg-card shadow-xl rounded-lg overflow-hidden border border-primary/10">
         <header className="p-6 sm:p-8">
           <h1 className="font-headline text-3xl sm:text-4xl font-bold text-primary mb-3">
@@ -123,6 +116,13 @@ export default function BlogPostPage({ params }: Props) {
           {post.content}
         </div>
       </article>
+
+      <Button asChild variant="outline" className="mt-8 group hover:bg-primary/5">
+        <Link href="/blog">
+          <ChevronLeft className="mr-2 h-4 w-4 group-hover:text-primary transition-colors" />
+          블로그로 돌아가기
+        </Link>
+      </Button>
     </div>
   );
 }
