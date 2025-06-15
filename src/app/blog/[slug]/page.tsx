@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, CalendarDays, User } from 'lucide-react';
 import type { Metadata, ResolvingMetadata } from 'next';
 import { notFound } from 'next/navigation';
+import { format } from 'date-fns';
 
 type Props = {
   params: { slug: string };
@@ -33,7 +34,7 @@ export async function generateMetadata(
       title: post.title,
       description: post.excerpt,
       type: 'article',
-      publishedTime: new Date(post.date).toISOString(), // Assuming date is in a parsable format
+      publishedTime: new Date(post.date).toISOString(), // 'YYYY-MM-DD'는 ISOString으로 변환 가능
       authors: post.author ? [post.author] : undefined,
       tags: post.tags,
       images: [
@@ -69,6 +70,8 @@ export default function BlogPostPage({ params }: Props) {
     notFound();
   }
 
+  const displayDate = format(new Date(post.date), 'yyyy년 MM월 dd일');
+
   return (
     <div className="max-w-3xl mx-auto space-y-8 py-8">
       <Button asChild variant="outline" className="mb-6 group hover:bg-primary/5">
@@ -85,7 +88,7 @@ export default function BlogPostPage({ params }: Props) {
           </h1>
           <div className="flex flex-wrap items-center space-x-4 text-sm text-muted-foreground mb-4">
             <div className="flex items-center">
-              <CalendarDays className="h-4 w-4 mr-1.5" /> {post.date}
+              <CalendarDays className="h-4 w-4 mr-1.5" /> {displayDate}
             </div>
             {post.author && (
               <div className="flex items-center">

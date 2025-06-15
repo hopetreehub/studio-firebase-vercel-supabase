@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { CalendarDays, Feather } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getAllPosts } from '@/lib/blog-data'; // Import from new location
+import { format } from 'date-fns';
 
 export const metadata: Metadata = {
   title: '블로그 - InnerSpell',
@@ -26,37 +27,40 @@ export default function BlogPage() {
       </header>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {posts.map((post) => (
-          <Card key={post.id} className="flex flex-col overflow-hidden shadow-lg hover:shadow-primary/20 transition-shadow duration-300 group">
-            <Link href={`/blog/${post.slug}`} className="block">
-              <div className="aspect-video relative overflow-hidden">
-                <Image
-                  src={post.imageSrc}
-                  alt={post.title}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  data-ai-hint={post.dataAiHint}
-                />
-              </div>
-            </Link>
-            <CardHeader>
-              <Link href={`/blog/${post.slug}`}>
-                <CardTitle className="font-headline text-2xl text-primary group-hover:text-accent transition-colors">{post.title}</CardTitle>
+        {posts.map((post) => {
+          const displayDate = format(new Date(post.date), 'yyyy년 MM월 dd일');
+          return (
+            <Card key={post.id} className="flex flex-col overflow-hidden shadow-lg hover:shadow-primary/20 transition-shadow duration-300 group">
+              <Link href={`/blog/${post.slug}`} className="block">
+                <div className="aspect-video relative overflow-hidden">
+                  <Image
+                    src={post.imageSrc}
+                    alt={post.title}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    data-ai-hint={post.dataAiHint}
+                  />
+                </div>
               </Link>
-              <CardDescription className="flex items-center text-sm text-muted-foreground pt-1">
-                <CalendarDays className="h-4 w-4 mr-1.5" /> {post.date}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <p className="text-foreground/70 line-clamp-3">{post.excerpt}</p>
-            </CardContent>
-            <CardFooter>
-              <Button variant="link" asChild className="text-accent p-0">
-                <Link href={`/blog/${post.slug}`}>더 읽어보기 &rarr;</Link>
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
+              <CardHeader>
+                <Link href={`/blog/${post.slug}`}>
+                  <CardTitle className="font-headline text-2xl text-primary group-hover:text-accent transition-colors">{post.title}</CardTitle>
+                </Link>
+                <CardDescription className="flex items-center text-sm text-muted-foreground pt-1">
+                  <CalendarDays className="h-4 w-4 mr-1.5" /> {displayDate}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <p className="text-foreground/70 line-clamp-3">{post.excerpt}</p>
+              </CardContent>
+              <CardFooter>
+                <Button variant="link" asChild className="text-accent p-0">
+                  <Link href={`/blog/${post.slug}`}>더 읽어보기 &rarr;</Link>
+                </Button>
+              </CardFooter>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
