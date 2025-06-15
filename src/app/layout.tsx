@@ -1,7 +1,7 @@
 
 import type { Metadata } from 'next';
 import { Toaster } from "@/components/ui/toaster";
-// import { AuthProvider } from '@/context/AuthContext'; // AuthProvider 제거
+import { AuthProvider } from '@/context/AuthContext'; // Restored
 import RootLayoutClient from './RootLayoutClient';
 import './globals.css';
 import { ThemeProvider } from '@/components/layout/ThemeProvider';
@@ -33,10 +33,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {/* <AuthProvider> */} {/* AuthProvider 제거 */}
+          <AuthProvider> {/* Restored */}
             <RootLayoutClient>{children}</RootLayoutClient>
             <Toaster />
-          {/* </AuthProvider> */} {/* AuthProvider 제거 */}
+          </AuthProvider> {/* Restored */}
         </ThemeProvider>
       </body>
     </html>

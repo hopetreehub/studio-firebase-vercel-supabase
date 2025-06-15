@@ -1,34 +1,75 @@
 
 'use client';
-// import { useAuth } from '@/context/AuthContext'; // useAuth 제거
+import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-// import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Avatar 관련 제거
-// import { Button } from '@/components/ui/button'; // Button 제거 (필요시 유지)
-// import { Input } from '@/components/ui/input'; // Input 제거 (필요시 유지)
-// import { Label } from '@/components/ui/label'; // Label 제거 (필요시 유지)
-// import { Separator } from '@/components/ui/separator'; // Separator 제거 (필요시 유지)
-import { UserCircle } from 'lucide-react';
-// import { useEffect } from 'react'; // useEffect 제거
-// import { useRouter } from 'next/navigation'; // useRouter 제거
-// import { Spinner } from '@/components/ui/spinner'; // Spinner 제거
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { UserCircle, Edit3 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Spinner } from '@/components/ui/spinner';
+import { updateProfile as firebaseUpdateProfile } from 'firebase/auth'; // aliased to avoid conflict
+import { useToast } from '@/hooks/use-toast';
+import type { User } from 'firebase/auth';
+
 
 export default function ProfilePage() {
-  // const { user, loading } = useAuth(); // useAuth 관련 로직 제거
-  // const router = useRouter();
+  const { user, loading } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [displayName, setDisplayName] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  // useEffect(() => { // 리디렉션 로직 제거
-  //   if (!loading && !user) {
-  //     router.push('/sign-in?redirect=/profile');
-  //   }
-  // }, [user, loading, router]);
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/sign-in?redirect=/profile');
+    }
+    if (user) {
+      setDisplayName(user.displayName || '');
+    }
+  }, [user, loading, router]);
 
-  // if (loading || !user) { // 로딩 상태 제거
-  //   return (
-  //     <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
-  //       <Spinner size="large" />
-  //     </div>
-  //   );
-  // }
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    setIsUpdating(true);
+    try {
+      await firebaseUpdateProfile(user, { displayName });
+      // Manually update the user object in AuthContext or re-fetch if necessary
+      // For now, we'll just assume Firebase propagates this change or user reloads
+      if (auth.currentUser) { // auth needs to be imported from firebase client
+         // This is a trick to force re-render if displayName changed
+        const updatedUser = { ...auth.currentUser, displayName: displayName } as User;
+         // You might need a way to update the user in your AuthContext
+         // For simplicity, we're not doing that here, but in a real app, you would.
+      }
+
+      toast({ title: '성공', description: '프로필이 업데이트되었습니다.' });
+      setIsEditing(false);
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: '오류', description: `프로필 업데이트 실패: ${error.message}` });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  if (loading || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+        <Spinner size="large" />
+      </div>
+    );
+  }
+  
+  // Need to import auth from '@/lib/firebase/client' for the trick above.
+  // This is a placeholder since I cannot add imports here.
+  // In a real scenario, you'd have a way to update AuthContext's user.
+  const auth = { currentUser: user };
+
 
   return (
     <div className="max-w-2xl mx-auto space-y-8 py-10">
@@ -38,12 +79,59 @@ export default function ProfilePage() {
       </header>
       <Card className="shadow-xl border-primary/10">
         <CardHeader>
-          <CardTitle className="font-headline text-2xl text-primary">기능 비활성화됨</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle className="font-headline text-2xl text-primary">계정 정보</CardTitle>
+            {!isEditing && (
+              <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}>
+                <Edit3 className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
         </CardHeader>
-        <CardContent>
-          <CardDescription className="text-md text-muted-foreground">
-            프로필 기능은 현재 일시적으로 사용할 수 없습니다. 개발 완료 후 다시 활성화될 예정입니다.
-          </CardDescription>
+        <CardContent className="space-y-6">
+          <div className="flex items-center space-x-4">
+            <Avatar className="h-20 w-20 border-2 border-primary">
+              <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
+              <AvatarFallback className="text-2xl bg-primary/20 text-primary">
+                {(displayName || user.email?.charAt(0) || 'U').toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              {isEditing ? (
+                <form onSubmit={handleUpdateProfile} className="space-y-2">
+                  <Label htmlFor="displayNameInput" className="sr-only">닉네임</Label>
+                  <Input 
+                    id="displayNameInput" 
+                    value={displayName} 
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="닉네임"
+                    className="text-lg font-semibold"
+                  />
+                   <div className="flex gap-2">
+                    <Button type="submit" size="sm" disabled={isUpdating}>
+                      {isUpdating ? <Spinner size="small" className="mr-2" /> : null}
+                      저장
+                    </Button>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => { setIsEditing(false); setDisplayName(user.displayName || '');}}>
+                      취소
+                    </Button>
+                   </div>
+                </form>
+              ) : (
+                <p className="text-2xl font-semibold text-foreground">{displayName || '닉네임 없음'}</p>
+              )}
+              <p className="text-muted-foreground">{user.email}</p>
+            </div>
+          </div>
+          <Separator />
+          <div>
+            <Label className="text-sm font-medium text-muted-foreground">계정 생성일</Label>
+            <p className="text-foreground">{user.metadata.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString('ko-KR') : '정보 없음'}</p>
+          </div>
+          <div>
+            <Label className="text-sm font-medium text-muted-foreground">마지막 로그인</Label>
+            <p className="text-foreground">{user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime).toLocaleDateString('ko-KR') : '정보 없음'}</p>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-// import { UserNav } from './UserNav'; // UserNav 주석 처리
+import { UserNav } from './UserNav'; // Restored
 import { ThemeToggle } from './ThemeToggle';
 
 const navItems = [
@@ -35,7 +35,7 @@ export function Navbar() {
         </nav>
         <div className="flex items-center space-x-2">
           <ThemeToggle />
-          {/* <UserNav /> */} {/* UserNav 주석 처리 */}
+          <UserNav /> {/* Restored */}
         </div>
       </div>
     </header>
