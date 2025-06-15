@@ -84,9 +84,11 @@ export function BlogManagementForm() {
 
     if (result.success && result.post) {
       toast({
-        title: '게시물 "저장됨" (시뮬레이션)',
-        description: `"${result.post.title}" 게시물 데이터가 준비되었습니다. (실제 저장은 AI 응답을 통해 src/lib/blog-data.ts 파일이 업데이트되어야 반영됩니다.)`,
+        title: '게시물 데이터 준비 완료',
+        description: `"${result.post.title}" 게시물 객체가 생성되었습니다. 이 내용을 AI에게 전달하여 블로그에 게시하세요. (실제 저장은 AI 응답을 통해 src/lib/blog-data.ts 파일이 업데이트되어야 반영됩니다.)`,
+        duration: 9000, // Longer duration for user to see the message
       });
+      // console.log("New Post Data:", result.post); // For user to copy if needed
       // form.reset(); // Optionally reset form on success
     } else {
       toast({
@@ -130,7 +132,7 @@ export function BlogManagementForm() {
                 </Button>
               </div>
               <FormDescription>
-                게시물의 고유 URL 경로입니다. 비워두면 제목 기준으로 자동 생성됩니다.
+                게시물의 고유 URL 경로입니다. {autoSlug ? "제목 기준으로 자동 생성됩니다." : "수동으로 입력해주세요."}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -227,15 +229,15 @@ export function BlogManagementForm() {
         <FormField
           control={form.control}
           name="tags"
-          render={({ field: { onChange, value, ...fieldProps } }) => ( // Destructure value here
+          render={({ field: { onChange, value, ...fieldProps } }) => ( 
             <FormItem>
               <FormLabel className="text-lg font-semibold">태그</FormLabel>
               <FormControl>
                 <Input 
                   placeholder="쉼표(,)로 구분하여 태그 입력 (예: 타로, 명상, 운세)" 
-                  {...fieldProps} // Spread other field props
-                  onChange={(e) => onChange(e.target.value)} // Send string to form state
-                  value={Array.isArray(value) ? value.join(', ') : (value || '')} // Display as string
+                  {...fieldProps} 
+                  onChange={(e) => onChange(e.target.value)} 
+                  value={Array.isArray(value) ? value.join(', ') : (value || '')} 
                 />
               </FormControl>
               <FormDescription>

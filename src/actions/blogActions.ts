@@ -1,3 +1,4 @@
+
 'use server';
 
 import type { BlogPost } from '@/types';
@@ -19,12 +20,13 @@ export type BlogFormData = z.infer<typeof BlogFormDataSchema>;
 
 export async function submitBlogPost(
   formData: BlogFormData
-): Promise<{ success: boolean; post?: BlogPost; error?: string }> {
+): Promise<{ success: boolean; post?: BlogPost; error?: string | object }> {
   try {
-    // Validate data (though client-side validation should also exist)
+    // Validate data
     const validationResult = BlogFormDataSchema.safeParse(formData);
     if (!validationResult.success) {
-      return { success: false, error: validationResult.error.flatten().fieldErrors_type_error_map };
+      // Return Zod's detailed error object for better form error handling if needed
+      return { success: false, error: validationResult.error.flatten().fieldErrors };
     }
 
     const { title, slug, excerpt, content, imageSrc, dataAiHint, author, tags } = validationResult.data;
@@ -38,13 +40,13 @@ export async function submitBlogPost(
       content,
       imageSrc: imageSrc || 'https://placehold.co/600x400.png', // Default placeholder
       dataAiHint: dataAiHint || 'placeholder image',
-      author: author || 'InnerSpell Team',
+      author: author || 'InnerSpell 팀',
       tags: tags || [],
     };
 
     // In a real application, this is where you'd save `newPost` to a database.
     // For this prototype, the AI will handle updating `src/lib/blog-data.ts`
-    // based on the successful return of this action.
+    // based on the successful return of this action (when user provides the 'newPost' object).
 
     return { success: true, post: newPost };
   } catch (error) {
