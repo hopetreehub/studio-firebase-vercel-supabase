@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { submitBlogPost, type BlogFormData } from '@/actions/blogActions';
 
 const formSchema = z.object({
   title: z.string().min(5, { message: '제목은 최소 5자 이상이어야 합니다.' }).max(100, { message: '제목은 최대 100자까지 가능합니다.'}),
@@ -29,7 +30,7 @@ const formSchema = z.object({
   imageSrc: z.string().url({ message: '유효한 이미지 URL을 입력해주세요.' }).optional().or(z.literal('')),
   dataAiHint: z.string().max(50, {message: 'AI 힌트는 최대 50자까지 가능합니다.'}).optional().or(z.literal('')),
   author: z.string().optional().or(z.literal('')),
-  tags: z.string().optional().or(z.literal('')).transform(val => val ? val.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : []),
+  tags: z.string().optional().transform(val => val ? val.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : []),
 });
 
 // Helper function to generate slug from title
@@ -73,18 +74,27 @@ export function BlogManagementForm() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true);
-    console.log('블로그 게시물 제출 값:', values);
-    // 여기에 실제 블로그 게시물 생성 API 호출 로직을 추가합니다.
-    // 예를 들어: await createBlogPost(values);
+    
+    const formData: BlogFormData = {
+      ...values,
+      tags: values.tags || [], // Ensure tags is an array
+    };
 
-    // 임시로 성공 토스트 표시
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const result = await submitBlogPost(formData);
 
-    toast({
-      title: '게시물 저장됨 (시뮬레이션)',
-      description: `"${values.title}" 게시물이 저장되었습니다. (콘솔 로그 확인)`,
-    });
-    // form.reset(); // 성공 시 폼 초기화 (선택 사항)
+    if (result.success && result.post) {
+      toast({
+        title: '게시물 "저장됨" (시뮬레이션)',
+        description: `"${result.post.title}" 게시물 데이터가 준비되었습니다. (실제 저장은 AI 응답을 통해 src/lib/blog-data.ts 파일이 업데이트되어야 반영됩니다.)`,
+      });
+      // form.reset(); // Optionally reset form on success
+    } else {
+      toast({
+        variant: 'destructive',
+        title: '게시물 저장 실패',
+        description: result.error || '알 수 없는 오류가 발생했습니다.',
+      });
+    }
     setLoading(false);
   };
 
@@ -175,6 +185,9 @@ export function BlogManagementForm() {
               <FormControl>
                 <Input type="url" placeholder="https://example.com/image.jpg" {...field} />
               </FormControl>
+               <FormDescription>
+                비워두면 기본 플레이스홀더 이미지가 사용됩니다.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -190,7 +203,7 @@ export function BlogManagementForm() {
                 <Input placeholder="예: tarot cards, magic" {...field} />
               </FormControl>
               <FormDescription>
-                대표 이미지 검색을 위한 키워드 (1-2 단어)
+                대표 이미지 검색을 위한 키워드 (1-2 단어). 비워두면 'placeholder image'가 사용됩니다.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -214,15 +227,15 @@ export function BlogManagementForm() {
         <FormField
           control={form.control}
           name="tags"
-          render={({ field: { onChange, ...fieldProps } }) => (
+          render={({ field: { onChange, value, ...fieldProps } }) => ( // Destructure value here
             <FormItem>
               <FormLabel className="text-lg font-semibold">태그</FormLabel>
               <FormControl>
                 <Input 
                   placeholder="쉼표(,)로 구분하여 태그 입력 (예: 타로, 명상, 운세)" 
-                  {...fieldProps}
+                  {...fieldProps} // Spread other field props
                   onChange={(e) => onChange(e.target.value)} // Send string to form state
-                  value={Array.isArray(fieldProps.value) ? fieldProps.value.join(', ') : fieldProps.value || ''} // Display as string
+                  value={Array.isArray(value) ? value.join(', ') : (value || '')} // Display as string
                 />
               </FormControl>
               <FormDescription>
