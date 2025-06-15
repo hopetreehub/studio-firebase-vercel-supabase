@@ -37,13 +37,7 @@ import {
   Loader2,
   Shuffle,
   Layers,
-  // Eye as EyeIcon, // Not used
-  // Star, // Not used
 } from 'lucide-react';
-// import { WandIcon } from '@/components/icons/WandIcon'; // Not used
-// import { CupIcon } from '@/components/icons/CupIcon'; // Not used
-// import { SwordIcon } from '@/components/icons/SwordIcon'; // Not used
-// import { PentacleIcon } from '@/components/icons/PentacleIcon'; // Not used
 
 import { useToast } from '@/hooks/use-toast';
 import { AnimatePresence, motion, useAnimation } from 'framer-motion';
@@ -327,7 +321,7 @@ export function TarotReadingClient() {
 
   const cardStack = (
     <div
-      className="relative mx-auto h-56 w-36 cursor-pointer group md:h-60 md:w-40" // Adjusted stack size for visibility
+      className="relative mx-auto h-60 w-40 cursor-pointer group"
       onClick={
         (stage === 'deck_ready' || stage === 'shuffled') &&
         !isShufflingAnimationActive
@@ -353,7 +347,7 @@ export function TarotReadingClient() {
             src={CARD_BACK_IMAGE}
             alt="카드 뒷면 뭉치"
             fill
-            sizes="(max-width: 768px) 144px, 160px" 
+            sizes="160px"
             className="object-cover"
             priority={i < N_ANIMATING_CARDS_FOR_SHUFFLE} 
           />
@@ -542,7 +536,7 @@ export function TarotReadingClient() {
               ref={spreadContainerRef}
               className="scrollbar-track-primary/10 scrollbar-thumb-primary/50 scrollbar-thin bg-primary/5 rounded-lg px-2 pb-2 pt-6 overflow-x-auto"
             >
-              <div className="flex min-w-max items-start justify-start px-2 pb-4 h-[200px] sm:h-[220px]">
+              <div className="flex min-w-max items-start justify-start px-2 pb-4 h-60">
                 <AnimatePresence>
                   {revealedSpreadCards.map((cardInSpread, index) => {
                     const isSelected = selectedCardsForReading.some(
@@ -555,8 +549,8 @@ export function TarotReadingClient() {
                         initial={{ opacity: 0, y: 50 }}
                         animate={{
                           opacity: 1,
-                          y: isSelected ? -10 : 0, // Slightly raise selected card
-                          scale: isSelected ? 1.03 : 1, // Slightly enlarge selected card
+                          y: isSelected ? -10 : 0,
+                          scale: isSelected ? 1.03 : 1,
                           zIndex: isSelected ? 10 : 1,
                         }}
                         exit={{
@@ -567,7 +561,7 @@ export function TarotReadingClient() {
                         }}
                         transition={{ duration: 0.3, delay: index * 0.01 }}
                         onClick={() => handleCardSelectFromSpread(cardInSpread, index)}
-                        className="transform transition-all duration-200 hover:scale-105 hover:z-20 w-24 shrink-0 cursor-pointer md:w-24 -mr-18" // Adjusted width and negative margin
+                        className="w-40 shrink-0 cursor-pointer transform transition-all duration-200 hover:scale-105 hover:z-20 -mr-32"
                       >
                         <motion.div
                           className={`relative aspect-[3/5] w-full overflow-hidden rounded-lg shadow-lg transition-all duration-200 ease-in-out ${
@@ -580,7 +574,7 @@ export function TarotReadingClient() {
                             src={CARD_BACK_IMAGE}
                             alt={`카드 ${index + 1} 뒷면`}
                             fill
-                            sizes="96px" // w-24 is 96px
+                            sizes="160px"
                             className="object-cover rounded-lg"
                           />
                         </motion.div>
@@ -608,7 +602,7 @@ export function TarotReadingClient() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-wrap justify-center gap-3"> 
+              <div className="flex flex-wrap justify-center gap-4"> 
                 {selectedCardsForReading.map((card, index) => (
                   <motion.div
                     key={`${card.id}-selected-${index}`}
@@ -616,16 +610,16 @@ export function TarotReadingClient() {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.3 }}
-                    className="w-24 transform-gpu" // Card width set to w-24
+                    className="w-40 transform-gpu"
                   >
                     <div 
                       className={`overflow-hidden rounded-lg shadow-lg ${
                         card.isReversed
-                          ? 'border-2 border-red-400 bg-red-500/5' // Optional: Visual cue for reversed
-                          : 'border-transparent' // Or 'border border-gray-300' for all
+                          ? 'border-2 border-red-400 bg-red-500/5'
+                          : 'border-transparent'
                       }`}
                     >
-                      <div // This div holds the image
+                      <div
                         className={`relative aspect-[3/5] w-full overflow-hidden rounded-lg ${ 
                           card.isReversed ? 'rotate-180 transform' : ''
                         }`}
@@ -634,7 +628,7 @@ export function TarotReadingClient() {
                           src={card.imageSrc} 
                           alt={card.name}
                           fill
-                          sizes="96px" // Image sizes updated to match w-24
+                          sizes="160px"
                           className="h-full w-full object-cover"
                           data-ai-hint={card.dataAiHint}
                         />
