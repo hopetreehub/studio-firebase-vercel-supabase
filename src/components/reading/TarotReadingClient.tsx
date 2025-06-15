@@ -631,15 +631,15 @@ export function TarotReadingClient() {
                     transition={{ duration: 0.3 }}
                     className="w-32 transform-gpu"
                   >
-                    <div
-                      className={`flex h-full flex-col overflow-hidden rounded-lg shadow-lg ${
+                    <div // Main container for a single selected card image
+                      className={`overflow-hidden rounded-lg shadow-lg ${
                         card.isReversed
                           ? 'border-2 border-red-400 bg-red-500/5'
                           : 'border-transparent'
                       }`}
                     >
-                      <div
-                        className={`relative aspect-[3/5] w-full overflow-hidden ${
+                      <div // This div holds the image
+                        className={`relative aspect-[3/5] w-full overflow-hidden rounded-lg ${ 
                           card.isReversed ? 'rotate-180 transform' : ''
                         }`}
                       >
@@ -648,26 +648,9 @@ export function TarotReadingClient() {
                           alt={card.name}
                           fill
                           sizes="128px"
-                          className="h-full w-full object-cover rounded-t-lg"
+                          className="h-full w-full object-cover" // Removed rounded-t-lg, parent has rounded-lg
                           data-ai-hint={card.dataAiHint}
                         />
-                      </div>
-                      <div
-                        className={`p-2 text-center ${
-                          card.isReversed ? 'rotate-180 transform' : ''
-                        }`}
-                      >
-                        <h3 className="font-headline truncate text-sm text-primary sm:text-base">
-                          {card.name.split('(')[0]}
-                        </h3>
-                        {selectedSpread.positions?.[index] && (
-                          <p className="text-xs text-muted-foreground">
-                            {selectedSpread.positions[index]}
-                          </p>
-                        )}
-                        {card.isReversed && (
-                          <p className="text-xs text-red-500">(역방향)</p>
-                        )}
                       </div>
                     </div>
                   </motion.div>
