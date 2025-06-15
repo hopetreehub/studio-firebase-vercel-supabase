@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Spinner } from '@/components/ui/spinner';
 import { updateProfile as firebaseUpdateProfile } from 'firebase/auth'; // aliased to avoid conflict
+import { auth as firebaseAuth } from '@/lib/firebase/client'; // Import the actual Firebase auth instance
 import { useToast } from '@/hooks/use-toast';
 import type { User } from 'firebase/auth';
 
@@ -35,17 +36,19 @@ export default function ProfilePage() {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!firebaseAuth.currentUser) return; // Check against the imported auth instance's currentUser
     setIsUpdating(true);
     try {
-      await firebaseUpdateProfile(user, { displayName });
-      // Manually update the user object in AuthContext or re-fetch if necessary
-      // For now, we'll just assume Firebase propagates this change or user reloads
-      if (auth.currentUser) { // auth needs to be imported from firebase client
-         // This is a trick to force re-render if displayName changed
-        const updatedUser = { ...auth.currentUser, displayName: displayName } as User;
-         // You might need a way to update the user in your AuthContext
-         // For simplicity, we're not doing that here, but in a real app, you would.
+      await firebaseUpdateProfile(firebaseAuth.currentUser, { displayName });
+      // Firebase onAuthStateChanged listener in AuthContext should pick up the change.
+      // For an immediate UI update of the displayName in this component,
+      // AuthContext would need a way to update its user state or re-fetch.
+      // The current setup relies on onAuthStateChanged, which might have a slight delay
+      // or might require a re-render trigger.
+      // Setting displayName state locally will update the input, but the user object from useAuth might be stale until onAuthStateChanged fires.
+      if (user && user.displayName !== displayName) {
+        // This is a local optimistic update for the display until context catches up.
+        // You could also update the user object in AuthContext here if it provided a setter.
       }
 
       toast({ title: '성공', description: '프로필이 업데이트되었습니다.' });
@@ -65,12 +68,6 @@ export default function ProfilePage() {
     );
   }
   
-  // Need to import auth from '@/lib/firebase/client' for the trick above.
-  // This is a placeholder since I cannot add imports here.
-  // In a real scenario, you'd have a way to update AuthContext's user.
-  const auth = { currentUser: user };
-
-
   return (
     <div className="max-w-2xl mx-auto space-y-8 py-10">
       <header className="text-center">
@@ -137,3 +134,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
