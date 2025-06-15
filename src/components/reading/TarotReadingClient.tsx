@@ -52,7 +52,7 @@ type ReadingStage =
   | 'interpreting'
   | 'interpretation_ready';
 
-const CARD_BACK_IMAGE = '/images/tarot/back.png';
+const CARD_BACK_IMAGE = '/images/tarot/back.png'; // Updated card back image
 const NUM_VISUAL_CARDS_IN_STACK = 15;
 const N_ANIMATING_CARDS_FOR_SHUFFLE = 7;
 
@@ -209,7 +209,8 @@ export function TarotReadingClient() {
       });
       return;
     }
-    const drawnPool = [...deck].slice(0, Math.min(deck.length, 30)).map((card) => ({ ...card, isFaceUp: false, isReversed: Math.random() > 0.5 }));
+    // Reveal all cards from the deck
+    const drawnPool = [...deck].map((card) => ({ ...card, isFaceUp: false, isReversed: Math.random() > 0.5 }));
     setRevealedSpreadCards(drawnPool);
     setStage('spread_revealed');
   };
@@ -551,7 +552,7 @@ export function TarotReadingClient() {
                         }}
                         transition={{ duration: 0.3, delay: index * 0.01 }}
                         onClick={() => handleCardSelectFromSpread(cardInSpread, index)}
-                        className={`${TARGET_CARD_HEIGHT_CLASS} shrink-0 cursor-pointer transform transition-all duration-200 hover:scale-105 hover:z-20 ${index < revealedSpreadCards.length - 1 ? '-mr-[96px]' : ''}`} 
+                        className={`${TARGET_CARD_HEIGHT_CLASS} shrink-0 cursor-pointer transform transition-all duration-200 hover:scale-105 hover:z-20 ${index < revealedSpreadCards.length - 1 ? '-mr-[128px]' : ''}`} 
                         style={{ aspectRatio: `${IMAGE_ORIGINAL_WIDTH} / ${IMAGE_ORIGINAL_HEIGHT}` }}
                       >
                         <motion.div
