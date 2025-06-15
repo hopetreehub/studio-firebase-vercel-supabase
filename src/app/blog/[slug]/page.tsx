@@ -1,0 +1,125 @@
+
+import { getPostBySlug, getAllPosts } from '@/lib/blog-data';
+import type { BlogPost } from '@/types';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, CalendarDays, User } from 'lucide-react';
+import type { Metadata, ResolvingMetadata } from 'next';
+import { notFound } from 'next/navigation';
+
+type Props = {
+  params: { slug: string };
+};
+
+export async function generateMetadata(
+  { params }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const post = getPostBySlug(params.slug);
+
+  if (!post) {
+    return {
+      title: '게시물을 찾을 수 없습니다 - InnerSpell',
+    };
+  }
+
+  const previousImages = (await parent).openGraph?.images || [];
+
+  return {
+    title: `${post.title} - InnerSpell 블로그`,
+    description: post.excerpt,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      type: 'article',
+      publishedTime: new Date(post.date).toISOString(), // Assuming date is in a parsable format
+      authors: post.author ? [post.author] : undefined,
+      tags: post.tags,
+      images: [
+        {
+          url: post.imageSrc,
+          width: 1200, // Example width
+          height: 630, // Example height
+          alt: post.title,
+        },
+        ...previousImages,
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.excerpt,
+      images: [post.imageSrc],
+    },
+  };
+}
+
+export async function generateStaticParams() {
+  const posts = getAllPosts();
+  return posts.map((post) => ({
+    slug: post.slug,
+  }));
+}
+
+export default function BlogPostPage({ params }: Props) {
+  const post = getPostBySlug(params.slug);
+
+  if (!post) {
+    notFound();
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-8 py-8">
+      <Button asChild variant="outline" className="mb-6 group hover:bg-primary/5">
+        <Link href="/blog">
+          <ChevronLeft className="mr-2 h-4 w-4 group-hover:text-primary transition-colors" />
+          블로그로 돌아가기
+        </Link>
+      </Button>
+
+      <article className="bg-card shadow-xl rounded-lg overflow-hidden border border-primary/10">
+        <header className="p-6 sm:p-8">
+          <h1 className="font-headline text-3xl sm:text-4xl font-bold text-primary mb-3">
+            {post.title}
+          </h1>
+          <div className="flex flex-wrap items-center space-x-4 text-sm text-muted-foreground mb-4">
+            <div className="flex items-center">
+              <CalendarDays className="h-4 w-4 mr-1.5" /> {post.date}
+            </div>
+            {post.author && (
+              <div className="flex items-center">
+                <User className="h-4 w-4 mr-1.5" /> {post.author}
+              </div>
+            )}
+          </div>
+          {post.tags && post.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {post.tags.map((tag) => (
+                <span key={tag} className="px-2 py-0.5 text-xs bg-accent/10 text-accent rounded-full">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </header>
+
+        <div className="relative aspect-video w-full">
+          <Image
+            src={post.imageSrc}
+            alt={post.title}
+            fill
+            className="object-cover"
+            data-ai-hint={post.dataAiHint}
+            priority
+          />
+        </div>
+
+        <div className="p-6 sm:p-8 prose prose-lg max-w-none text-foreground/80 prose-headings:text-primary prose-headings:font-headline prose-a:text-accent hover:prose-a:text-accent/80 prose-strong:text-primary/90"
+             style={{ whiteSpace: 'pre-line' }}>
+          {post.content}
+        </div>
+      </article>
+    </div>
+  );
+}

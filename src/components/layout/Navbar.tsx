@@ -11,7 +11,7 @@ const navItems = [
   { href: '/reading', label: '타로 읽기' },
   { href: '/encyclopedia', label: '카드 백과' },
   { href: '/blog', label: '블로그' },
-  { href: '/admin/ai-config', label: 'AI 설정(관리자)'}
+  { href: '/admin', label: '관리자'} // Updated label and href
 ];
 
 export function Navbar() {
