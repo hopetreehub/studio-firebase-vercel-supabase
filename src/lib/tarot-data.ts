@@ -645,3 +645,20 @@ export const getCardById = (id: string): TarotCard | undefined => {
 };
 
 export const suits = ['major', 'wands', 'cups', 'swords', 'pentacles'];
+
+
+export function getPreviousCard(currentCardId: string): TarotCard | undefined {
+  const currentIndex = tarotDeck.findIndex(card => card.id === currentCardId);
+  if (currentIndex > 0) {
+    return tarotDeck[currentIndex - 1];
+  }
+  return undefined;
+}
+
+export function getNextCard(currentCardId: string): TarotCard | undefined {
+  const currentIndex = tarotDeck.findIndex(card => card.id === currentCardId);
+  if (currentIndex !== -1 && currentIndex < tarotDeck.length - 1) {
+    return tarotDeck[currentIndex + 1];
+  }
+  return undefined;
+}

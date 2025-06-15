@@ -1,5 +1,5 @@
 
-import { getCardById, tarotDeck } from '@/lib/tarot-data';
+import { getCardById, tarotDeck, getPreviousCard, getNextCard } from '@/lib/tarot-data';
 import type { TarotCard as TarotCardType } from '@/types'; // Renamed to avoid conflict
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
@@ -9,11 +9,11 @@ import { WandIcon } from '@/components/icons/WandIcon';
 import { CupIcon } from '@/components/icons/CupIcon';
 import { SwordIcon } from '@/components/icons/SwordIcon';
 import { PentacleIcon } from '@/components/icons/PentacleIcon';
-import { Star, Sparkles, Users, Brain, Anchor, Zap, BookOpenText } from 'lucide-react';
+import { Star, Sparkles, Users, Brain, Anchor, Zap, BookOpenText, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Metadata, ResolvingMetadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft } from 'lucide-react';
+import { notFound } from 'next/navigation';
 
 type Props = {
   params: { cardId: string };
@@ -68,20 +68,11 @@ export default function CardDetailPage({ params }: Props) {
   const card = getCardById(params.cardId);
 
   if (!card) {
-    return (
-      <div className="text-center py-10">
-        <h1 className="font-headline text-3xl text-destructive mb-4">카드를 찾을 수 없습니다</h1>
-        <p className="text-muted-foreground">찾으시는 타로 카드가 존재하지 않습니다.</p>
-        <Button asChild variant="link" className="mt-4 text-primary">
-          <Link href="/encyclopedia">
-            <span className="flex items-center">
-              <ChevronLeft className="mr-2 h-4 w-4" /> 백과사전으로 돌아가기
-            </span>
-          </Link>
-        </Button>
-      </div>
-    );
+    notFound();
   }
+
+  const previousCard = getPreviousCard(params.cardId);
+  const nextCard = getNextCard(params.cardId);
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 py-8">
@@ -192,14 +183,42 @@ export default function CardDetailPage({ params }: Props) {
         </div>
       </Card>
 
-      <Button asChild variant="outline" className="mt-8 group hover:bg-primary/5">
-        <Link href="/encyclopedia">
-          <span className="flex items-center">
-            <ChevronLeft className="mr-2 h-4 w-4 group-hover:text-primary transition-colors" /> 
-            백과사전으로 돌아가기
-          </span>
-        </Link>
-      </Button>
+      <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+        {previousCard ? (
+          <Button asChild variant="outline" size="sm" className="group hover:bg-primary/5 w-full sm:w-auto">
+            <Link href={`/encyclopedia/${previousCard.id}`}>
+              <span className="flex items-center justify-center">
+                <ChevronLeft className="mr-1 h-4 w-4 group-hover:text-primary transition-colors" />
+                이전 카드
+              </span>
+            </Link>
+          </Button>
+        ) : (
+          <div className="w-full sm:w-auto" /> 
+        )}
+
+        <Button asChild variant="outline" className="group hover:bg-primary/5 w-full sm:w-auto">
+          <Link href="/encyclopedia">
+            <span className="flex items-center justify-center">
+              백과사전으로 돌아가기
+            </span>
+          </Link>
+        </Button>
+
+        {nextCard ? (
+          <Button asChild variant="outline" size="sm" className="group hover:bg-primary/5 w-full sm:w-auto">
+            <Link href={`/encyclopedia/${nextCard.id}`}>
+              <span className="flex items-center justify-center">
+                다음 카드
+                <ChevronRight className="ml-1 h-4 w-4 group-hover:text-primary transition-colors" />
+              </span>
+            </Link>
+          </Button>
+        ) : (
+          <div className="w-full sm:w-auto" />
+        )}
+      </div>
     </div>
   );
 }
+
