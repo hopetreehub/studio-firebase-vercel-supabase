@@ -55,7 +55,7 @@ type ReadingStage =
 const CARD_BACK_IMAGE = '/images/tarot/back.png';
 const NUM_VISUAL_CARDS_IN_STACK = 15;
 const N_ANIMATING_CARDS_FOR_SHUFFLE = 7;
-const CARD_WIDTH_CLASS = "w-40"; // 160px
+const CARD_WIDTH_CLASS = "w-40";
 const CARD_ASPECT_CLASS = "aspect-[3/5]";
 const CARD_IMAGE_SIZES = "160px";
 
@@ -340,7 +340,7 @@ export function TarotReadingClient() {
       {visualCardAnimControls.map((controls, i) => (
         <motion.div
           key={`visual-card-${i}`}
-          className="absolute h-full w-full overflow-hidden rounded-lg shadow-xl"
+          className="absolute h-full w-full overflow-hidden rounded-lg"
           animate={controls}
           initial={{
             x: i * 0.2, 
@@ -355,7 +355,7 @@ export function TarotReadingClient() {
             alt="카드 뒷면 뭉치"
             fill
             sizes={CARD_IMAGE_SIZES}
-            className="object-contain"
+            className="object-contain rounded-lg"
             priority={i < N_ANIMATING_CARDS_FOR_SHUFFLE} 
           />
         </motion.div>
@@ -378,7 +378,7 @@ export function TarotReadingClient() {
 
   return (
     <div className="space-y-8">
-      <Card className="border-primary/10 shadow-xl">
+      <Card className="shadow-xl">
         <CardHeader>
           <CardTitle className="font-headline text-3xl text-primary">
             타로 리딩 설정
@@ -470,7 +470,7 @@ export function TarotReadingClient() {
         </CardContent>
       </Card>
 
-      <Card className="border-primary/10 shadow-xl">
+      <Card className="shadow-xl">
         <CardHeader>
           <CardTitle className="font-headline text-2xl text-primary">
             리딩 진행
@@ -513,7 +513,7 @@ export function TarotReadingClient() {
 
       {revealedSpreadCards.length > 0 &&
         (stage === 'spread_revealed' || stage === 'cards_selected') && (
-          <Card className="border-primary/10 shadow-xl animate-fade-in">
+          <Card className="shadow-xl animate-fade-in">
             <CardHeader>
               <CardTitle className="font-headline text-2xl text-primary">
                 펼쳐진 카드 ({selectedCardsForReading.length}/
@@ -556,7 +556,7 @@ export function TarotReadingClient() {
                         className={`${CARD_WIDTH_CLASS} shrink-0 cursor-pointer transform transition-all duration-200 hover:scale-105 hover:z-20 -mr-32`} 
                       >
                         <motion.div
-                          className={`relative ${CARD_ASPECT_CLASS} w-full overflow-hidden rounded-lg shadow-lg transition-all duration-200 ease-in-out ${
+                          className={`relative ${CARD_ASPECT_CLASS} w-full overflow-hidden rounded-lg transition-all duration-200 ease-in-out ${
                             isSelected
                               ? 'ring-2 ring-accent ring-offset-1 ring-offset-background'
                               : ''
@@ -584,7 +584,7 @@ export function TarotReadingClient() {
           stage === 'interpretation_ready' ||
           stage === 'interpreting') && (
           <>
-            <Card className="border-primary/10 shadow-xl animate-fade-in mt-8">
+            <Card className="shadow-xl animate-fade-in mt-8">
               <CardHeader>
                 <CardTitle className="font-headline text-2xl text-primary">
                   선택된 카드 ({selectedCardsForReading.length}/
@@ -603,26 +603,22 @@ export function TarotReadingClient() {
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.3 }}
-                      className={`${CARD_WIDTH_CLASS}`}
+                      className={`${CARD_WIDTH_CLASS} ${CARD_ASPECT_CLASS} overflow-hidden rounded-lg`}
                     >
-                      <div 
-                        className={`overflow-hidden rounded-lg shadow-lg`}
+                      <motion.div
+                        className={`relative h-full w-full overflow-hidden rounded-lg ${ 
+                          card.isReversed ? 'rotate-180 transform' : ''
+                        }`}
                       >
-                        <div
-                          className={`relative ${CARD_ASPECT_CLASS} w-full overflow-hidden rounded-lg ${ 
-                            card.isReversed ? 'rotate-180 transform' : ''
-                          }`}
-                        >
-                          <Image
-                            src={card.imageSrc} 
-                            alt={card.name}
-                            fill
-                            sizes={CARD_IMAGE_SIZES}
-                            className="h-full w-full object-contain"
-                            data-ai-hint={card.dataAiHint}
-                          />
-                        </div>
-                      </div>
+                        <Image
+                          src={card.imageSrc} 
+                          alt={card.name}
+                          fill
+                          sizes={CARD_IMAGE_SIZES}
+                          className="h-full w-full object-contain rounded-lg"
+                          data-ai-hint={card.dataAiHint}
+                        />
+                      </motion.div>
                     </motion.div>
                   ))}
                 </div>
@@ -651,7 +647,7 @@ export function TarotReadingClient() {
       
 
       {(stage === 'interpreting' || stage === 'interpretation_ready') && (
-        <Card className="border-primary/10 shadow-xl animate-fade-in mt-8">
+        <Card className="shadow-xl animate-fade-in mt-8">
           <CardHeader>
             <CardTitle className="font-headline flex items-center text-3xl text-primary">
               <Sparkles className="mr-2 h-7 w-7 text-accent" />
