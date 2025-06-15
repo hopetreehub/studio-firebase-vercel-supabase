@@ -56,11 +56,9 @@ const CARD_BACK_IMAGE = '/images/tarot/back.png';
 const NUM_VISUAL_CARDS_IN_STACK = 15;
 const N_ANIMATING_CARDS_FOR_SHUFFLE = 7;
 
-// Card visual constants
-const TARGET_CARD_HEIGHT_CLASS = "h-60"; // approx 240px
+const TARGET_CARD_HEIGHT_CLASS = "h-60"; 
 const IMAGE_ORIGINAL_WIDTH = 275;
 const IMAGE_ORIGINAL_HEIGHT = 475;
-// Approx width for 240px height given 275/475 ratio is ~139px.
 const CARD_IMAGE_SIZES = "140px"; 
 
 
@@ -331,7 +329,7 @@ export function TarotReadingClient() {
 
   const cardStack = (
     <div
-      className={`relative mx-auto ${TARGET_CARD_HEIGHT_CLASS} w-auto cursor-pointer group`}
+      className={`relative mx-auto ${TARGET_CARD_HEIGHT_CLASS} cursor-pointer group`}
       style={{ aspectRatio: `${IMAGE_ORIGINAL_WIDTH} / ${IMAGE_ORIGINAL_HEIGHT}` }}
       onClick={
         (stage === 'deck_ready' || stage === 'shuffled') &&
@@ -475,46 +473,48 @@ export function TarotReadingClient() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="mt-8">
         <CardHeader>
           <CardTitle className="font-headline text-2xl text-primary">
             리딩 진행
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col items-center justify-around gap-4 sm:flex-row">
-          <Button
-            onClick={handleShuffle}
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto"
-            disabled={
-              isShufflingAnimationActive || stage === 'interpreting'
-            }
-          >
-            {isShufflingAnimationActive || stage === 'shuffling' ? (
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            ) : (
-              <Shuffle className="mr-2 h-5 w-5" />
+        <CardContent className="flex flex-col items-center space-y-6 p-6 md:p-8 min-h-[400px]">
+          {(stage === 'deck_ready' ||
+            stage === 'shuffled' ||
+            stage === 'shuffling') &&
+            !revealedSpreadCards.length && (
+              <div className="mb-6 flex justify-center">{cardStack}</div>
             )}
-            {isShufflingAnimationActive || stage === 'shuffling'
-              ? '섞는 중...'
-              : '카드 섞기'}
-          </Button>
-          <Button
-            onClick={handleRevealSpread}
-            disabled={isShufflingAnimationActive || stage !== 'shuffled'}
-            className="w-full sm:w-auto"
-          >
-            <Layers className="mr-2 h-5 w-5" />
-            카드 펼치기
-          </Button>
+          
+          <div className="flex flex-col items-center justify-around gap-4 sm:flex-row w-full">
+            <Button
+              onClick={handleShuffle}
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto"
+              disabled={
+                isShufflingAnimationActive || stage === 'interpreting'
+              }
+            >
+              {isShufflingAnimationActive || stage === 'shuffling' ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <Shuffle className="mr-2 h-5 w-5" />
+              )}
+              {isShufflingAnimationActive || stage === 'shuffling'
+                ? '섞는 중...'
+                : '카드 섞기'}
+            </Button>
+            <Button
+              onClick={handleRevealSpread}
+              disabled={isShufflingAnimationActive || stage !== 'shuffled'}
+              className="w-full sm:w-auto"
+            >
+              <Layers className="mr-2 h-5 w-5" />
+              카드 펼치기
+            </Button>
+          </div>
         </CardContent>
       </Card>
-
-      {(stage === 'deck_ready' ||
-        stage === 'shuffled' ||
-        stage === 'shuffling') &&
-        !revealedSpreadCards.length && (
-          <div className="my-8 flex justify-center">{cardStack}</div>
-        )}
 
       {revealedSpreadCards.length > 0 &&
         (stage === 'spread_revealed' || stage === 'cards_selected') && (
@@ -694,3 +694,4 @@ export function TarotReadingClient() {
     </div>
   );
 }
+
