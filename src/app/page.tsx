@@ -4,25 +4,29 @@ import { NewsletterSignup } from '@/components/home/NewsletterSignup';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star, Compass, BookOpen } from 'lucide-react';
+import Image from 'next/image';
 
 const features = [
   {
-    icon: <Star className="w-8 h-8 text-accent" />,
-    title: "AI 기반 통찰",
-    description: "당신의 특별한 질문에 맞춰 고급 AI가 생성하는 개인 맞춤형 타로 해석을 받아보세요.",
-    dataAiHint: "AI technology"
+    icon: <Star className="w-10 h-10 text-accent" />,
+    title: "AI 기반 통찰의 깊이",
+    description: "단순한 키워드 나열을 넘어, 고도로 학습된 AI가 당신의 고유한 질문과 상황에 맞춰 맥락을 이해하고 다층적인 해석을 제공합니다. 마치 숙련된 타로 리더와 대화하는 듯한 경험을 선사하며, 표면 아래 숨겨진 의미와 가능성을 발견하도록 돕습니다.",
+    imageSrc: "https://placehold.co/300x200.png",
+    dataAiHint: "AI technology brain"
   },
   {
-    icon: <Compass className="w-8 h-8 text-accent" />,
-    title: "당신의 길 탐색",
-    description: "1카드, 3카드 또는 사용자 정의 배열과 같은 다양한 스프레드 중에서 선택하여 삶의 특정 영역을 탐구하세요.",
-    dataAiHint: "tarot spread"
+    icon: <Compass className="w-10 h-10 text-accent" />,
+    title: "당신의 길을 탐색하는 다양한 방법",
+    description: "한 장의 카드로 얻는 즉각적인 영감부터, 과거-현재-미래를 잇는 3카드 스프레드, 혹은 복잡한 상황을 심층적으로 분석하는 켈틱 크로스까지. 다양한 스프레드를 통해 삶의 특정 영역이나 질문에 대한 맞춤형 조언을 구체적으로 얻을 수 있습니다.",
+    imageSrc: "https://placehold.co/300x200.png",
+    dataAiHint: "tarot spread journey"
   },
   {
-    icon: <BookOpen className="w-8 h-8 text-accent" />,
-    title: "타로 백과사전",
-    description: "카드 의미, 키워드 및 상징에 대한 포괄적인 가이드로 타로에 대한 이해를 넓혀보세요.",
-    dataAiHint: "ancient book"
+    icon: <BookOpen className="w-10 h-10 text-accent" />,
+    title: "지혜의 보고, 타로 백과사전",
+    description: "78장의 타로 카드 각각에 담긴 풍부한 상징, 키워드, 정방향 및 역방향의 의미, 그리고 관련된 점성학적 요소까지. 포괄적인 백과사전을 통해 타로에 대한 이해를 넓히고, 스스로 카드를 해석하는 능력을 키울 수 있습니다.",
+    imageSrc: "https://placehold.co/300x200.png",
+    dataAiHint: "ancient book wisdom"
   }
 ];
 
@@ -37,20 +41,35 @@ export default function HomePage() {
           <div className="text-center mb-12">
             <h2 className="font-headline text-3xl sm:text-4xl font-semibold text-primary">왜 InnerSpell을 선택해야 할까요?</h2>
             <p className="mt-4 text-lg text-foreground/80 max-w-2xl mx-auto">
-              고대의 지혜와 현대 기술을 결합하여 독특하고 통찰력 있는 타로 경험을 제공합니다.
+              InnerSpell은 고대의 타로 지혜와 현대 AI 기술을 결합하여, 당신의 내면을 탐험하고 삶의 질문에 대한 깊이 있는 통찰을 얻을 수 있도록 설계되었습니다. 우리는 단순한 점술 도구를 넘어, 당신의 영적 성장 여정에 함께하는 동반자가 되고자 합니다.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card/80 backdrop-blur-sm border-primary/10 animate-slide-up" style={{animationDelay: `${index * 0.15}s`}}>
-                <CardHeader className="items-center text-center">
-                  <div className="p-4 bg-accent/10 rounded-full mb-4 inline-block">
+              <Card 
+                key={index} 
+                className="shadow-xl hover:shadow-primary/30 transition-all duration-300 ease-in-out bg-card/80 backdrop-blur-sm border-primary/10 animate-slide-up overflow-hidden flex flex-col group transform hover:-translate-y-1" 
+                style={{animationDelay: `${index * 0.15}s`}}
+              >
+                {feature.imageSrc && (
+                  <div className="relative w-full h-48 overflow-hidden">
+                    <Image
+                      src={feature.imageSrc}
+                      alt={feature.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      data-ai-hint={feature.dataAiHint}
+                    />
+                  </div>
+                )}
+                <CardHeader className="items-center text-center pt-6">
+                  <div className="p-3 bg-accent/10 rounded-full mb-4 inline-block border-2 border-accent/30 transition-transform duration-300 group-hover:scale-110">
                     {feature.icon}
                   </div>
-                  <CardTitle className="font-headline text-2xl text-primary">{feature.title}</CardTitle>
+                  <CardTitle className="font-headline text-2xl text-primary group-hover:text-accent transition-colors">{feature.title}</CardTitle>
                 </CardHeader>
-                <CardContent className="text-center">
-                  <p className="text-foreground/70">{feature.description}</p>
+                <CardContent className="text-center flex-grow">
+                  <p className="text-foreground/75 text-base leading-relaxed px-2">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}

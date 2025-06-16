@@ -26,8 +26,9 @@ import type {
   TarotCard as TarotCardType,
   TarotInterpretationMethod,
   SpreadConfiguration,
+  InterpretationStyleInfo,
 } from '@/types';
-import { interpretationMethods, tarotSpreads } from '@/types';
+import { tarotInterpretationStyles, tarotSpreads } from '@/types';
 import { tarotDeck as allCards } from '@/lib/tarot-data';
 import { generateTarotInterpretation } from '@/ai/flows/generate-tarot-interpretation';
 
@@ -68,7 +69,7 @@ export function TarotReadingClient() {
     tarotSpreads[1],
   );
   const [interpretationMethod, setInterpretationMethod] =
-    useState<TarotInterpretationMethod>(interpretationMethods[0]);
+    useState<TarotInterpretationMethod>(tarotInterpretationStyles[0].id);
 
   const [deck, setDeck] = useState<TarotCardType[]>([]);
   const [revealedSpreadCards, setRevealedSpreadCards] = useState<TarotCardType[]>([]);
@@ -245,6 +246,16 @@ export function TarotReadingClient() {
     }
 
     setSelectedCardsForReading(newSelectedCards);
+    
+    const currentRevealed = revealedSpreadCards.filter(
+      rc => !(rc.id === clickedSpreadCard.id && rc.isReversed === clickedSpreadCard.isReversed)
+    );
+    
+    // This part is tricky with direct state manipulation for animation.
+    // The better approach is to filter `revealedSpreadCards` for display
+    // and let AnimatePresence handle the exit of the selected card.
+    // `setRevealedSpreadCards(currentRevealed)` would be too abrupt if we want exit animation.
+
     setStage(
       newSelectedCards.length === selectedSpread.numCards
         ? 'cards_selected'
@@ -463,9 +474,14 @@ export function TarotReadingClient() {
                   <SelectValue placeholder="해석 스타일 선택" />
                 </SelectTrigger>
                 <SelectContent>
-                  {interpretationMethods.map((method) => (
-                    <SelectItem key={method} value={method}>
-                      {method}
+                  {tarotInterpretationStyles.map((style) => (
+                    <SelectItem key={style.id} value={style.id}>
+                      <span className="flex flex-col">
+                        <span>{style.name}</span>
+                        <span className="text-xs text-muted-foreground mt-0.5">
+                          {style.description}
+                        </span>
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -529,11 +545,12 @@ export function TarotReadingClient() {
                 ref={spreadContainerRef}
                 className="flex items-center overflow-x-auto p-2 w-full" 
               >
-                <div className="flex"> 
+                <div className="flex"> {/* This inner div is important for AnimatePresence with 겹침 */}
                   <AnimatePresence>
                     {displayableRevealedCards.map((cardInSpread, index) => (
                         <motion.div
                           key={cardInSpread.id + (cardInSpread.isReversed ? '-rev' : '-upr')}
+                          // removed layout prop to prevent siblings from moving
                           initial={{ opacity: 0, y: 20 }}
                           animate={{
                             opacity: 1,
@@ -575,6 +592,9 @@ export function TarotReadingClient() {
                   size="sm" 
                   onClick={() => {
                     setSelectedCardsForReading([]);
+                    // Optionally reset revealedSpreadCards if needed, or let AnimatePresence handle visual update
+                    // For a full reset of spread:
+                    // setRevealedSpreadCards([...deck].map((card) => ({ ...card, isFaceUp: false, isReversed: Math.random() > 0.5 })));
                     setStage('spread_revealed'); 
                   }}
                   className="mt-4"
@@ -700,4 +720,3 @@ export function TarotReadingClient() {
     </div>
   );
 }
-

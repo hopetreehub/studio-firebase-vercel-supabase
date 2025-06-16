@@ -6,20 +6,32 @@ import { Button } from "@/components/ui/button";
 import { Users, Edit } from "lucide-react";
 
 // Mock data for demonstration
-const mockUsers = [
-  { id: 'user1', name: '앨리스', email: 'alice@example.com', role: 'admin' as 'admin' | 'user', joinedDate: '2023-01-15' },
-  { id: 'user2', name: '밥', email: 'bob@example.com', role: 'user' as 'admin' | 'user', joinedDate: '2023-02-20' },
-  { id: 'user3', name: '찰리', email: 'charlie@example.com', role: 'user' as 'admin' | 'user', joinedDate: '2023-03-10' },
-  { id: 'user4', name: '다이애나', email: 'diana@example.com', role: 'user' as 'admin' | 'user', joinedDate: '2024-01-05' },
+type UserRole = 'admin' | 'user';
+
+interface MockUser {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  joinedDate: string;
+}
+
+const mockUsers: MockUser[] = [
+  { id: 'user1', name: '앨리스', email: 'alice@example.com', role: 'admin', joinedDate: '2023-01-15' },
+  { id: 'user2', name: '밥', email: 'bob@example.com', role: 'user', joinedDate: '2023-02-20' },
+  { id: 'user3', name: '찰리', email: 'charlie@example.com', role: 'user', joinedDate: '2023-03-10' },
+  { id: 'user4', name: '다이애나', email: 'diana@example.com', role: 'user', joinedDate: '2024-01-05' },
 ];
 
 export function UserManagement() {
 
-  const handleChangeRole = (userId: string, newRole: string) => {
+  const handleChangeRole = (userId: string, newRole: UserRole) => {
     // In a real app, this would call an API to update the user's role.
-    // For this prototype, we'll just log it and show a toast (from the parent component if needed).
+    // For this prototype, we'll just log it.
     console.log(`Simulating role change for user ${userId} to ${newRole}.`);
-    // Here you might want to use `toast()` if it's passed or available via context.
+    // To update the mock data visually (for demo purposes only, not a real DB update):
+    // const updatedUsers = mockUsers.map(u => u.id === userId ? { ...u, role: newRole } : u);
+    // console.log(updatedUsers); // In a stateful component, you would setState here.
   };
 
   return (
@@ -54,7 +66,9 @@ export function UserManagement() {
                       {user.role === 'admin' ? '관리자' : '사용자'}
                     </Badge>
                   </TableCell>
-                  <TableCell>{new Date(user.joinedDate).toLocaleDateString('ko-KR')}</TableCell>
+                  <TableCell>
+                    {user.joinedDate ? new Date(user.joinedDate).toLocaleDateString('ko-KR') : '날짜 없음'}
+                  </TableCell>
                   <TableCell className="text-right">
                     <Button 
                       variant="ghost" 
