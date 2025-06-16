@@ -44,7 +44,7 @@ export function HeroSection() {
           <div className="relative animate-fade-in" style={{ animationDelay: '0.4s' }}>
             <div className="aspect-square max-w-md mx-auto md:max-w-none rounded-xl overflow-hidden shadow-2xl transform transition-all duration-500 hover:scale-105 group">
               <Image
-                src="https://placehold.co/600x600.png" // 로고 또는 대표 이미지로 교체 권장
+                src="/images/tarothome.png" 
                 alt="신비로운 타로 카드"
                 width={600}
                 height={600}
