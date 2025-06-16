@@ -5,26 +5,51 @@ import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star, Compass, BookOpen } from 'lucide-react';
 import Image from 'next/image';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'InnerSpell - AI 타로와 함께 내면 탐험',
+  description: 'AI 기반 타로 리딩, 타로 카드 백과사전, 영적 성장을 위한 블로그를 통해 당신의 내면을 발견하고 삶의 질문에 대한 깊이 있는 통찰을 얻으세요.',
+  openGraph: {
+    title: 'InnerSpell - AI 타로와 함께 내면 탐험',
+    description: 'AI 기반 타로 리딩으로 현대적인 영적 타로 서비스를 경험하세요.',
+    images: [
+      {
+        url: '/logo-og.png', // Make sure to have a logo-og.png in your /public folder
+        width: 1200,
+        height: 630,
+        alt: 'InnerSpell 로고',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'InnerSpell - AI 타로와 함께 내면 탐험',
+    description: 'AI 기반 타로 리딩으로 현대적인 영적 타로 서비스를 경험하세요.',
+    images: ['/logo-og.png'], // Make sure to have a logo-og.png in your /public folder
+  },
+};
+
 
 const features = [
   {
     icon: <Star className="w-10 h-10 text-accent" />,
     title: "AI 기반 통찰의 깊이",
-    description: "단순한 키워드 나열을 넘어, 고도로 학습된 AI가 당신의 고유한 질문과 상황에 맞춰 맥락을 이해하고 다층적인 해석을 제공합니다. 마치 숙련된 타로 리더와 대화하는 듯한 경험을 선사하며, 표면 아래 숨겨진 의미와 가능성을 발견하도록 돕습니다.",
+    description: "단순한 키워드 나열을 넘어, 고도로 학습된 AI가 당신의 고유한 질문과 상황에 맞춰 맥락을 이해하고 다층적인 해석을 제공합니다. 마치 숙련된 타로 리더와 대화하는 듯한 경험을 선사하며, 표면 아래 숨겨진 의미와 가능성을 발견하도록 돕습니다. 복잡한 감정의 실타래를 풀고 명확한 방향을 제시받으세요.",
     imageSrc: "https://placehold.co/300x200.png",
     dataAiHint: "AI technology brain"
   },
   {
     icon: <Compass className="w-10 h-10 text-accent" />,
     title: "당신의 길을 탐색하는 다양한 방법",
-    description: "한 장의 카드로 얻는 즉각적인 영감부터, 과거-현재-미래를 잇는 3카드 스프레드, 혹은 복잡한 상황을 심층적으로 분석하는 켈틱 크로스까지. 다양한 스프레드를 통해 삶의 특정 영역이나 질문에 대한 맞춤형 조언을 구체적으로 얻을 수 있습니다.",
+    description: "한 장의 카드로 얻는 즉각적인 영감부터, 과거-현재-미래를 잇는 3카드 스프레드, 혹은 복잡한 상황을 심층적으로 분석하는 켈틱 크로스까지. 다양한 스프레드를 통해 삶의 특정 영역이나 질문에 대한 맞춤형 조언을 구체적으로 얻을 수 있습니다. 각 스프레드는 고유한 관점을 제공하여 문제 해결의 실마리를 찾도록 지원합니다.",
     imageSrc: "https://placehold.co/300x200.png",
     dataAiHint: "tarot spread journey"
   },
   {
     icon: <BookOpen className="w-10 h-10 text-accent" />,
     title: "지혜의 보고, 타로 백과사전",
-    description: "78장의 타로 카드 각각에 담긴 풍부한 상징, 키워드, 정방향 및 역방향의 의미, 그리고 관련된 점성학적 요소까지. 포괄적인 백과사전을 통해 타로에 대한 이해를 넓히고, 스스로 카드를 해석하는 능력을 키울 수 있습니다.",
+    description: "78장의 타로 카드 각각에 담긴 풍부한 상징, 키워드, 정방향 및 역방향의 의미, 그리고 관련된 점성학적 요소까지. 포괄적인 백과사전을 통해 타로에 대한 이해를 넓히고, 스스로 카드를 해석하는 능력을 키울 수 있습니다. 카드의 세계를 탐험하며 당신의 영적 지혜를 확장하세요.",
     imageSrc: "https://placehold.co/300x200.png",
     dataAiHint: "ancient book wisdom"
   }
@@ -41,7 +66,7 @@ export default function HomePage() {
           <div className="text-center mb-12">
             <h2 className="font-headline text-3xl sm:text-4xl font-semibold text-primary">왜 InnerSpell을 선택해야 할까요?</h2>
             <p className="mt-4 text-lg text-foreground/80 max-w-2xl mx-auto">
-              InnerSpell은 고대의 타로 지혜와 현대 AI 기술을 결합하여, 당신의 내면을 탐험하고 삶의 질문에 대한 깊이 있는 통찰을 얻을 수 있도록 설계되었습니다. 우리는 단순한 점술 도구를 넘어, 당신의 영적 성장 여정에 함께하는 동반자가 되고자 합니다.
+              InnerSpell은 고대의 타로 지혜와 현대 AI 기술을 결합하여, 당신의 내면을 탐험하고 삶의 질문에 대한 깊이 있는 통찰을 얻을 수 있도록 설계되었습니다. 우리는 단순한 점술 도구를 넘어, 당신의 영적 성장 여정에 함께하는 동반자가 되고자 합니다. 당신의 잠재력을 깨우고, 삶의 도전을 헤쳐나갈 지혜를 발견하세요.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
@@ -59,6 +84,7 @@ export default function HomePage() {
                       fill
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                       data-ai-hint={feature.dataAiHint}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                   </div>
                 )}
@@ -82,3 +108,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    

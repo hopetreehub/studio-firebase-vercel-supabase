@@ -22,26 +22,27 @@ export async function subscribeToNewsletter(
 
     const { email } = validationResult.data;
 
-    // Firestore에 구독자 정보 저장
     const subscriberRef = firestore.collection('subscribers').doc(email);
     const doc = await subscriberRef.get();
 
     if (doc.exists) {
-      // 이미 구독된 이메일 (예: 재구독 시 타임스탬프만 업데이트)
       await subscriberRef.update({
         subscribedAt: FieldValue.serverTimestamp(),
-        status: 'active', // 상태 필드 추가/업데이트
+        status: 'active', 
       });
       console.log(`Newsletter: Email ${email} re-subscribed/updated in Firestore.`);
+      // The following log is for testing/demonstration purposes for the user's request
+      console.log(`(Test) A notification for new subscriber ${email} would be sent to junsupark9999@gmail.com if an email service were integrated.`);
       return { success: true, message: '이미 구독된 이메일입니다. 최신 정보로 업데이트되었습니다.' };
     } else {
-      // 신규 구독
       await subscriberRef.set({
         email: email,
         subscribedAt: FieldValue.serverTimestamp(),
         status: 'active',
       });
       console.log(`Newsletter: Email ${email} successfully subscribed and saved to Firestore.`);
+      // The following log is for testing/demonstration purposes for the user's request
+      console.log(`(Test) A notification for new subscriber ${email} would be sent to junsupark9999@gmail.com if an email service were integrated.`);
       return { success: true, message: '뉴스레터 구독이 완료되었습니다! 환영합니다.' };
     }
 
@@ -51,3 +52,5 @@ export async function subscribeToNewsletter(
     return { success: false, message: `구독 처리 중 오류 발생: ${errorMessage}` };
   }
 }
+
+    

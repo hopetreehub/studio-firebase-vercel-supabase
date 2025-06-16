@@ -1,6 +1,6 @@
 
 import { getCardById, tarotDeck, getPreviousCard, getNextCard } from '@/lib/tarot-data';
-import type { TarotCard as TarotCardType } from '@/types'; // Renamed to avoid conflict
+import type { TarotCard as TarotCardType } from '@/types'; 
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -24,15 +24,46 @@ export async function generateMetadata(
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const card = getCardById(params.cardId);
-  const cardName = card ? card.name : '카드를 찾을 수 없습니다';
+  
+  if (!card) {
+    return {
+      title: '카드를 찾을 수 없습니다 - InnerSpell 타로 백과사전',
+      description: '요청하신 타로 카드를 찾을 수 없습니다.',
+    };
+  }
+  
+  const cardName = card.name;
   const previousImages = (await parent).openGraph?.images || [];
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const imageUrl = card.imageSrc.startsWith('http') ? card.imageSrc : `${siteUrl}${card.imageSrc}`;
 
   return {
     title: `${cardName} - 타로 백과사전 - InnerSpell`,
-    description: card ? `${cardName}의 의미와 키워드. ${card.meaningUpright.substring(0,100)}...` : '타로 카드 상세 정보.',
-    openGraph: {
-      images: card ? [card.imageSrc, ...previousImages] : previousImages,
+    description: `${cardName} 카드의 의미, 키워드 (정방향: ${card.keywordsUpright.slice(0,3).join(', ')}) 및 그림 해석. InnerSpell 타로 백과사전에서 더 알아보세요.`,
+    alternates: {
+      canonical: `${siteUrl}/encyclopedia/${card.id}`,
     },
+    openGraph: {
+      title: `${cardName} - InnerSpell 타로 카드 의미`,
+      description: card.meaningUpright.substring(0, 150) + '...',
+      url: `${siteUrl}/encyclopedia/${card.id}`,
+      type: 'article', // Though it's about a card, 'article' type fits well for OG.
+      images: [
+        {
+          url: imageUrl,
+          width: card.suit === 'major' ? 300 : 275, // Approximate, adjust if you have exact dimensions
+          height: card.suit === 'major' ? 500 : 475,
+          alt: cardName,
+        },
+        ...previousImages
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${cardName} - 타로 카드 의미`,
+      description: card.meaningUpright.substring(0,150) + '...',
+      images: [imageUrl],
+    }
   };
 }
 
@@ -82,11 +113,12 @@ export default function CardDetailPage({ params }: Props) {
             <Image
               src={card.imageSrc} 
               alt={card.name}
-              width={300}
-              height={500}
+              width={300} // Base width, adjust as needed
+              height={500} // Base height, adjust for aspect ratio
               className="rounded-lg shadow-lg object-contain max-h-[500px] w-auto"
               data-ai-hint={card.dataAiHint}
               priority
+              sizes="(max-width: 768px) 100vw, 300px"
             />
           </div>
           <div className="md:col-span-2 p-6 sm:p-8">
@@ -183,7 +215,7 @@ export default function CardDetailPage({ params }: Props) {
         </div>
       </Card>
 
-      <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <nav className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4" aria-label="카드 탐색">
         {previousCard ? (
           <Button asChild variant="outline" size="sm" className="group hover:bg-primary/5 w-full sm:w-auto">
             <Link href={`/encyclopedia/${previousCard.id}`}>
@@ -199,7 +231,7 @@ export default function CardDetailPage({ params }: Props) {
 
         <Button asChild variant="outline" className="group hover:bg-primary/5 w-full sm:w-auto">
           <Link href="/encyclopedia">
-            <span className="flex items-center justify-center">
+             <span className="flex items-center justify-center">
               백과사전으로 돌아가기
             </span>
           </Link>
@@ -217,8 +249,9 @@ export default function CardDetailPage({ params }: Props) {
         ) : (
           <div className="w-full sm:w-auto" />
         )}
-      </div>
+      </nav>
     </div>
   );
 }
 
+    

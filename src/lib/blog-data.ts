@@ -53,6 +53,18 @@ const fallbackBlogPosts: BlogPost[] = [
     tags: ['컵슈트', '감정', '관계', '타로기초'],
     date: '2024-03-02',
   },
+  {
+    id: 'sample-post-5',
+    title: '매일 타로 한 장으로 시작하는 하루',
+    slug: 'daily-tarot-draw-routine',
+    excerpt: '매일 아침 타로 카드 한 장을 뽑는 간단한 습관이 어떻게 당신의 하루에 긍정적인 영향을 줄 수 있는지 알아보세요.',
+    content: `바쁜 일상 속에서 잠시 멈춰 자신을 돌아보고 하루의 방향을 설정하는 것은 매우 중요합니다. 매일 타로 카드 한 장을 뽑는 것은 이러한 목적을 달성하는 데 도움이 되는 간단하면서도 강력한 도구가 될 수 있습니다.\n\n**데일리 타로, 왜 좋을까요?**\n*   **마음챙김:** 카드를 뽑는 행위 자체가 현재 순간에 집중하도록 돕습니다.\n*   **자기 성찰:** 카드의 이미지를 통해 그날의 감정이나 생각, 우선순위를 돌아볼 수 있습니다.\n*   **긍정적 의도 설정:** 카드에서 얻은 메시지를 바탕으로 하루를 어떻게 보내고 싶은지에 대한 긍정적인 의도를 설정할 수 있습니다.\n*   **직관력 향상:** 꾸준히 연습하면 카드와 소통하는 능력이 향상되고 직관력이 발달합니다.\n\n**데일리 타로 실천 방법:**\n1.  **준비:** 조용한 공간에서 편안하게 앉아 잠시 심호흡을 합니다.\n2.  **질문 (선택 사항):** "오늘 나에게 필요한 메시지는 무엇인가?" 또는 "오늘 내가 집중해야 할 에너지는 무엇인가?"와 같이 간단한 질문을 떠올릴 수 있습니다.\n3.  **카드 섞고 뽑기:** 덱을 충분히 섞은 후, 마음이 가는 카드 한 장을 뽑습니다.\n4.  **관찰 및 해석:** 카드의 이미지를 관찰하고, 떠오르는 생각이나 느낌을 적어봅니다. 카드의 전통적인 의미를 참고할 수도 있지만, 개인적인 직관을 우선시하세요.\n5.  **하루 적용:** 카드에서 얻은 통찰을 염두에 두고 하루를 보냅니다. 저녁에 다시 카드를 보며 하루를 되돌아보는 것도 좋습니다.\n\n데일리 타로는 복잡한 스프레드나 깊은 지식을 요구하지 않습니다. 단 한 장의 카드로도 충분히 의미 있는 메시지를 얻고, 하루를 더 의식적으로 살아가는 데 도움을 받을 수 있습니다. 오늘부터 시작해보는 것은 어떨까요?`,
+    imageSrc: 'https://placehold.co/600x400.png',
+    dataAiHint: 'daily routine morning',
+    author: 'InnerSpell 팀',
+    tags: ['데일리타로', '마음챙김', '자기계발', '습관'],
+    date: '2024-02-28',
+  },
 ];
 
 
@@ -106,46 +118,50 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | undefined>
   }
 }
 
-async function getSortedPosts(order: 'asc' | 'desc'): Promise<BlogPost[]> {
-   try {
+// Helper function to get sorted posts, prioritizing Firestore then fallback
+async function getSortedPostsWithFallback(order: 'asc' | 'desc'): Promise<BlogPost[]> {
+  let posts: BlogPost[] = [];
+  try {
     const snapshot = await firestore.collection('blogPosts').orderBy('createdAt', order).get();
-    if (snapshot.empty) {
-      // Firestore is empty, return sorted fallback posts
-      return [...fallbackBlogPosts].sort((a, b) => {
-        const dateA = new Date(a.date).getTime();
-        const dateB = new Date(b.date).getTime();
-        return order === 'asc' ? dateA - dateB : dateB - dateA;
-      });
+    if (!snapshot.empty) {
+      posts = snapshot.docs.map(mapDocToBlogPost);
+    } else {
+      // Firestore is empty, use fallback posts
+      posts = [...fallbackBlogPosts];
     }
-    return snapshot.docs.map(mapDocToBlogPost); // Firestore data already sorted by query
   } catch (error) {
-    console.error(`Error fetching sorted posts (${order}) from Firestore, returning sorted fallback posts:`, error);
-    // Error fetching from Firestore, return sorted fallback posts
-    return [...fallbackBlogPosts].sort((a, b) => {
-        const dateA = new Date(a.date).getTime();
-        const dateB = new Date(b.date).getTime();
-        return order === 'asc' ? dateA - dateB : dateB - dateA;
-    });
+    console.error(`Error fetching sorted posts (${order}) from Firestore, using fallback posts:`, error);
+    // Error fetching from Firestore, use fallback posts
+    posts = [...fallbackBlogPosts];
   }
+
+  // Sort the chosen list (either Firestore results or fallback)
+  return posts.sort((a, b) => {
+    const dateA = new Date(a.date).getTime();
+    const dateB = new Date(b.date).getTime();
+    return order === 'asc' ? dateA - dateB : dateB - dateA;
+  });
 }
 
 
 export async function getPreviousPost(currentSlug: string): Promise<BlogPost | undefined> {
-  const sortedPosts = await getSortedPosts('desc'); // Newest first for this logic
+  const sortedPosts = await getSortedPostsWithFallback('desc'); // Newest first for this logic
   const currentIndex = sortedPosts.findIndex(post => post.slug === currentSlug);
-  // Previous post is at currentIndex + 1 because array is newest first
+
   if (currentIndex !== -1 && currentIndex < sortedPosts.length - 1) {
-    return sortedPosts[currentIndex + 1];
+    return sortedPosts[currentIndex + 1]; // Previous post is at currentIndex + 1 because array is newest first
   }
   return undefined;
 }
 
 export async function getNextPost(currentSlug: string): Promise<BlogPost | undefined> {
-  const sortedPosts = await getSortedPosts('desc'); // Newest first for this logic
+  const sortedPosts = await getSortedPostsWithFallback('desc'); // Newest first for this logic
   const currentIndex = sortedPosts.findIndex(post => post.slug === currentSlug);
-  // Next post is at currentIndex - 1 because array is newest first
+
   if (currentIndex > 0) {
-    return sortedPosts[currentIndex - 1];
+    return sortedPosts[currentIndex - 1]; // Next post is at currentIndex - 1 because array is newest first
   }
   return undefined;
 }
+
+    

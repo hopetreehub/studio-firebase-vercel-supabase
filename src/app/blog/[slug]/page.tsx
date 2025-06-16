@@ -17,61 +17,74 @@ export async function generateMetadata(
   { params }: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const post = await getPostBySlug(params.slug); // Changed to await
+  const post = await getPostBySlug(params.slug); 
 
   if (!post) {
     return {
       title: '게시물을 찾을 수 없습니다 - InnerSpell',
+      description: '요청하신 블로그 게시물을 찾을 수 없습니다.',
     };
   }
 
   const previousImages = (await parent).openGraph?.images || [];
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'; // Define your site URL
 
   return {
     title: `${post.title} - InnerSpell 블로그`,
     description: post.excerpt,
+    alternates: {
+      canonical: `${siteUrl}/blog/${post.slug}`,
+    },
     openGraph: {
       title: post.title,
       description: post.excerpt,
+      url: `${siteUrl}/blog/${post.slug}`,
       type: 'article',
       publishedTime: new Date(post.date).toISOString(),
-      authors: post.author ? [post.author] : undefined,
+      authors: post.author ? [post.author] : ['InnerSpell 팀'],
       tags: post.tags,
-      images: [
+      images: post.imageSrc ? [
         {
-          url: post.imageSrc,
+          url: post.imageSrc.startsWith('http') ? post.imageSrc : `${siteUrl}${post.imageSrc}`, // Ensure absolute URL
           width: 1200, 
           height: 630, 
           alt: post.title,
         },
         ...previousImages,
-      ],
+      ] : previousImages,
     },
     twitter: {
       card: 'summary_large_image',
       title: post.title,
       description: post.excerpt,
-      images: [post.imageSrc],
+      images: post.imageSrc ? [post.imageSrc.startsWith('http') ? post.imageSrc : `${siteUrl}${post.imageSrc}`] : undefined,
     },
   };
 }
 
 export async function generateStaticParams() {
-  const posts = await getAllPosts(); // Changed to await
-  return posts.map((post) => ({
-    slug: post.slug,
-  }));
+  // Fallback to empty array if getAllPosts fails or returns empty,
+  // to prevent build errors. Dynamic rendering will still work.
+  try {
+    const posts = await getAllPosts(); 
+    return posts.map((post) => ({
+      slug: post.slug,
+    }));
+  } catch (error) {
+    console.error("Error in generateStaticParams for blog posts:", error);
+    return [];
+  }
 }
 
-export default async function BlogPostPage({ params }: Props) { // Changed to async
-  const post = await getPostBySlug(params.slug); // Changed to await
+export default async function BlogPostPage({ params }: Props) {
+  const post = await getPostBySlug(params.slug); 
 
   if (!post) {
     notFound();
   }
 
-  const previousPost = await getPreviousPost(params.slug); // Changed to await
-  const nextPost = await getNextPost(params.slug); // Changed to await
+  const previousPost = await getPreviousPost(params.slug); 
+  const nextPost = await getNextPost(params.slug); 
 
   const displayDate = format(new Date(post.date), 'yyyy년 MM월 dd일');
 
@@ -103,24 +116,28 @@ export default async function BlogPostPage({ params }: Props) { // Changed to as
           )}
         </header>
 
-        <div className="relative aspect-video w-full">
-          <Image
-            src={post.imageSrc}
-            alt={post.title}
-            fill
-            className="object-cover"
-            data-ai-hint={post.dataAiHint}
-            priority
-          />
-        </div>
+        {post.imageSrc && (
+          <div className="relative aspect-video w-full">
+            <Image
+              src={post.imageSrc}
+              alt={post.title}
+              fill
+              className="object-cover"
+              data-ai-hint={post.dataAiHint}
+              priority
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 800px"
+            />
+          </div>
+        )}
 
-        <div className="p-6 sm:p-8 prose prose-lg max-w-none text-foreground/80 prose-headings:text-primary prose-headings:font-headline prose-a:text-accent hover:prose-a:text-accent/80 prose-strong:text-primary/90"
-             style={{ whiteSpace: 'pre-line' }}>
-          {post.content}
-        </div>
+        <div 
+          className="p-6 sm:p-8 prose prose-lg max-w-none text-foreground/80 prose-headings:text-primary prose-headings:font-headline prose-a:text-accent hover:prose-a:text-accent/80 prose-strong:text-primary/90"
+          style={{ whiteSpace: 'pre-line' }}
+          dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br />') }} // Basic Markdown-like newline handling
+        />
       </article>
 
-      <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <nav className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4" aria-label="게시물 탐색">
         {previousPost ? (
           <Button asChild variant="outline" size="sm" className="group hover:bg-primary/5 w-full sm:w-auto">
             <Link href={`/blog/${previousPost.slug}`}>
@@ -154,7 +171,9 @@ export default async function BlogPostPage({ params }: Props) { // Changed to as
         ) : (
           <div className="w-full sm:w-auto" />
         )}
-      </div>
+      </nav>
     </div>
   );
 }
+
+    
