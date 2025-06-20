@@ -31,8 +31,8 @@ export async function subscribeToNewsletter(
         status: 'active', 
       });
       console.log(`Newsletter: Email ${email} re-subscribed/updated in Firestore.`);
-      // The following log is for testing/demonstration purposes for the user's request
-      console.log(`(Test) A notification for new subscriber ${email} would be sent to junsupark9999@gmail.com if an email service were integrated.`);
+      // The following log is for testing/demonstration purposes
+      console.log(`(Test) A notification for new subscriber ${email} would be sent if an email service were integrated.`);
       return { success: true, message: '이미 구독된 이메일입니다. 최신 정보로 업데이트되었습니다.' };
     } else {
       await subscriberRef.set({
@@ -41,8 +41,8 @@ export async function subscribeToNewsletter(
         status: 'active',
       });
       console.log(`Newsletter: Email ${email} successfully subscribed and saved to Firestore.`);
-      // The following log is for testing/demonstration purposes for the user's request
-      console.log(`(Test) A notification for new subscriber ${email} would be sent to junsupark9999@gmail.com if an email service were integrated.`);
+      // The following log is for testing/demonstration purposes
+      console.log(`(Test) A notification for new subscriber ${email} would be sent if an email service were integrated.`);
       return { success: true, message: '뉴스레터 구독이 완료되었습니다! 환영합니다.' };
     }
 

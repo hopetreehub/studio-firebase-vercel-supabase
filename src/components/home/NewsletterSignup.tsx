@@ -94,7 +94,7 @@ export function NewsletterSignup() {
           </form>
         </Form>
          <p className="text-xs text-muted-foreground mt-4">
-            구독 시 <a href="mailto:junsupark9999@gmail.com" className="underline hover:text-accent">junsupark9999@gmail.com</a>에서 발송되는 뉴스레터를 수신하게 됩니다. (실제 발송은 현재 구현되지 않았습니다.)
+            구독하시면 InnerSpell의 소식을 뉴스레터로 받아보실 수 있습니다. (메일 발송 기능은 현재 준비 중입니다.)
         </p>
       </div>
     </section>
