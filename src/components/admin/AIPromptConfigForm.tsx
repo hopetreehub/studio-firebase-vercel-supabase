@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trash2, PlusCircle } from 'lucide-react';
+import { Trash2, PlusCircle, Loader2 } from 'lucide-react';
 
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -265,6 +265,7 @@ export function AIPromptConfigForm() {
               disabled={loading}
               className="w-full py-3 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
             >
+              {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
               {loading ? '저장 중…' : 'AI 설정 저장'}
             </Button>
           </form>

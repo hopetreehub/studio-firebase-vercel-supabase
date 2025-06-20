@@ -154,8 +154,8 @@ export default function ProfilePage() {
                   />
                    <div className="flex gap-2">
                     <Button type="submit" size="sm" disabled={isUpdating}>
-                      {isUpdating ? <Spinner size="small" className="mr-2" /> : null}
-                      저장
+                      {isUpdating && <Spinner size="small" className="mr-2" />}
+                      {isUpdating ? '저장 중...' : '저장'}
                     </Button>
                     <Button type="button" variant="ghost" size="sm" onClick={() => { setIsEditing(false); setDisplayName(user.displayName || '');}}>
                       취소
@@ -262,8 +262,8 @@ export default function ProfilePage() {
               </div>
               <div className="flex gap-2">
                 <Button type="submit" disabled={isChangingPassword}>
-                  {isChangingPassword ? <Spinner size="small" className="mr-2" /> : null}
-                  비밀번호 저장
+                  {isChangingPassword && <Spinner size="small" className="mr-2" />}
+                  {isChangingPassword ? '저장 중...' : '비밀번호 저장'}
                 </Button>
                 <Button type="button" variant="outline" onClick={() => {
                   setShowPasswordChangeForm(false);
@@ -282,5 +282,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
