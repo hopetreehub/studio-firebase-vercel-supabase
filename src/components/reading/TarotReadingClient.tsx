@@ -208,9 +208,12 @@ export function TarotReadingClient() {
       });
       return;
     }
-    // Show more cards than strictly needed for selection, up to a reasonable max (e.g., 20)
-    const numCardsToReveal = Math.min(allCards.length, Math.max(selectedSpread.numCards + 5, 10));
-    const drawnPool = [...deck].slice(0, numCardsToReveal).map((card) => ({ ...card, isFaceUp: false, isReversed: Math.random() > 0.5 }));
+    // Reveal all cards from the deck
+    const drawnPool = deck.map((card) => ({ 
+      ...card, 
+      isFaceUp: false, 
+      isReversed: Math.random() > 0.5 
+    }));
     
     setRevealedSpreadCards(drawnPool);
     setSelectedCardsForReading([]); 
@@ -219,14 +222,12 @@ export function TarotReadingClient() {
 
   const handleCardSelectFromSpread = (clickedSpreadCard: TarotCardType) => {
      const cardAlreadySelected = selectedCardsForReading.find(
-      (c) => c.id === clickedSpreadCard.id && c.isReversed === clickedSpreadCard.isReversed // Use a unique key if IDs can repeat with different orientations
+      (c) => c.id === clickedSpreadCard.id && c.isReversed === clickedSpreadCard.isReversed 
     );
 
     let newSelectedCards: TarotCardType[];
 
     if (cardAlreadySelected) { 
-      // This case should ideally not happen if cards are removed from revealedSpreadCards upon selection
-      // but as a safeguard, or if re-clicking selected card is meant to deselect:
       newSelectedCards = selectedCardsForReading.filter(
         (c) => !(c.id === clickedSpreadCard.id && c.isReversed === clickedSpreadCard.isReversed)
       );
@@ -242,20 +243,16 @@ export function TarotReadingClient() {
         toast({ variant: 'destructive', title: '오류', description: '선택한 카드를 찾을 수 없습니다.'});
         return;
       }
-      // Create a new object for the selected card to ensure it's a distinct instance
       const cardToAdd = {
         ...originalCardData, 
-        isReversed: clickedSpreadCard.isReversed, // Keep the orientation assigned when spread was revealed
-        isFaceUp: true, // It will be shown face up in the selected area
+        isReversed: clickedSpreadCard.isReversed, 
+        isFaceUp: true, 
       };
       newSelectedCards = [...selectedCardsForReading, cardToAdd];
     }
 
     setSelectedCardsForReading(newSelectedCards);
     
-    // revealedSpreadCards will be filtered for display, so AnimatePresence handles removal
-    // No need to directly setRevealedSpreadCards here to remove the card
-
     setStage(
       newSelectedCards.length === selectedSpread.numCards
         ? 'cards_selected'
@@ -440,7 +437,6 @@ export function TarotReadingClient() {
                   setSelectedCardsForReading([]);
                   setInterpretation('');
                   setDisplayedInterpretation('');
-                  // Reset visual deck stack to initial appearance
                   visualCardAnimControls.forEach((controls, i) => {
                     controls.start({ x: i * 0.2, y: i * -0.2, zIndex: NUM_VISUAL_CARDS_IN_STACK - i, rotate: 0, opacity: 1 }, { duration: 0 });
                   });
@@ -551,7 +547,7 @@ export function TarotReadingClient() {
                 ref={spreadContainerRef}
                 className="flex items-center overflow-x-auto p-2 w-full scrollbar-thin scrollbar-thumb-muted scrollbar-track-background" 
               >
-                <div className="flex space-x-[-120px]">
+                <div className="flex space-x-[-130px]">
                   <AnimatePresence>
                     {displayableRevealedCards.map((cardInSpread, index) => (
                         <motion.div
@@ -598,8 +594,7 @@ export function TarotReadingClient() {
                   size="sm" 
                   onClick={() => {
                     setSelectedCardsForReading([]);
-                    const numCardsToReveal = Math.min(allCards.length, Math.max(selectedSpread.numCards + 5, 10));
-                    const drawnPool = [...deck].slice(0, numCardsToReveal).map((card) => ({ ...card, isFaceUp: false, isReversed: Math.random() > 0.5 }));
+                    const drawnPool = deck.map((card) => ({ ...card, isFaceUp: false, isReversed: Math.random() > 0.5 }));
                     setRevealedSpreadCards(drawnPool);
                     setStage('spread_revealed'); 
                   }}
