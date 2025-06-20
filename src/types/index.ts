@@ -30,15 +30,6 @@ export type TarotInterpretationMethod =
   | "행동 지향적 조언"
   | "그림자 작업 초점";
 
-// export const interpretationMethods: TarotInterpretationMethod[] = [
-//   "전통 RWS",
-//   "토트 기반",
-//   "심리학적 원형",
-//   "영적 안내",
-//   "행동 지향적 조언",
-//   "그림자 작업 초점"
-// ];
-
 export type InterpretationStyleInfo = {
   id: TarotInterpretationMethod;
   name: string;
@@ -97,14 +88,15 @@ export const tarotSpreads: SpreadConfiguration[] = [
 ];
 
 export type BlogPost = {
-  id: string;
+  id: string; // Firestore document ID
   title: string;
-  date: string;
+  date: string; // YYYY-MM-DD format
   excerpt: string;
   imageSrc: string;
   dataAiHint: string;
   slug: string;
-  content: string; // Full content of the blog post
-  author?: string; // Optional
-  tags?: string[]; // Optional
+  content: string;
+  author?: string;
+  tags?: string[];
+  createdAt?: Date; // For Firestore timestamp, will be converted to 'date'
 };

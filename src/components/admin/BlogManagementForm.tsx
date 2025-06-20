@@ -19,8 +19,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, FilePlus2, Edit } from 'lucide-react';
 import { submitBlogPost, type BlogFormData } from '@/actions/blogActions';
+import type { BlogPost } from '@/types'; // For initialData type
 
 const formSchema = z.object({
   title: z.string().min(5, { message: '제목은 최소 5자 이상이어야 합니다.' }).max(100, { message: '제목은 최대 100자까지 가능합니다.'}),
@@ -33,82 +34,122 @@ const formSchema = z.object({
   tags: z.string().optional().transform(val => val ? val.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : []),
 });
 
-// Helper function to generate slug from title
 const generateSlug = (title: string): string => {
   return title
     .toLowerCase()
-    .replace(/\s+/g, '-') // Replace spaces with -
-    .replace(/[^\w-]+/g, '') // Remove all non-word chars
-    .replace(/--+/g, '-') // Replace multiple - with single -
-    .replace(/^-+/, '') // Trim - from start of text
-    .replace(/-+$/, ''); // Trim - from end of text
+    .replace(/\s+/g, '-') 
+    .replace(/[^\w-]+/g, '') 
+    .replace(/--+/g, '-') 
+    .replace(/^-+/, '') 
+    .replace(/-+$/, '');
 };
 
+interface BlogManagementFormProps {
+  initialData?: BlogPost; // For editing
+  onFormSubmitSuccess?: () => void; // Callback after successful submission
+  onCancelEdit?: () => void; // Callback to cancel editing mode
+}
 
-export function BlogManagementForm() {
+export function BlogManagementForm({ initialData, onFormSubmitSuccess, onCancelEdit }: BlogManagementFormProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [autoSlug, setAutoSlug] = useState(true);
+  const [autoSlug, setAutoSlug] = useState(!initialData); // Disable autoSlug if editing
+  const [currentPostId, setCurrentPostId] = useState<string | undefined>(initialData?.id);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: '',
-      slug: '',
-      excerpt: '',
-      content: '',
-      imageSrc: '',
-      dataAiHint: '',
-      author: 'InnerSpell 팀',
-      tags: [],
+      title: initialData?.title || '',
+      slug: initialData?.slug || '',
+      excerpt: initialData?.excerpt || '',
+      content: initialData?.content || '',
+      imageSrc: initialData?.imageSrc || '',
+      dataAiHint: initialData?.dataAiHint || '',
+      author: initialData?.author || 'InnerSpell 팀',
+      tags: initialData?.tags || [],
     },
   });
+
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        title: initialData.title,
+        slug: initialData.slug,
+        excerpt: initialData.excerpt,
+        content: initialData.content,
+        imageSrc: initialData.imageSrc,
+        dataAiHint: initialData.dataAiHint,
+        author: initialData.author,
+        // @ts-ignore
+        tags: initialData.tags?.join(', ') || '', // Ensure tags are string for input, will be transformed
+      });
+      setCurrentPostId(initialData.id);
+      setAutoSlug(false); // Editing, so slug should not auto-generate initially
+    } else {
+      form.reset({ // Reset to default for new post
+        title: '',
+        slug: '',
+        excerpt: '',
+        content: '',
+        imageSrc: '',
+        dataAiHint: '',
+        author: 'InnerSpell 팀',
+        tags: [],
+      });
+      setCurrentPostId(undefined);
+      setAutoSlug(true);
+    }
+  }, [initialData, form]);
 
   const titleValue = form.watch('title');
 
   useEffect(() => {
-    if (autoSlug && titleValue) {
+    if (autoSlug && titleValue && !currentPostId) { // Only auto-generate for new posts
       form.setValue('slug', generateSlug(titleValue), { shouldValidate: true });
     }
-  }, [titleValue, autoSlug, form]);
+  }, [titleValue, autoSlug, form, currentPostId]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true);
     
     const formData: BlogFormData = {
       ...values,
-      tags: values.tags || [], // Ensure tags is an array
+      // @ts-ignore
+      tags: typeof values.tags === 'string' ? values.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : values.tags || [],
     };
 
-    const result = await submitBlogPost(formData);
+    const result = await submitBlogPost(formData, currentPostId);
 
     if (result.success && result.postId) {
       toast({
-        title: '게시물 저장 성공',
-        description: `"${values.title}" 게시물이 데이터베이스에 성공적으로 저장되었습니다. (ID: ${result.postId}) 블로그 페이지에서 확인하세요.`,
+        title: currentPostId ? '게시물 수정 성공' : '게시물 저장 성공',
+        description: `"${values.title}" 게시물이 데이터베이스에 성공적으로 ${currentPostId ? '수정' : '저장'}되었습니다. (ID: ${result.postId})`,
         duration: 7000,
       });
-      form.reset(); 
-      // Optionally, re-enable autoSlug or reset specific fields
-      form.setValue('author', 'InnerSpell 팀');
-      setAutoSlug(true); 
+      form.reset({ title: '', slug: '', excerpt: '', content: '', imageSrc: '', dataAiHint: '', author: 'InnerSpell 팀', tags: [] });
+      setCurrentPostId(undefined);
+      setAutoSlug(true);
+      if (onFormSubmitSuccess) {
+        onFormSubmitSuccess(); // Call callback if provided
+      }
+      if (currentPostId && onCancelEdit) { // If was editing, call cancel to reset mode
+        onCancelEdit();
+      }
     } else {
         let description = '알 수 없는 오류가 발생했습니다.';
         if (typeof result.error === 'string') {
             description = result.error;
         } else if (typeof result.error === 'object' && result.error !== null) {
-            // Handle Zod field errors or specific slug error
             const fieldErrors = result.error as any;
             if (fieldErrors.slug) {
-                 // @ts-ignore
-                description = fieldErrors.slug; // If slug error is a direct string message
+                description = fieldErrors.slug; 
             } else {
                 description = Object.values(fieldErrors).flat().join(' ');
             }
         }
       toast({
         variant: 'destructive',
-        title: '게시물 저장 실패',
+        title: currentPostId ? '게시물 수정 실패' : '게시물 저장 실패',
         description: description,
       });
     }
@@ -140,14 +181,15 @@ export function BlogManagementForm() {
               <FormLabel className="text-lg font-semibold">슬러그 (URL 경로)</FormLabel>
               <div className="flex items-center space-x-2">
                 <FormControl>
-                  <Input placeholder="example-post-slug" {...field} disabled={autoSlug} />
+                  <Input placeholder="example-post-slug" {...field} disabled={autoSlug && !currentPostId} />
                 </FormControl>
-                <Button type="button" variant="outline" onClick={() => setAutoSlug(!autoSlug)}>
+                <Button type="button" variant="outline" onClick={() => setAutoSlug(!autoSlug)} disabled={!!currentPostId}>
                   {autoSlug ? '수동 입력' : '자동 생성'}
                 </Button>
               </div>
               <FormDescription>
-                게시물의 고유 URL 경로입니다. {autoSlug ? "제목 기준으로 자동 생성됩니다." : "수동으로 입력해주세요."}
+                게시물의 고유 URL 경로입니다. {autoSlug && !currentPostId ? "제목 기준으로 자동 생성됩니다." : "수동으로 입력해주세요."}
+                {currentPostId && " 수정 시 슬러그를 변경하면 기존 링크가 깨질 수 있습니다."}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -180,14 +222,11 @@ export function BlogManagementForm() {
               <FormLabel className="text-lg font-semibold">본문</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="게시물 전체 내용을 입력하세요. Markdown 형식 사용 가능 (간단 지원)."
+                  placeholder="게시물 전체 내용을 입력하세요."
                   className="min-h-[300px]"
                   {...field}
                 />
               </FormControl>
-              <FormDescription>
-                (현재 간단한 텍스트 입력만 지원. 추후 리치 텍스트 에디터로 변경 예정)
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -251,7 +290,9 @@ export function BlogManagementForm() {
                 <Input 
                   placeholder="쉼표(,)로 구분하여 태그 입력 (예: 타로, 명상, 운세)" 
                   {...fieldProps} 
+                  // @ts-ignore
                   onChange={(e) => onChange(e.target.value)} 
+                  // @ts-ignore
                   value={Array.isArray(value) ? value.join(', ') : (value || '')} 
                 />
               </FormControl>
@@ -263,14 +304,31 @@ export function BlogManagementForm() {
           )}
         />
 
-
-        <Button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
-        >
-          {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : '게시물 저장'}
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-4">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full sm:flex-1 py-3 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : (currentPostId ? <Edit className="mr-2 h-5 w-5" /> : <FilePlus2 className="mr-2 h-5 w-5" />)}
+              {currentPostId ? '게시물 수정' : '새 게시물 저장'}
+            </Button>
+            {currentPostId && onCancelEdit && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  onCancelEdit();
+                  form.reset({ title: '', slug: '', excerpt: '', content: '', imageSrc: '', dataAiHint: '', author: 'InnerSpell 팀', tags: [] });
+                  setCurrentPostId(undefined);
+                  setAutoSlug(true);
+                }}
+                className="w-full sm:w-auto"
+              >
+                수정 취소 / 새 글 작성
+              </Button>
+            )}
+        </div>
       </form>
     </Form>
   );
