@@ -551,12 +551,12 @@ export function TarotReadingClient() {
                 ref={spreadContainerRef}
                 className="flex items-center overflow-x-auto p-2 w-full scrollbar-thin scrollbar-thumb-muted scrollbar-track-background" 
               >
-                <div className="flex space-x-2"> {/* Add space-x-2 for horizontal spacing */}
+                <div className="flex space-x-3"> {/* Changed space-x-2 to space-x-3 */}
                   <AnimatePresence>
                     {displayableRevealedCards.map((cardInSpread, index) => (
                         <motion.div
-                          key={cardInSpread.id + (cardInSpread.isReversed ? '-rev-spread' : '-upr-spread')} // Unique key for spread
-                          layoutId={cardInSpread.id + (cardInSpread.isReversed ? '-rev-layout' : '-upr-layout')} // Unique layoutId
+                          key={cardInSpread.id + (cardInSpread.isReversed ? '-rev-spread' : '-upr-spread')} 
+                          layoutId={cardInSpread.id + (cardInSpread.isReversed ? '-rev-layout' : '-upr-layout')} 
                           initial={{ opacity: 0, y: 20, scale: 0.9 }}
                           animate={{
                             opacity: 1,
@@ -598,7 +598,6 @@ export function TarotReadingClient() {
                   size="sm" 
                   onClick={() => {
                     setSelectedCardsForReading([]);
-                    // Re-initialize revealedSpreadCards to allow re-selection from the full pool for this stage
                     const numCardsToReveal = Math.min(allCards.length, Math.max(selectedSpread.numCards + 5, 10));
                     const drawnPool = [...deck].slice(0, numCardsToReveal).map((card) => ({ ...card, isFaceUp: false, isReversed: Math.random() > 0.5 }));
                     setRevealedSpreadCards(drawnPool);
@@ -627,12 +626,12 @@ export function TarotReadingClient() {
           </CardHeader>
           <CardContent>
             <LayoutGroup>
-              <div className="flex flex-wrap justify-center gap-3 min-h-[calc(theme(space.60)_+_theme(space.3))]"> {/* Ensure min-height for cards */}
+              <div className="flex flex-wrap justify-center gap-3 min-h-[calc(theme(space.60)_+_theme(space.3))]"> 
                 <AnimatePresence>
                   {selectedCardsForReading.map((card, index) => (
                     <motion.div
-                      key={card.id + (card.isReversed ? '-rev-selected' : '-upr-selected')} // Unique key for selected
-                      layoutId={card.id + (card.isReversed ? '-rev-layout' : '-upr-layout')} // Consistent layoutId
+                      key={card.id + (card.isReversed ? '-rev-selected' : '-upr-selected')} 
+                      layoutId={card.id + (card.isReversed ? '-rev-layout' : '-upr-layout')} 
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1, transition: { delay: 0.1 } }}
                       exit={{ opacity: 0, scale: 0.8, transition: {duration: 0.2} }}
@@ -642,10 +641,9 @@ export function TarotReadingClient() {
                       <motion.div
                         className={`relative h-full w-full overflow-hidden rounded-lg`}
                         initial={{ rotateY: card.isFaceUp ? 0 : 180 }}
-                        animate={{ rotateY: 0 }} // Animate to face-up
+                        animate={{ rotateY: 0 }} 
                         transition={{ duration: 0.4, ease: "easeInOut" }}
                       >
-                        {/* This structure is for a potential 3D flip, but for simplicity, we directly show face */}
                         <div style={{ backfaceVisibility: 'hidden' }}>
                            <Image
                             src={card.imageSrc}
@@ -671,7 +669,7 @@ export function TarotReadingClient() {
                 disabled={
                   isShufflingAnimationActive ||
                   stage === 'interpreting' ||
-                  stage !== 'cards_selected' // Only enable if exactly cards_selected stage
+                  stage !== 'cards_selected' 
                 }
                 className="bg-accent px-6 py-3 text-lg text-accent-foreground hover:bg-accent/90"
               >
@@ -732,4 +730,3 @@ export function TarotReadingClient() {
     </div>
   );
 }
-
