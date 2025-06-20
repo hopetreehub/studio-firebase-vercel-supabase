@@ -53,8 +53,8 @@ export async function generateMetadata(
       images: [
         {
           url: imageUrl,
-          width: 275,
-          height: 475,
+          width: 330, // Updated width for OG
+          height: 570, // Updated height for OG
           alt: cardName,
         },
         ...previousImages
@@ -132,20 +132,20 @@ export default function CardDetailPage({ params }: Props) {
       />
       <div className="max-w-4xl mx-auto space-y-8 py-8">
         <Card className="overflow-hidden shadow-xl border-primary/10">
-          <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
-            <div className="md:col-span-1 p-4 sm:p-6 bg-primary/5 flex justify-center items-center">
+          <div className="grid md:grid-cols-7 gap-6 sm:gap-8"> {/* Changed to 7 columns */}
+            <div className="md:col-span-3 p-4 sm:p-6 bg-primary/5 flex justify-center items-center"> {/* Image takes 3 columns */}
               <Image
                 src={card.imageSrc}
                 alt={card.name}
-                width={275}
-                height={475}
-                className="rounded-lg shadow-lg object-contain max-h-[475px] w-auto"
+                width={330} // Increased width
+                height={570} // Increased height (maintaining aspect ratio)
+                className="rounded-lg shadow-lg object-contain" // Removed max-h and w-auto
                 data-ai-hint={card.dataAiHint}
                 priority
-                sizes="(max-width: 768px) 90vw, 275px"
+                sizes="(max-width: 768px) 90vw, 330px" // Updated sizes
               />
             </div>
-            <div className="md:col-span-2 p-6 sm:p-8">
+            <div className="md:col-span-4 p-6 sm:p-8"> {/* Text content takes 4 columns */}
               <CardHeader className="p-0 mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <Badge variant={card.suit === 'major' ? 'default' : 'secondary'} className="capitalize text-sm px-2 py-1">
