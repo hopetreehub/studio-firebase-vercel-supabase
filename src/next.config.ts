@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
     if (!isServer) {
       // Don't resolve these modules on the client
       config.resolve.fallback = {
-        ...(config.resolve.fallback || {}), // Ensure fallback object exists
+        ...config.resolve.fallback,
         child_process: false,
         fs: false,
         os: false,
