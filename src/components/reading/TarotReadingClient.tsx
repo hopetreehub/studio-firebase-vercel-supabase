@@ -21,6 +21,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 
 import type {
   TarotCard as TarotCardType,
@@ -38,6 +50,7 @@ import {
   Loader2,
   Shuffle,
   Layers,
+  BookOpenText,
 } from 'lucide-react';
 
 import { useToast } from '@/hooks/use-toast';
@@ -53,14 +66,14 @@ type ReadingStage =
   | 'interpreting'
   | 'interpretation_ready';
 
-const CARD_BACK_IMAGE = '/images/tarot/back.png'; // Ensured path
+const CARD_BACK_IMAGE = '/images/tarot/back.png';
 const NUM_VISUAL_CARDS_IN_STACK = 15;
 const N_ANIMATING_CARDS_FOR_SHUFFLE = 7;
 
-const TARGET_CARD_HEIGHT_CLASS = "h-60"; 
+const TARGET_CARD_HEIGHT_CLASS = "h-60";
 const IMAGE_ORIGINAL_WIDTH = 275;
 const IMAGE_ORIGINAL_HEIGHT = 475;
-const CARD_IMAGE_SIZES = "140px"; 
+const CARD_IMAGE_SIZES = "140px";
 
 
 export function TarotReadingClient() {
@@ -81,6 +94,8 @@ export function TarotReadingClient() {
   const [displayedInterpretation, setDisplayedInterpretation] =
     useState<string>('');
   const [stage, setStage] = useState<ReadingStage>('setup');
+  const [isInterpretationDialogOpen, setIsInterpretationDialogOpen] = useState(false);
+
 
   const { toast } = useToast();
   const spreadContainerRef = useRef<HTMLDivElement>(null);
@@ -97,7 +112,7 @@ export function TarotReadingClient() {
     visualCardAnimControls.forEach((controls, i) => {
       controls.start(
         {
-          x: i * 0.2, 
+          x: i * 0.2,
           y: i * -0.2,
           zIndex: NUM_VISUAL_CARDS_IN_STACK - i,
           rotate: 0,
@@ -114,15 +129,17 @@ export function TarotReadingClient() {
 
     setIsShufflingAnimationActive(true);
     setStage('shuffling');
-    setRevealedSpreadCards([]); 
+    setRevealedSpreadCards([]);
     setSelectedCardsForReading([]);
     setInterpretation('');
     setDisplayedInterpretation('');
+    setIsInterpretationDialogOpen(false);
 
-    const pileSpacing = 120; 
+
+    const pileSpacing = 120;
     const cardOffsetY = 2;
     const shufflePileCardRotation = -8;
-    
+
     const animatingControls = visualCardAnimControls.slice(0, N_ANIMATING_CARDS_FOR_SHUFFLE);
 
     const leftPileAnimatingIndices: number[] = [];
@@ -132,15 +149,15 @@ export function TarotReadingClient() {
       if (i % 2 === 0) leftPileAnimatingIndices.push(i);
       else rightPileAnimatingIndices.push(i);
     }
-    
+
     const splitPromises = [];
     leftPileAnimatingIndices.forEach((controlIndex, pileOrder) => {
       splitPromises.push(
         animatingControls[controlIndex].start({
-          x: -pileSpacing, 
-          y: pileOrder * cardOffsetY, 
+          x: -pileSpacing,
+          y: pileOrder * cardOffsetY,
           rotate: shufflePileCardRotation,
-          zIndex: NUM_VISUAL_CARDS_IN_STACK + pileOrder, 
+          zIndex: NUM_VISUAL_CARDS_IN_STACK + pileOrder,
           transition: { duration: 0.25, ease: 'easeOut', delay: pileOrder * 0.04 },
         }),
       );
@@ -148,7 +165,7 @@ export function TarotReadingClient() {
     rightPileAnimatingIndices.forEach((controlIndex, pileOrder) => {
       splitPromises.push(
         animatingControls[controlIndex].start({
-          x: pileSpacing, 
+          x: pileSpacing,
           y: pileOrder * cardOffsetY,
           rotate: -shufflePileCardRotation,
           zIndex: NUM_VISUAL_CARDS_IN_STACK + pileOrder,
@@ -157,7 +174,7 @@ export function TarotReadingClient() {
       );
     });
     await Promise.all(splitPromises);
-    await new Promise((r) => setTimeout(r, 150)); 
+    await new Promise((r) => setTimeout(r, 150));
 
     const interleaveOrderDefinition: number[] = [];
     const maxPileLength = Math.max(leftPileAnimatingIndices.length, rightPileAnimatingIndices.length);
@@ -169,21 +186,21 @@ export function TarotReadingClient() {
     for (let i = 0; i < interleaveOrderDefinition.length; i++) {
       const controlIndex = interleaveOrderDefinition[i];
       await animatingControls[controlIndex].start({
-        x: 0 + i * 0.2, 
-        y: 0 + i * -0.2, 
+        x: 0 + i * 0.2,
+        y: 0 + i * -0.2,
         rotate: 0,
-        zIndex: NUM_VISUAL_CARDS_IN_STACK * 2 + i, 
+        zIndex: NUM_VISUAL_CARDS_IN_STACK * 2 + i,
         transition: { duration: 0.1, ease: 'easeIn' },
       });
     }
-    await new Promise((r) => setTimeout(r, 200)); 
+    await new Promise((r) => setTimeout(r, 200));
 
     setDeck([...allCards].sort(() => 0.5 - Math.random()));
     setStage('shuffled');
 
      visualCardAnimControls.forEach((controls, i) => {
       controls.start({
-        x: i * 0.2, 
+        x: i * 0.2,
         y: i * -0.2,
         zIndex: NUM_VISUAL_CARDS_IN_STACK - i,
         rotate: 0,
@@ -208,30 +225,33 @@ export function TarotReadingClient() {
       });
       return;
     }
-    
-    const drawnPool = deck.map((card) => ({ 
-      ...card, 
-      isFaceUp: false, 
-      isReversed: Math.random() > 0.5 
+
+    const drawnPool = deck.map((card) => ({
+      ...card,
+      isFaceUp: false,
+      isReversed: Math.random() > 0.5
     }));
-    
+
     setRevealedSpreadCards(drawnPool);
-    setSelectedCardsForReading([]); 
+    setSelectedCardsForReading([]);
+    setInterpretation('');
+    setDisplayedInterpretation('');
+    setIsInterpretationDialogOpen(false);
     setStage('spread_revealed');
   };
 
   const handleCardSelectFromSpread = (clickedSpreadCard: TarotCardType) => {
      const cardAlreadySelected = selectedCardsForReading.find(
-      (c) => c.id === clickedSpreadCard.id && c.isReversed === clickedSpreadCard.isReversed 
+      (c) => c.id === clickedSpreadCard.id && c.isReversed === clickedSpreadCard.isReversed
     );
 
     let newSelectedCards: TarotCardType[];
 
-    if (cardAlreadySelected) { 
+    if (cardAlreadySelected) {
       newSelectedCards = selectedCardsForReading.filter(
         (c) => !(c.id === clickedSpreadCard.id && c.isReversed === clickedSpreadCard.isReversed)
       );
-    } else { 
+    } else {
       if (selectedCardsForReading.length >= selectedSpread.numCards) {
         toast({
           description: `최대 ${selectedSpread.numCards}장까지 선택할 수 있습니다.`,
@@ -244,15 +264,15 @@ export function TarotReadingClient() {
         return;
       }
       const cardToAdd = {
-        ...originalCardData, 
-        isReversed: clickedSpreadCard.isReversed, 
-        isFaceUp: true, 
+        ...originalCardData,
+        isReversed: clickedSpreadCard.isReversed,
+        isFaceUp: true,
       };
       newSelectedCards = [...selectedCardsForReading, cardToAdd];
     }
 
     setSelectedCardsForReading(newSelectedCards);
-    
+
     setStage(
       newSelectedCards.length === selectedSpread.numCards
         ? 'cards_selected'
@@ -281,6 +301,8 @@ export function TarotReadingClient() {
 
     setStage('interpreting');
     setDisplayedInterpretation('');
+    setIsInterpretationDialogOpen(false);
+
 
     const cardInterpretationsText = selectedCardsForReading
       .map((card, index) => {
@@ -288,7 +310,6 @@ export function TarotReadingClient() {
         const meaning = card.isReversed
           ? card.meaningReversed
           : card.meaningUpright;
-        // Use spread position name if available
         const positionName = selectedSpread.positions?.[index] ? ` (${selectedSpread.positions[index]})` : '';
         return `${index + 1}. ${card.name}${positionName} (${orientation}): ${meaning.substring(0,100)}...`;
       })
@@ -297,11 +318,12 @@ export function TarotReadingClient() {
     try {
       const result = await generateTarotInterpretation({
         question: `${question} (해석 스타일: ${interpretationMethod})`,
-        cardSpread: selectedSpread.name, // Pass spread name
-        cardInterpretations: cardInterpretationsText, // Pass detailed card info with positions
+        cardSpread: selectedSpread.name,
+        cardInterpretations: cardInterpretationsText,
       });
       setInterpretation(result.interpretation);
       setStage('interpretation_ready');
+      setIsInterpretationDialogOpen(true); // Open dialog when interpretation is ready
     } catch (error) {
       console.error('해석 생성 오류:', error);
       toast({
@@ -309,12 +331,12 @@ export function TarotReadingClient() {
         title: '해석 오류',
         description: 'AI 해석을 생성하는 데 실패했습니다. 잠시 후 다시 시도해주세요.',
       });
-      setStage('cards_selected'); // Revert to a safe stage
+      setStage('cards_selected');
     }
   };
 
   useEffect(() => {
-    if (interpretation && stage === 'interpretation_ready') {
+    if (interpretation && stage === 'interpretation_ready' && isInterpretationDialogOpen) {
       let index = 0;
       setDisplayedInterpretation('');
       const intervalId = setInterval(() => {
@@ -327,7 +349,7 @@ export function TarotReadingClient() {
       }, 25);
       return () => clearInterval(intervalId);
     }
-  }, [interpretation, stage]);
+  }, [interpretation, stage, isInterpretationDialogOpen]);
 
   const cardStack = (
     <div
@@ -431,11 +453,12 @@ export function TarotReadingClient() {
                     tarotSpreads.find((s) => s.id === value) ||
                     tarotSpreads[0];
                   setSelectedSpread(newSpread);
-                  setStage('deck_ready'); 
+                  setStage('deck_ready');
                   setRevealedSpreadCards([]);
                   setSelectedCardsForReading([]);
                   setInterpretation('');
                   setDisplayedInterpretation('');
+                  setIsInterpretationDialogOpen(false);
                   visualCardAnimControls.forEach((controls, i) => {
                     controls.start({ x: i * 0.2, y: i * -0.2, zIndex: NUM_VISUAL_CARDS_IN_STACK - i, rotate: 0, opacity: 1 }, { duration: 0 });
                   });
@@ -502,7 +525,7 @@ export function TarotReadingClient() {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center space-y-6 p-6 md:p-8 min-h-[400px]">
-          
+
           {(stage === 'deck_ready' || stage === 'shuffled' || stage === 'shuffling') && revealedSpreadCards.length === 0 && selectedCardsForReading.length === 0 && (
             <>
               {cardStack}
@@ -536,7 +559,7 @@ export function TarotReadingClient() {
               </div>
             </>
           )}
-          
+
           {stage === 'spread_revealed' && (
             <>
               <div className="w-full text-center mb-4">
@@ -549,7 +572,7 @@ export function TarotReadingClient() {
               </div>
               <div
                 ref={spreadContainerRef}
-                className="flex items-center overflow-x-auto p-2 w-full scrollbar-thin scrollbar-thumb-muted scrollbar-track-background" 
+                className="flex items-center overflow-x-auto p-2 w-full scrollbar-thin scrollbar-thumb-muted scrollbar-track-background"
                 role="group"
                 aria-labelledby="spread-instruction"
               >
@@ -557,21 +580,21 @@ export function TarotReadingClient() {
                   <AnimatePresence>
                     {displayableRevealedCards.map((cardInSpread, index) => (
                         <motion.div
-                          key={cardInSpread.id + (cardInSpread.isReversed ? '-rev-spread' : '-upr-spread')} 
+                          key={cardInSpread.id + (cardInSpread.isReversed ? '-rev-spread' : '-upr-spread')}
                           role="button"
                           tabIndex={0}
                           aria-label={`펼쳐진 ${index + 1}번째 카드 선택 (${cardInSpread.name})`}
                           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleCardSelectFromSpread(cardInSpread); }}
-                          layoutId={cardInSpread.id + (cardInSpread.isReversed ? '-rev-layout' : '-upr-layout')} 
+                          layoutId={cardInSpread.id + (cardInSpread.isReversed ? '-rev-layout' : '-upr-layout')}
                           initial={{ opacity: 0, y: 20, scale: 0.9 }}
                           animate={{
                             opacity: 1,
                             y: 0,
                             scale: 1,
                           }}
-                          exit={{ 
+                          exit={{
                             opacity: 0,
-                            y: 40, 
+                            y: 40,
                             scale: 0.8,
                             transition: { duration: 0.2, ease: "easeIn" },
                           }}
@@ -590,7 +613,7 @@ export function TarotReadingClient() {
                               height={IMAGE_ORIGINAL_HEIGHT}
                               className="h-full w-auto object-contain rounded-lg"
                               sizes={CARD_IMAGE_SIZES}
-                              priority={index < 10} 
+                              priority={index < 10}
                             />
                           </motion.div>
                         </motion.div>
@@ -599,14 +622,14 @@ export function TarotReadingClient() {
                 </div>
               </div>
                {selectedCardsForReading.length > 0 && selectedCardsForReading.length < selectedSpread.numCards && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => {
                     setSelectedCardsForReading([]);
                     const drawnPool = deck.map((card) => ({ ...card, isFaceUp: false, isReversed: Math.random() > 0.5 }));
-                    setRevealedSpreadCards(drawnPool); // Reset to full deck spread
-                    setStage('spread_revealed'); 
+                    setRevealedSpreadCards(drawnPool);
+                    setStage('spread_revealed');
                   }}
                   className="mt-4"
                   aria-label="선택한 카드 모두 초기화"
@@ -618,7 +641,7 @@ export function TarotReadingClient() {
           )}
         </CardContent>
       </Card>
-      
+
       {(stage === 'cards_selected' || stage === 'interpreting' || stage === 'interpretation_ready' || (stage === 'spread_revealed' && selectedCardsForReading.length > 0) ) && (
         <Card className="animate-fade-in mt-8">
           <CardHeader>
@@ -632,13 +655,13 @@ export function TarotReadingClient() {
           </CardHeader>
           <CardContent>
             <LayoutGroup>
-              <div className="flex flex-wrap justify-center gap-3 min-h-[calc(theme(space.60)_+_theme(space.3))]" role="list" aria-label="선택된 카드 목록"> 
+              <div className="flex flex-wrap justify-center gap-3 min-h-[calc(theme(space.60)_+_theme(space.3))]" role="list" aria-label="선택된 카드 목록">
                 <AnimatePresence>
                   {selectedCardsForReading.map((card, index) => (
                     <motion.div
-                      key={card.id + (card.isReversed ? '-rev-selected' : '-upr-selected')} 
+                      key={card.id + (card.isReversed ? '-rev-selected' : '-upr-selected')}
                       role="listitem"
-                      layoutId={card.id + (card.isReversed ? '-rev-layout' : '-upr-layout')} 
+                      layoutId={card.id + (card.isReversed ? '-rev-layout' : '-upr-layout')}
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1, transition: { delay: 0.1 } }}
                       exit={{ opacity: 0, scale: 0.8, transition: {duration: 0.2} }}
@@ -649,7 +672,7 @@ export function TarotReadingClient() {
                       <motion.div
                         className={`relative h-full w-full overflow-hidden rounded-lg`}
                         initial={{ rotateY: card.isFaceUp ? 0 : 180 }}
-                        animate={{ rotateY: 0 }} 
+                        animate={{ rotateY: 0 }}
                         transition={{ duration: 0.4, ease: "easeInOut" }}
                       >
                         <div style={{ backfaceVisibility: 'hidden' }}>
@@ -677,12 +700,12 @@ export function TarotReadingClient() {
                 disabled={
                   isShufflingAnimationActive ||
                   stage === 'interpreting' ||
-                  stage !== 'cards_selected' 
+                  stage !== 'cards_selected'
                 }
                 aria-disabled={
                   isShufflingAnimationActive ||
                   stage === 'interpreting' ||
-                  stage !== 'cards_selected' 
+                  stage !== 'cards_selected'
                 }
                 className="bg-accent px-6 py-3 text-lg text-accent-foreground hover:bg-accent/90"
                 aria-label={stage === 'interpreting' ? 'AI가 해석하는 중' : 'AI 해석 받기'}
@@ -699,48 +722,59 @@ export function TarotReadingClient() {
         </Card>
       )}
 
-
-      {(stage === 'interpreting' || stage === 'interpretation_ready') && (
-        <Card className="animate-fade-in mt-8" aria-live="polite">
-          <CardHeader>
-            <CardTitle className="font-headline flex items-center text-3xl text-primary">
-              <Sparkles className="mr-2 h-7 w-7 text-accent" />
-              AI 해석
-            </CardTitle>
-            {stage === 'interpreting' && (
-              <CardDescription>
-                AI가 당신을 위해 지혜를 엮고 있습니다...
-              </CardDescription>
-            )}
-            {stage === 'interpretation_ready' && interpretation && (
-              <CardDescription>
-                카드와 AI가 당신의 질문에 대해 제안하는 내용입니다.
-              </CardDescription>
-            )}
-          </CardHeader>
-          <CardContent className="prose min-h-[150px] max-w-none prose-lg prose-headings:font-headline prose-headings:text-primary prose-p:text-foreground/80 prose-strong:text-primary/90">
-            {stage === 'interpreting' && !displayedInterpretation && (
-              <div className="flex items-center justify-center py-10">
-                <Loader2 className="h-12 w-12 animate-spin text-accent" />
+      {(stage === 'interpretation_ready' || stage === 'interpreting') && interpretation && (
+         <AlertDialog open={isInterpretationDialogOpen} onOpenChange={setIsInterpretationDialogOpen}>
+            <AlertDialogContent className="max-w-2xl w-[90vw] max-h-[80vh] flex flex-col">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="font-headline text-2xl text-primary flex items-center">
+                  <Sparkles className="mr-2 h-6 w-6 text-accent" />
+                  AI 타로 해석
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-sm text-muted-foreground">
+                  질문: {question} ({selectedSpread.name})
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="overflow-y-auto flex-grow pr-2 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                {stage === 'interpreting' && !displayedInterpretation && (
+                  <div className="flex items-center justify-center py-10">
+                    <Loader2 className="h-10 w-10 animate-spin text-accent" />
+                    <p className="ml-3 text-muted-foreground">AI가 지혜를 엮고 있습니다...</p>
+                  </div>
+                )}
+                <div
+                  className="prose prose-lg max-w-none prose-headings:font-headline prose-headings:text-primary prose-p:text-foreground/90 prose-strong:text-primary/90 text-base leading-relaxed"
+                  style={{ whiteSpace: 'pre-wrap' }}
+                >
+                  {displayedInterpretation}
+                </div>
               </div>
-            )}
-            <div
-              style={{ whiteSpace: 'pre-wrap' }}
-              className="text-base leading-relaxed"
-            >
-              {displayedInterpretation}
-            </div>
-            {stage === 'interpretation_ready' &&
-              !interpretation &&
-              !displayedInterpretation && (
-                <p className="text-muted-foreground">
-                  아직 해석이 없습니다. 위의 &quot;AI 해석 받기&quot; 버튼을
-                  클릭하세요.
-                </p>
-              )}
+              <AlertDialogFooter className="mt-4 pt-4 border-t">
+                <AlertDialogCancel>닫기</AlertDialogCancel>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+      )}
+
+      {/* This card shows a button to reopen the dialog if it was closed */}
+      {stage === 'interpretation_ready' && interpretation && !isInterpretationDialogOpen && (
+        <Card className="animate-fade-in mt-8">
+           <CardHeader>
+            <CardTitle className="font-headline flex items-center text-2xl text-primary">
+              <BookOpenText className="mr-2 h-6 w-6 text-accent" />
+              AI 해석 준비 완료
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground mb-4">AI가 생성한 해석을 다시 보려면 아래 버튼을 클릭하세요.</p>
+             <Button onClick={() => setIsInterpretationDialogOpen(true)} className="bg-accent text-accent-foreground hover:bg-accent/90">
+              <Sparkles className="mr-2 h-5 w-5" />
+              해석 다시 보기
+            </Button>
           </CardContent>
         </Card>
       )}
+
     </div>
   );
 }
+
