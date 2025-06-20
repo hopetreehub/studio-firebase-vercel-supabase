@@ -64,6 +64,7 @@ export async function GET() {
     { path: '/reading', priority: 0.8, changefreq: 'weekly' },
     { path: '/encyclopedia', priority: 0.8, changefreq: 'monthly' },
     { path: '/blog', priority: 0.8, changefreq: 'weekly' },
+    { path: '/community', priority: 0.7, changefreq: 'weekly' },
     { path: '/sign-in', priority: 0.3, changefreq: 'yearly' },
     { path: '/sign-up', priority: 0.3, changefreq: 'yearly' },
   ];

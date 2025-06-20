@@ -7,6 +7,7 @@ const navItems = [
   { href: '/reading', label: 'Tarot Reading' },
   { href: '/encyclopedia', label: 'Card Encyclopedia' },
   { href: '/blog', label: 'Blog' },
+  { href: '/community', label: 'Community' },
   // { href: '/admin', label: 'Admin'}
 ];
 

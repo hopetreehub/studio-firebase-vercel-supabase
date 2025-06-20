@@ -30,7 +30,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
 
@@ -444,7 +443,7 @@ export function TarotReadingClient() {
                 htmlFor="spread-type"
                 className="text-lg font-semibold text-foreground/90"
               >
-                어떤 방식으로 카드를 펼쳐볼까요?
+                타로 스프레드:
               </Label>
               <Select
                 value={selectedSpread.id}

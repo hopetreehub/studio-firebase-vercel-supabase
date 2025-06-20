@@ -15,6 +15,7 @@ const navItems = [
   { href: '/reading', label: '타로 읽기' },
   { href: '/encyclopedia', label: '카드 백과' },
   { href: '/blog', label: '블로그' },
+  { href: '/community', label: '커뮤니티' },
   { href: '/admin', label: '관리자'}
 ];
 
