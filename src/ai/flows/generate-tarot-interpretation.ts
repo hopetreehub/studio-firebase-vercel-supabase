@@ -108,9 +108,9 @@ const generateTarotInterpretationFlow = ai.defineFlow(
         const configData = configDoc.data();
         if (configData?.promptTemplate && typeof configData.promptTemplate === 'string' && configData.promptTemplate.trim() !== '') {
           promptTemplateToUse = configData.promptTemplate;
-          console.log("AI 프롬프트 템플릿을 Firestore에서 불러왔습니다.");
+          // console.log("AI 프롬프트 템플릿을 Firestore에서 불러왔습니다.");
         } else {
-          console.log("Firestore에서 유효한 AI 프롬프트 템플릿을 찾을 수 없습니다. 기본 템플릿을 사용합니다.");
+          // console.log("Firestore에서 유효한 AI 프롬프트 템플릿을 찾을 수 없습니다. 기본 템플릿을 사용합니다.");
         }
 
         if (configData?.safetySettings && Array.isArray(configData.safetySettings)) {
@@ -120,42 +120,39 @@ const generateTarotInterpretationFlow = ai.defineFlow(
           );
           if (validSafetySettings.length > 0) {
             safetySettingsToUse = validSafetySettings;
-            console.log("AI 안전 설정을 Firestore에서 불러왔습니다.");
+            // console.log("AI 안전 설정을 Firestore에서 불러왔습니다.");
           } else {
-            console.log("Firestore에서 유효한 AI 안전 설정을 찾을 수 없습니다. 기본 설정을 사용합니다.");
+            // console.log("Firestore에서 유효한 AI 안전 설정을 찾을 수 없습니다. 기본 설정을 사용합니다.");
           }
         } else {
-           console.log("Firestore에 AI 안전 설정이 없거나 형식이 올바르지 않습니다. 기본 설정을 사용합니다.");
+           // console.log("Firestore에 AI 안전 설정이 없거나 형식이 올바르지 않습니다. 기본 설정을 사용합니다.");
         }
       } else {
-        console.log("Firestore에서 AI 프롬프트 설정 문서를 찾을 수 없습니다. 기본값을 사용합니다.");
+        // console.log("Firestore에서 AI 프롬프트 설정 문서를 찾을 수 없습니다. 기본값을 사용합니다.");
       }
     } catch (error) {
       console.error("Firestore에서 AI 프롬프트 설정을 불러오는 중 오류 발생. 기본값을 사용합니다:", error);
     }
 
     const promptInputData = {
-      question: flowInput.question, // This includes the style: e.g., "My career (해석 스타일: 실질적 행동 지침)"
+      question: flowInput.question,
       cardSpread: flowInput.cardSpread,
       cardInterpretations: flowInput.cardInterpretations,
     };
 
     try {
-      // Define the prompt dynamically within the flow execution using the loaded template
       const tarotPrompt = ai.definePrompt({
-        name: 'generateTarotInterpretationRuntimePrompt', // Use a unique name for dynamic prompts or make it more generic if structure is always same
-        input: { schema: GenerateTarotInterpretationInputSchema }, // Schema for Handlebars templating
-        prompt: promptTemplateToUse, // The template string (loaded from Firestore or default)
-        model: 'googleai/gemini-2.0-flash', // Or your preferred model
+        name: 'generateTarotInterpretationRuntimePrompt', 
+        input: { schema: GenerateTarotInterpretationInputSchema }, 
+        prompt: promptTemplateToUse, 
+        model: 'googleai/gemini-2.0-flash', 
         config: {
-          // Ensure safetySettingsToUse is an array, even if empty
           safetySettings: safetySettingsToUse.length > 0 ? safetySettingsToUse : undefined,
         },
-        // No output schema here to get raw text and avoid JSON5 errors if AI doesn't conform
       });
 
-      const llmResponse = await tarotPrompt(promptInputData); // Pass the data for templating
-      const interpretationText = llmResponse.text; // Access the text property
+      const llmResponse = await tarotPrompt(promptInputData); 
+      const interpretationText = llmResponse.text; 
 
       if (!interpretationText) {
         console.error('AI 해석 생성 실패: 생성된 텍스트가 없습니다. 응답:', llmResponse);
@@ -190,4 +187,3 @@ const generateTarotInterpretationFlow = ai.defineFlow(
     }
   }
 );
-

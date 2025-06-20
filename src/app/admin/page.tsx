@@ -1,5 +1,5 @@
 
-'use client'; // Add this because we'll use useState and useEffect
+'use client'; 
 
 import React, { useState, useEffect } from 'react';
 import { AIPromptConfigForm } from '@/components/admin/AIPromptConfigForm';
@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Cog, FileText, Users, ShieldCheck, ListChecks, Edit, Trash2, AlertTriangle } from 'lucide-react';
 
-import { getAllPosts, deleteBlogPost } from '@/actions/blogActions'; // Import from actions
+import { getAllPosts, deleteBlogPost } from '@/actions/blogActions'; 
 import type { BlogPost } from '@/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,7 +37,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Separator } from '@/components/ui/separator';
 
 
-function ExistingBlogPosts({ onEditPost, onPostsLoaded }: { onEditPost: (post: BlogPost) => void; onPostsLoaded: () => void; }) {
+function ExistingBlogPosts({ onEditPost }: { onEditPost: (post: BlogPost) => void; }) {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,14 +55,13 @@ function ExistingBlogPosts({ onEditPost, onPostsLoaded }: { onEditPost: (post: B
       toast({ variant: 'destructive', title: '오류', description: '게시물 목록을 가져오지 못했습니다.' });
     } finally {
       setLoading(false);
-      onPostsLoaded();
     }
   };
 
   useEffect(() => {
     fetchPosts();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onPostsLoaded]);
+  }, []);
 
   const handleDeleteConfirm = async () => {
     if (!postToDelete) return;
@@ -84,7 +83,6 @@ function ExistingBlogPosts({ onEditPost, onPostsLoaded }: { onEditPost: (post: B
   }
 
   return (
-    // AlertDialog를 Card와 AlertDialogContent를 포함하는 최상위 래퍼로 이동
     <AlertDialog open={!!postToDelete} onOpenChange={(open) => !open && setPostToDelete(null)}>
       <Card className="shadow-lg border-primary/10 mt-6">
         <CardHeader>
@@ -116,7 +114,6 @@ function ExistingBlogPosts({ onEditPost, onPostsLoaded }: { onEditPost: (post: B
                       <Button variant="outline" size="sm" onClick={() => onEditPost(post)}>
                         <Edit className="mr-1 h-4 w-4" /> 수정
                       </Button>
-                      {/* AlertDialogTrigger는 이제 AlertDialog의 자식 요소임 */}
                       <AlertDialogTrigger asChild>
                          <Button variant="destructive" size="sm" onClick={() => setPostToDelete(post)}>
                           <Trash2 className="mr-1 h-4 w-4" /> 삭제
@@ -130,7 +127,6 @@ function ExistingBlogPosts({ onEditPost, onPostsLoaded }: { onEditPost: (post: B
           )}
         </CardContent>
       </Card>
-      {/* AlertDialogContent는 AlertDialog의 직접적인 자식으로 Card 외부에 위치 */}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center"><AlertTriangle className="mr-2 text-destructive"/>정말로 삭제하시겠습니까?</AlertDialogTitle>
@@ -150,7 +146,7 @@ function ExistingBlogPosts({ onEditPost, onPostsLoaded }: { onEditPost: (post: B
 
 export default function AdminDashboardPage() {
   const [editingPost, setEditingPost] = useState<BlogPost | undefined>(undefined);
-  const [refreshPostListKey, setRefreshPostListKey] = useState(0); // Key to trigger refresh
+  const [refreshPostListKey, setRefreshPostListKey] = useState(0); 
 
   const handleEditPost = (post: BlogPost) => {
     setEditingPost(post);
@@ -161,8 +157,8 @@ export default function AdminDashboardPage() {
   };
 
   const handleFormSubmitSuccess = () => {
-    setEditingPost(undefined); // Clear editing mode
-    setRefreshPostListKey(prev => prev + 1); // Trigger list refresh
+    setEditingPost(undefined); 
+    setRefreshPostListKey(prev => prev + 1); 
   };
 
 
@@ -222,7 +218,7 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent>
               <BlogManagementForm
-                key={editingPost ? editingPost.id : 'new'} // Re-mount form when editingPost changes
+                key={editingPost ? editingPost.id : 'new'} 
                 initialData={editingPost}
                 onFormSubmitSuccess={handleFormSubmitSuccess}
                 onCancelEdit={handleCancelEdit}
@@ -230,7 +226,7 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
           <Separator className="my-8" />
-          <ExistingBlogPosts key={refreshPostListKey} onEditPost={handleEditPost} onPostsLoaded={() => {}} />
+          <ExistingBlogPosts key={refreshPostListKey} onEditPost={handleEditPost} />
         </TabsContent>
 
         <TabsContent value="user-management">

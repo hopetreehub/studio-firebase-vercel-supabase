@@ -24,7 +24,7 @@ export async function getAllPosts(): Promise<BlogPost[]> {
   try {
     const snapshot = await firestore.collection('blogPosts').orderBy('createdAt', 'desc').get();
     if (snapshot.empty) {
-      console.log("No posts found in Firestore, returning fallback posts from action.");
+      // console.log("No posts found in Firestore, returning fallback posts from action.");
       return fallbackBlogPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(post => ({
         ...post,
         createdAt: new Date(post.date), // Ensure createdAt for fallback
@@ -81,7 +81,7 @@ export async function submitBlogPost(
     if (postId) {
       const postRef = firestore.collection('blogPosts').doc(postId);
       await postRef.update(postData);
-      console.log(`Blog post ${postId} updated successfully.`);
+      // console.log(`Blog post ${postId} updated successfully.`);
       return { success: true, postId: postId };
     } else {
       const newPostDataWithTimestamp = {
@@ -89,7 +89,7 @@ export async function submitBlogPost(
         createdAt: FieldValue.serverTimestamp(), 
       };
       const docRef = await firestore.collection('blogPosts').add(newPostDataWithTimestamp);
-      console.log(`New blog post created successfully with ID: ${docRef.id}.`);
+      // console.log(`New blog post created successfully with ID: ${docRef.id}.`);
       return { success: true, postId: docRef.id };
     }
 
@@ -107,7 +107,7 @@ export async function deleteBlogPost(
   }
   try {
     await firestore.collection('blogPosts').doc(postId).delete();
-    console.log(`Blog post ${postId} deleted successfully.`);
+    // console.log(`Blog post ${postId} deleted successfully.`);
     return { success: true };
   } catch (error) {
     console.error('Error deleting blog post from Firestore:', error);

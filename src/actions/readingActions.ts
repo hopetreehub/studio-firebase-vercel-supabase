@@ -47,7 +47,7 @@ export async function saveUserReading(
     };
 
     const docRef = await firestore.collection('userReadings').add(readingData);
-    console.log(`User reading saved successfully with ID: ${docRef.id} for user ${userId}.`);
+    // console.log(`User reading saved successfully with ID: ${docRef.id} for user ${userId}.`);
     return { success: true, readingId: docRef.id };
 
   } catch (error) {
@@ -110,7 +110,7 @@ export async function deleteUserReading(userId: string, readingId: string): Prom
     }
 
     await readingRef.delete();
-    console.log(`User reading ${readingId} deleted successfully for user ${userId}.`);
+    // console.log(`User reading ${readingId} deleted successfully for user ${userId}.`);
     return { success: true };
   } catch (error) {
     console.error('Error deleting user reading from Firestore:', error);
