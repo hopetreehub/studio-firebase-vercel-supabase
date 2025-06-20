@@ -44,24 +44,22 @@ function ExistingBlogPosts({ onEditPost }: { onEditPost: (post: BlogPost) => voi
   const [postToDelete, setPostToDelete] = useState<BlogPost | null>(null);
   const { toast } = useToast();
 
-  const fetchPosts = async () => {
-    setLoading(true);
-    try {
-      const fetchedPosts = await getAllPosts();
-      setPosts(fetchedPosts);
-      setError(null);
-    } catch (err: any) {
-      setError('게시물을 불러오는 데 실패했습니다: ' + err.message);
-      toast({ variant: 'destructive', title: '오류', description: '게시물 목록을 가져오지 못했습니다.' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    async function fetchPosts() {
+      setLoading(true);
+      try {
+        const fetchedPosts = await getAllPosts();
+        setPosts(fetchedPosts);
+        setError(null);
+      } catch (err: any) {
+        setError('게시물을 불러오는 데 실패했습니다: ' + err.message);
+        toast({ variant: 'destructive', title: '오류', description: '게시물 목록을 가져오지 못했습니다.' });
+      } finally {
+        setLoading(false);
+      }
+    }
     fetchPosts();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [toast]);
 
   const handleDeleteConfirm = async () => {
     if (!postToDelete) return;

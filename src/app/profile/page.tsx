@@ -68,6 +68,13 @@ export default function ProfilePage() {
 
 
   useEffect(() => {
+    const fetchReadings = async (userId: string) => {
+      setLoadingReadings(true);
+      const readings = await getUserReadings(userId);
+      setSavedReadings(readings);
+      setLoadingReadings(false);
+    };
+
     if (!authLoading && !user) {
       router.push('/sign-in?redirect=/profile');
     }
@@ -75,15 +82,7 @@ export default function ProfilePage() {
       setDisplayName(user.displayName || '');
       fetchReadings(user.uid);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading, router]);
-
-  const fetchReadings = async (userId: string) => {
-    setLoadingReadings(true);
-    const readings = await getUserReadings(userId);
-    setSavedReadings(readings);
-    setLoadingReadings(false);
-  };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();

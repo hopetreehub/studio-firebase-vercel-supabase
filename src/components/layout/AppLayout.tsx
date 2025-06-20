@@ -4,20 +4,20 @@
 import type React from 'react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
-import { useAuth } from '@/context/AuthContext'; // Restored
-import { useRouter, usePathname } from 'next/navigation'; // Restored
-import { useEffect } from 'react'; // Restored
+import { useAuth } from '@/context/AuthContext';
+import { useRouter, usePathname } from 'next/navigation';
+import { useEffect } from 'react';
 import { Spinner } from '@/components/ui/spinner';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth(); // Restored
+  const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => { // Restored redirection logic
+  useEffect(() => {
     if (!loading && !user) {
-      // Allow access to home, sign-in, sign-up, blog list, encyclopedia list, and individual blog/encyclopedia pages
-      const publicPaths = ['/', '/sign-in', '/sign-up', '/blog', '/encyclopedia'];
+      // Allow access to public pages
+      const publicPaths = ['/', '/sign-in', '/sign-up', '/blog', '/encyclopedia', '/community'];
       const isPublicRootPath = publicPaths.includes(pathname);
       const isPublicSubPath = pathname.startsWith('/blog/') || pathname.startsWith('/encyclopedia/');
       
@@ -27,12 +27,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [user, loading, router, pathname]);
 
-  // Show a spinner while auth state is loading, for pages that require auth
-  // For public pages, they should render even if auth is loading.
-  // This logic ensures that if we are on a protected page and auth is loading, we show a spinner.
-  // If we are on a public page, it renders regardless of auth loading state.
-  const protectedPaths = ['/reading', '/profile', '/settings', '/admin']; // Add other protected paths here
-  const isProtectedPath = protectedPaths.includes(pathname);
+  // Show a spinner while auth state is loading for protected pages
+  const protectedPaths = ['/reading', '/profile', '/settings', '/admin'];
+  const isProtectedPath = protectedPaths.some(p => pathname.startsWith(p));
 
   if (loading && isProtectedPath) { 
     return (

@@ -35,7 +35,6 @@ export async function listFirebaseUsers(
         role: role,
       };
     });
-    console.log(`Successfully listed ${users.length} Firebase users.`);
     return {
       users,
       nextPageToken: listUsersResult.pageToken,
