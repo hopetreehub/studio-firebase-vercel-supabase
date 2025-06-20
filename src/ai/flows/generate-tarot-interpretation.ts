@@ -34,7 +34,7 @@ YOUR ENTIRE RESPONSE MUST BE IN KOREAN.
 WHEN YOU GENERATE THE RESPONSE:
 - DO NOT repeat or output the "[USER'S INFORMATION]" block or the structure of "{{{placeholders}}}" in your response.
 - Your entire response should be the interpretation itself, starting directly with the "서론" (Introduction).
-- USE the data within "[USER'S INFORMATION]" (사용자의 질문, 사용된 타로 스프레드, 뽑힌 카드들) as the Factual basis for your KOREAN interpretation.
+- USE the data within "[USER'S INFORMATION]" (사용자의 질문, 사용된 타로 스프레드, 뽑힌 카드들) as the FACTUAL basis for your KOREAN interpretation.
 - Adhere strictly to the "해석 가이드라인" section below to craft your response in KOREAN.
 
 [USER'S INFORMATION]
@@ -88,7 +88,7 @@ const generateTarotInterpretationFlow = ai.defineFlow(
   },
   async (flowInput: GenerateTarotInterpretationInput) => {
     let promptTemplateToUse = DEFAULT_PROMPT_TEMPLATE;
-    let safetySettingsToUse: SafetySetting[] = [...DEFAULT_SAFETY_SETTINGS]; 
+    let safetySettingsToUse: SafetySetting[] = [...DEFAULT_SAFETY_SETTINGS];
 
     try {
       const configDocRef = firestore.collection('aiConfiguration').doc('promptSettings');
@@ -105,7 +105,7 @@ const generateTarotInterpretationFlow = ai.defineFlow(
 
         if (configData?.safetySettings && Array.isArray(configData.safetySettings)) {
           const validSafetySettings = configData.safetySettings.filter(
-            (setting: any): setting is SafetySetting => 
+            (setting: any): setting is SafetySetting =>
               setting && typeof setting.category === 'string' && typeof setting.threshold === 'string'
           );
           if (validSafetySettings.length > 0) {
@@ -123,7 +123,8 @@ const generateTarotInterpretationFlow = ai.defineFlow(
     } catch (error) {
       console.error("Firestore에서 AI 프롬프트 설정을 불러오는 중 오류 발생. 기본값을 사용합니다:", error);
     }
-    
+
+    // Data for Handlebars templating
     const promptInputData = {
       question: flowInput.question,
       cardSpread: flowInput.cardSpread,
@@ -131,51 +132,52 @@ const generateTarotInterpretationFlow = ai.defineFlow(
     };
 
     try {
-      // Here, we directly use ai.generate with the constructed prompt string and input data.
-      // The promptTemplateToUse already has placeholders like {{{question}}}.
-      // Genkit's ai.generate will substitute these placeholders with values from promptInputData.
-      
-      // Construct the full prompt string by manually replacing placeholders for this specific call
-      // This is a workaround if the model struggles with Handlebars directly in complex templates.
-      // However, standard Genkit ai.generate() is designed to handle this.
-      // Let's stick to the standard way first.
-
-      const {output} = await ai.generate({ // Using ai.generate which should handle Handlebars
-        prompt: promptTemplateToUse, 
-        input: promptInputData,      
+      // Define a prompt object dynamically using the loaded template and safety settings.
+      // This ensures Genkit handles Handlebars templating correctly.
+      // By not specifying an outputSchema here, we expect plain text from the LLM.
+      const tarotPrompt = ai.definePrompt({
+        name: 'generateTarotInterpretationRuntimePrompt', // Name for tracing
+        input: { schema: GenerateTarotInterpretationInputSchema }, // Defines the structure of promptInputData
+        prompt: promptTemplateToUse, // The Handlebars template string
+        model: 'googleai/gemini-2.0-flash', // Explicitly use the configured model
         config: {
           safetySettings: safetySettingsToUse.length > 0 ? safetySettingsToUse : undefined,
         },
-        // Ensure the model knows what kind of output to generate.
-        // If output schema is complex, it might be better to define a prompt with ai.definePrompt
-        // and provide an output schema there. But for text, this should be fine.
       });
 
-      const interpretationText = output?.text; 
+      // Call the defined prompt object with the input data
+      const llmResponse = await tarotPrompt(promptInputData);
+      const interpretationText = llmResponse.text; // Access the plain text output (Genkit 1.x style)
 
       if (!interpretationText) {
-        console.error('AI 해석 생성 실패: 생성된 텍스트가 없습니다. 응답:', output);
+        console.error('AI 해석 생성 실패: 생성된 텍스트가 없습니다. 응답:', llmResponse);
         return { interpretation: 'AI 해석을 생성하는 데 문제가 발생했습니다. 생성된 내용이 없습니다.' };
       }
-      
+
       return { interpretation: interpretationText };
 
     } catch (e: any) {
-      console.error('AI.generate 호출 중 오류 발생:', e);
+      console.error('AI 프롬프트 실행 중 오류 발생:', e);
       let userMessage = 'AI 해석 생성 중 일반 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
       if (e.message) {
         userMessage = `AI 해석 오류: ${e.message}`;
+        if (e.message.toLowerCase().includes('json')) {
+             userMessage += ' (데이터 형식 오류 가능성 있음)';
+        }
       }
-      if (e.finishReason && e.finishReason !== 'STOP') {
-         userMessage = `AI 생성이 완료되지 못했습니다 (이유: ${e.finishReason}). 콘텐츠 안전 문제 또는 다른 제약 때문일 수 있습니다. 프롬프트를 조정하거나 안전 설정을 확인해보세요.`;
+      if ((e as any).finishReason && (e as any).finishReason !== 'STOP') {
+         userMessage = `AI 생성이 완료되지 못했습니다 (이유: ${(e as any).finishReason}). 콘텐츠 안전 문제 또는 다른 제약 때문일 수 있습니다. 프롬프트를 조정하거나 안전 설정을 확인해보세요.`;
       }
       if (e.toString && e.toString().includes("SAFETY")) {
          userMessage = "생성된 콘텐츠가 안전 기준에 부합하지 않아 차단되었습니다. 질문이나 해석 요청 내용을 수정해 보세요.";
       }
       if (e.toString && e.toString().includes("no valid candidates")) {
          userMessage = "AI가 현재 요청에 대해 적절한 답변을 찾지 못했습니다. 질문을 조금 다르게 해보거나, 나중에 다시 시도해주세요. (No Valid Candidates)";
-       }
-
+      }
+      // If the error object itself is the JSON5 error, it might have specific properties
+      if (e.name === 'SyntaxError' && e.message && e.message.startsWith('JSON5')) {
+        userMessage = `AI 응답 처리 중 내부 오류가 발생했습니다: ${e.message}. 프롬프트나 AI 설정을 확인해주세요.`;
+      }
 
       return { interpretation: userMessage };
     }
