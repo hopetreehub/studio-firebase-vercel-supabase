@@ -18,8 +18,8 @@ export type TarotCard = {
   astrology?: string;
   affirmation?: string;
   element?: string;
-  isReversed?: boolean; // Added for card orientation during reading
-  isFaceUp?: boolean; // Added for card display in spread selection
+  isReversed?: boolean; 
+  isFaceUp?: boolean; 
 };
 
 export type TarotInterpretationMethod =
@@ -72,10 +72,10 @@ export const tarotInterpretationStyles: InterpretationStyleInfo[] = [
 
 export type SpreadConfiguration = {
   id: string;
-  name: string; // 멋있는 이름
-  description: string; // 간단한 설명
+  name: string; 
+  description: string; 
   numCards: number;
-  positions?: string[]; // 각 카드 위치의 의미 (예: 과거, 현재, 미래)
+  positions?: string[]; 
 };
 
 export const tarotSpreads: SpreadConfiguration[] = [
@@ -88,9 +88,9 @@ export const tarotSpreads: SpreadConfiguration[] = [
 ];
 
 export type BlogPost = {
-  id: string; // Firestore document ID
+  id: string; 
   title: string;
-  date: string; // YYYY-MM-DD format
+  date: string; 
   excerpt: string;
   imageSrc: string;
   dataAiHint: string;
@@ -98,5 +98,6 @@ export type BlogPost = {
   content: string;
   author?: string;
   tags?: string[];
-  createdAt?: Date; // For Firestore timestamp, will be converted to 'date'
+  createdAt?: Date;
+  updatedAt?: Date; // Added for sitemap and JSON-LD
 };

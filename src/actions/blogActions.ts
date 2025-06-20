@@ -5,7 +5,7 @@ import type { BlogPost } from '@/types';
 import { z } from 'zod';
 import { firestore } from '@/lib/firebase/admin';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
-import { mapDocToBlogPost, fallbackBlogPosts } from '@/lib/blog-data'; // Import helper and fallback
+import { mapDocToBlogPost, fallbackBlogPosts } from '@/lib/blog-data'; 
 
 const BlogFormDataSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -25,18 +25,26 @@ export async function getAllPosts(): Promise<BlogPost[]> {
     const snapshot = await firestore.collection('blogPosts').orderBy('createdAt', 'desc').get();
     if (snapshot.empty) {
       console.log("No posts found in Firestore, returning fallback posts from action.");
-      return fallbackBlogPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      return fallbackBlogPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(post => ({
+        ...post,
+        createdAt: new Date(post.date), // Ensure createdAt for fallback
+        updatedAt: new Date(post.date), // Ensure updatedAt for fallback
+      }));
     }
     return snapshot.docs.map(mapDocToBlogPost);
   } catch (error) {
     console.error("Error fetching all posts from Firestore in action, returning fallback posts:", error);
-    return fallbackBlogPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return fallbackBlogPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(post => ({
+      ...post,
+      createdAt: new Date(post.date),
+      updatedAt: new Date(post.date),
+    }));
   }
 }
 
 export async function submitBlogPost(
   formData: BlogFormData,
-  postId?: string // Optional postId for updates
+  postId?: string 
 ): Promise<{ success: boolean; postId?: string; error?: string | object }> {
   try {
     const validationResult = BlogFormDataSchema.safeParse(formData);
@@ -46,13 +54,12 @@ export async function submitBlogPost(
 
     const { title, slug, excerpt, content, imageSrc, dataAiHint, author, tags } = validationResult.data;
 
-    // Slug uniqueness check
-    if (!postId) { // Creating a new post
+    if (!postId) { 
       const slugExistsQuery = await firestore.collection('blogPosts').where('slug', '==', slug).limit(1).get();
       if (!slugExistsQuery.empty) {
         return { success: false, error: { slug: '이 슬러그는 이미 사용 중입니다. 고유한 슬러그를 선택해주세요.' } };
       }
-    } else { // Updating an existing post
+    } else { 
       const slugExistsQuery = await firestore.collection('blogPosts').where('slug', '==', slug).limit(1).get();
       if (!slugExistsQuery.empty && slugExistsQuery.docs[0].id !== postId) {
          return { success: false, error: { slug: '이 슬러그는 다른 게시물에서 이미 사용 중입니다. 고유한 슬러그를 선택해주세요.' } };
@@ -68,17 +75,15 @@ export async function submitBlogPost(
       dataAiHint: dataAiHint || 'placeholder image',
       author: author || 'InnerSpell 팀',
       tags: tags || [],
-      updatedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(), // Always update this
     };
 
     if (postId) {
-      // Update existing post
       const postRef = firestore.collection('blogPosts').doc(postId);
       await postRef.update(postData);
       console.log(`Blog post ${postId} updated successfully.`);
       return { success: true, postId: postId };
     } else {
-      // Create new post
       const newPostDataWithTimestamp = {
         ...postData,
         createdAt: FieldValue.serverTimestamp(), 
@@ -109,4 +114,3 @@ export async function deleteBlogPost(
     return { success: false, error: error instanceof Error ? error.message : '데이터베이스에서 게시물을 삭제하는 중 오류가 발생했습니다.' };
   }
 }
-

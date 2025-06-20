@@ -5,20 +5,19 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { CalendarDays, Feather } from 'lucide-react';
 import type { Metadata } from 'next';
-import { getAllPosts } from '@/actions/blogActions'; // Import from actions
+import { getAllPosts } from '@/actions/blogActions'; 
 import { format } from 'date-fns';
 
 export const metadata: Metadata = {
-  title: '블로그 - InnerSpell',
+  title: '블로그', // Template in layout will append '- InnerSpell'
   description: '타로, 영성, 자아 발견에 대한 최신 기사와 깊이 있는 통찰을 만나보세요. InnerSpell 블로그에서 영감을 얻으세요.',
-  openGraph: {
+  openGraph: { // Specific OG for this page
     title: 'InnerSpell 블로그 - 영적 사색과 타로 이야기',
     description: '타로 카드 해석, 영적 성장 팁, 명상 가이드 등 다양한 주제의 글을 탐색하세요.',
-    // images: (Can be set if there's a generic blog OG image)
+    // images will inherit from layout, or specify a blog-specific OG image
   },
 };
 
-// Revalidate this page every 60 seconds (or choose a suitable interval)
 export const revalidate = 60; 
 
 export default async function BlogPage() { 
@@ -49,7 +48,7 @@ export default async function BlogPage() {
                         fill
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                         data-ai-hint={post.dataAiHint}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Adjusted sizes
                       />
                     )}
                   </div>

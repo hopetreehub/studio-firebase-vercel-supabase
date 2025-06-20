@@ -14,10 +14,13 @@ import type { Metadata, ResolvingMetadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { notFound } from 'next/navigation';
+import Script from 'next/script'; // For JSON-LD
 
 type Props = {
   params: { cardId: string };
 };
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
 export async function generateMetadata(
   { params }: Props,
@@ -27,18 +30,17 @@ export async function generateMetadata(
   
   if (!card) {
     return {
-      title: '카드를 찾을 수 없습니다 - InnerSpell 타로 백과사전',
+      title: '카드를 찾을 수 없습니다',
       description: '요청하신 타로 카드를 찾을 수 없습니다.',
     };
   }
   
   const cardName = card.name;
   const previousImages = (await parent).openGraph?.images || [];
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   const imageUrl = card.imageSrc.startsWith('http') ? card.imageSrc : `${siteUrl}${card.imageSrc}`;
 
   return {
-    title: `${cardName} - 타로 백과사전 - InnerSpell`,
+    title: `${cardName} - 타로 백과사전`,
     description: `${cardName} 카드의 의미, 키워드 (정방향: ${card.keywordsUpright.slice(0,3).join(', ')}) 및 그림 해석. InnerSpell 타로 백과사전에서 더 알아보세요.`,
     alternates: {
       canonical: `${siteUrl}/encyclopedia/${card.id}`,
@@ -47,12 +49,12 @@ export async function generateMetadata(
       title: `${cardName} - InnerSpell 타로 카드 의미`,
       description: card.meaningUpright.substring(0, 150) + '...',
       url: `${siteUrl}/encyclopedia/${card.id}`,
-      type: 'article', // Though it's about a card, 'article' type fits well for OG.
+      type: 'article', 
       images: [
         {
           url: imageUrl,
-          width: card.suit === 'major' ? 300 : 275, // Approximate, adjust if you have exact dimensions
-          height: card.suit === 'major' ? 500 : 475,
+          width: 275, // Standard card image width
+          height: 475, // Standard card image height
           alt: cardName,
         },
         ...previousImages
@@ -104,154 +106,177 @@ export default function CardDetailPage({ params }: Props) {
 
   const previousCard = getPreviousCard(params.cardId);
   const nextCard = getNextCard(params.cardId);
+  const imageUrl = card.imageSrc.startsWith('http') ? card.imageSrc : `${siteUrl}${card.imageSrc}`;
+
+  // Basic JSON-LD for the Tarot Card (Thing or CreativeWork could be suitable)
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork', // Or Thing, or a more specific type if available
+    name: card.name,
+    description: card.description || card.meaningUpright.substring(0, 160) + "...",
+    image: imageUrl,
+    keywords: [...card.keywordsUpright, ...card.keywordsReversed].join(', '),
+    url: `${siteUrl}/encyclopedia/${card.id}`,
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'InnerSpell 타로 백과사전',
+      url: `${siteUrl}/encyclopedia`,
+    }
+  };
+
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 py-8">
-      <Card className="overflow-hidden shadow-xl border-primary/10">
-        <div className="grid md:grid-cols-3">
-          <div className="md:col-span-1 p-4 sm:p-6 bg-primary/5 flex justify-center items-center">
-            <Image
-              src={card.imageSrc} 
-              alt={card.name}
-              width={300} // Base width, adjust as needed
-              height={500} // Base height, adjust for aspect ratio
-              className="rounded-lg shadow-lg object-contain max-h-[500px] w-auto"
-              data-ai-hint={card.dataAiHint}
-              priority
-              sizes="(max-width: 768px) 100vw, 300px"
-            />
-          </div>
-          <div className="md:col-span-2 p-6 sm:p-8">
-            <CardHeader className="p-0 mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <Badge variant={card.suit === 'major' ? 'default' : 'secondary'} className="capitalize text-sm px-2 py-1">
-                  <SuitIconDetail suit={card.suit} className="w-4 h-4 mr-1.5" />
-                  {card.suit} 아르카나
-                </Badge>
-                {card.number !== undefined && (
-                  <span className="font-mono text-lg text-primary font-semibold">
-                    {card.suit === 'major' ? card.number : typeof card.number === 'string' ? card.number.charAt(0).toUpperCase() + card.number.slice(1) : card.number}
-                  </span>
-                )}
-              </div>
-              <CardTitle className="font-headline text-4xl text-primary">{card.name}</CardTitle>
-              {card.description && <CardDescription className="text-md text-foreground/70 mt-2">{card.description}</CardDescription>}
-            </CardHeader>
-            
-            <Separator className="my-6 bg-primary/20" />
-
-            <CardContent className="p-0 space-y-6">
-              <DetailSection title="키워드" icon={<Sparkles className="w-5 h-5 text-accent" />}>
-                <div>
-                  <h4 className="font-semibold text-primary/90">정방향:</h4>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {card.keywordsUpright.map(keyword => <Badge key={keyword} variant="outline" className="bg-accent/5 border-accent/30 text-accent">{keyword}</Badge>)}
-                  </div>
+    <>
+      <Script
+        id="tarot-card-jsonld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <div className="max-w-4xl mx-auto space-y-8 py-8">
+        <Card className="overflow-hidden shadow-xl border-primary/10">
+          <div className="grid md:grid-cols-3">
+            <div className="md:col-span-1 p-4 sm:p-6 bg-primary/5 flex justify-center items-center">
+              <Image
+                src={card.imageSrc} 
+                alt={card.name}
+                width={275} // Standard card width
+                height={475} // Standard card height
+                className="rounded-lg shadow-lg object-contain max-h-[475px] w-auto" // Ensure max-h matches height
+                data-ai-hint={card.dataAiHint}
+                priority // LCP element
+                sizes="(max-width: 768px) 90vw, 275px" // More specific sizes
+              />
+            </div>
+            <div className="md:col-span-2 p-6 sm:p-8">
+              <CardHeader className="p-0 mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <Badge variant={card.suit === 'major' ? 'default' : 'secondary'} className="capitalize text-sm px-2 py-1">
+                    <SuitIconDetail suit={card.suit} className="w-4 h-4 mr-1.5" />
+                    {card.suit} 아르카나
+                  </Badge>
+                  {card.number !== undefined && (
+                    <span className="font-mono text-lg text-primary font-semibold">
+                      {card.suit === 'major' ? card.number : typeof card.number === 'string' ? card.number.charAt(0).toUpperCase() + card.number.slice(1) : card.number}
+                    </span>
+                  )}
                 </div>
-                <div>
-                  <h4 className="font-semibold text-primary/90">역방향:</h4>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {card.keywordsReversed.map(keyword => <Badge key={keyword} variant="outline" className="bg-muted/50 border-muted-foreground/30 text-muted-foreground">{keyword}</Badge>)}
-                  </div>
-                </div>
-              </DetailSection>
-
-              <Separator className="my-4 bg-primary/10" />
-
-              <DetailSection title="의미" icon={<BookOpenText className="w-5 h-5 text-accent" />}>
-                <div>
-                  <h4 className="font-semibold text-primary/90">정방향:</h4>
-                  <p className="leading-relaxed">{card.meaningUpright}</p>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-primary/90">역방향:</h4>
-                  <p className="leading-relaxed">{card.meaningReversed}</p>
-                </div>
-              </DetailSection>
-
-              {card.fortuneTelling && card.fortuneTelling.length > 0 && (
-                <>
-                  <Separator className="my-4 bg-primary/10" />
-                  <DetailSection title="점괘" icon={<Zap className="w-5 h-5 text-accent" />}>
-                    <ul className="list-disc list-inside space-y-1">
-                      {card.fortuneTelling.map((fortune, i) => <li key={i}>{fortune}</li>)}
-                    </ul>
-                  </DetailSection>
-                </>
-              )}
-
-              {card.questionsToAsk && card.questionsToAsk.length > 0 && (
-                <>
-                  <Separator className="my-4 bg-primary/10" />
-                  <DetailSection title="질문해볼 것들" icon={<Brain className="w-5 h-5 text-accent" />}>
-                     <ul className="list-disc list-inside space-y-1">
-                      {card.questionsToAsk.map((question, i) => <li key={i}>{question}</li>)}
-                    </ul>
-                  </DetailSection>
-                </>
-              )}
+                <CardTitle className="font-headline text-4xl text-primary">{card.name}</CardTitle>
+                {card.description && <CardDescription className="text-md text-foreground/70 mt-2">{card.description}</CardDescription>}
+              </CardHeader>
               
-              {(card.astrology || card.element) && (
-                <>
-                  <Separator className="my-4 bg-primary/10" />
-                  <DetailSection title="상응 관계" icon={<Anchor className="w-5 h-5 text-accent" />}>
-                    {card.astrology && <p><span className="font-semibold">점성술:</span> {card.astrology}</p>}
-                    {card.element && <p><span className="font-semibold">원소:</span> {card.element}</p>}
-                  </DetailSection>
-                </>
-              )}
+              <Separator className="my-6 bg-primary/20" />
 
-              {card.affirmation && (
-                 <>
-                  <Separator className="my-4 bg-primary/10" />
-                  <DetailSection title="확언" icon={<Users className="w-5 h-5 text-accent" />}>
-                    <p className="italic">"{card.affirmation}"</p>
-                  </DetailSection>
-                </>
-              )}
+              <CardContent className="p-0 space-y-6">
+                <DetailSection title="키워드" icon={<Sparkles className="w-5 h-5 text-accent" />}>
+                  <div>
+                    <h4 className="font-semibold text-primary/90">정방향:</h4>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {card.keywordsUpright.map(keyword => <Badge key={keyword} variant="outline" className="bg-accent/5 border-accent/30 text-accent">{keyword}</Badge>)}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-primary/90">역방향:</h4>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {card.keywordsReversed.map(keyword => <Badge key={keyword} variant="outline" className="bg-muted/50 border-muted-foreground/30 text-muted-foreground">{keyword}</Badge>)}
+                    </div>
+                  </div>
+                </DetailSection>
 
-            </CardContent>
+                <Separator className="my-4 bg-primary/10" />
+
+                <DetailSection title="의미" icon={<BookOpenText className="w-5 h-5 text-accent" />}>
+                  <div>
+                    <h4 className="font-semibold text-primary/90">정방향:</h4>
+                    <p className="leading-relaxed">{card.meaningUpright}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-primary/90">역방향:</h4>
+                    <p className="leading-relaxed">{card.meaningReversed}</p>
+                  </div>
+                </DetailSection>
+
+                {card.fortuneTelling && card.fortuneTelling.length > 0 && (
+                  <>
+                    <Separator className="my-4 bg-primary/10" />
+                    <DetailSection title="점괘" icon={<Zap className="w-5 h-5 text-accent" />}>
+                      <ul className="list-disc list-inside space-y-1">
+                        {card.fortuneTelling.map((fortune, i) => <li key={i}>{fortune}</li>)}
+                      </ul>
+                    </DetailSection>
+                  </>
+                )}
+
+                {card.questionsToAsk && card.questionsToAsk.length > 0 && (
+                  <>
+                    <Separator className="my-4 bg-primary/10" />
+                    <DetailSection title="질문해볼 것들" icon={<Brain className="w-5 h-5 text-accent" />}>
+                       <ul className="list-disc list-inside space-y-1">
+                        {card.questionsToAsk.map((question, i) => <li key={i}>{question}</li>)}
+                      </ul>
+                    </DetailSection>
+                  </>
+                )}
+                
+                {(card.astrology || card.element) && (
+                  <>
+                    <Separator className="my-4 bg-primary/10" />
+                    <DetailSection title="상응 관계" icon={<Anchor className="w-5 h-5 text-accent" />}>
+                      {card.astrology && <p><span className="font-semibold">점성술:</span> {card.astrology}</p>}
+                      {card.element && <p><span className="font-semibold">원소:</span> {card.element}</p>}
+                    </DetailSection>
+                  </>
+                )}
+
+                {card.affirmation && (
+                   <>
+                    <Separator className="my-4 bg-primary/10" />
+                    <DetailSection title="확언" icon={<Users className="w-5 h-5 text-accent" />}>
+                      <p className="italic">"{card.affirmation}"</p>
+                    </DetailSection>
+                  </>
+                )}
+
+              </CardContent>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
 
-      <nav className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4" aria-label="카드 탐색">
-        {previousCard ? (
-          <Button asChild variant="outline" size="sm" className="group hover:bg-primary/5 w-full sm:w-auto">
-            <Link href={`/encyclopedia/${previousCard.id}`}>
-              <span className="flex items-center justify-center">
-                <ChevronLeft className="mr-1 h-4 w-4 group-hover:text-primary transition-colors" />
-                이전 카드
+        <nav className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4" aria-label="카드 탐색">
+          {previousCard ? (
+            <Button asChild variant="outline" size="sm" className="group hover:bg-primary/5 w-full sm:w-auto">
+              <Link href={`/encyclopedia/${previousCard.id}`}>
+                <span className="flex items-center justify-center">
+                  <ChevronLeft className="mr-1 h-4 w-4 group-hover:text-primary transition-colors" />
+                  이전 카드
+                </span>
+              </Link>
+            </Button>
+          ) : (
+            <div className="w-full sm:w-auto" /> 
+          )}
+
+          <Button asChild variant="outline" className="group hover:bg-primary/5 w-full sm:w-auto">
+            <Link href="/encyclopedia">
+               <span className="flex items-center justify-center">
+                백과사전으로 돌아가기
               </span>
             </Link>
           </Button>
-        ) : (
-          <div className="w-full sm:w-auto" /> 
-        )}
 
-        <Button asChild variant="outline" className="group hover:bg-primary/5 w-full sm:w-auto">
-          <Link href="/encyclopedia">
-             <span className="flex items-center justify-center">
-              백과사전으로 돌아가기
-            </span>
-          </Link>
-        </Button>
-
-        {nextCard ? (
-          <Button asChild variant="outline" size="sm" className="group hover:bg-primary/5 w-full sm:w-auto">
-            <Link href={`/encyclopedia/${nextCard.id}`}>
-              <span className="flex items-center justify-center">
-                다음 카드
-                <ChevronRight className="ml-1 h-4 w-4 group-hover:text-primary transition-colors" />
-              </span>
-            </Link>
-          </Button>
-        ) : (
-          <div className="w-full sm:w-auto" />
-        )}
-      </nav>
-    </div>
+          {nextCard ? (
+            <Button asChild variant="outline" size="sm" className="group hover:bg-primary/5 w-full sm:w-auto">
+              <Link href={`/encyclopedia/${nextCard.id}`}>
+                <span className="flex items-center justify-center">
+                  다음 카드
+                  <ChevronRight className="ml-1 h-4 w-4 group-hover:text-primary transition-colors" />
+                </span>
+              </Link>
+            </Button>
+          ) : (
+            <div className="w-full sm:w-auto" />
+          )}
+        </nav>
+      </div>
+    </>
   );
 }
-
-    

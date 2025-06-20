@@ -2,10 +2,9 @@
 import type { BlogPost } from '@/types';
 import { firestore } from '@/lib/firebase/admin';
 import type { Timestamp } from 'firebase-admin/firestore';
-import { getAllPosts as getAllPostsAction } from '@/actions/blogActions'; // Import for functions that might still need it, though ideally they call the action too.
+import { getAllPosts as getAllPostsAction } from '@/actions/blogActions'; 
 
 
-// Firestore에서 데이터 가져오기 실패 또는 데이터 없을 시 사용할 기본 샘플 데이터
 const fallbackBlogPosts: BlogPost[] = [
   {
     id: 'sample-post-1',
@@ -18,6 +17,8 @@ const fallbackBlogPosts: BlogPost[] = [
     author: 'InnerSpell 팀',
     tags: ['주간운세', '타로카드', '3카드'],
     date: '2024-03-10',
+    createdAt: new Date('2024-03-10'),
+    updatedAt: new Date('2024-03-10'),
   },
   {
     id: 'sample-post-2',
@@ -30,6 +31,8 @@ const fallbackBlogPosts: BlogPost[] = [
     author: '타로 연구가',
     tags: ['메이저아르카나', '광대카드', '타로해석'],
     date: '2024-03-08',
+    createdAt: new Date('2024-03-08'),
+    updatedAt: new Date('2024-03-08'),
   },
   {
     id: 'sample-post-3',
@@ -42,6 +45,8 @@ const fallbackBlogPosts: BlogPost[] = [
     author: '마음챙김 코치',
     tags: ['타로명상', '마음챙김', '자기성찰', '직관력'],
     date: '2024-03-05',
+    createdAt: new Date('2024-03-05'),
+    updatedAt: new Date('2024-03-05'),
   },
   {
     id: 'sample-post-4',
@@ -54,6 +59,8 @@ const fallbackBlogPosts: BlogPost[] = [
     author: '타로 해설가',
     tags: ['컵슈트', '감정', '관계', '타로기초'],
     date: '2024-03-02',
+    createdAt: new Date('2024-03-02'),
+    updatedAt: new Date('2024-03-02'),
   },
   {
     id: 'sample-post-5',
@@ -66,16 +73,21 @@ const fallbackBlogPosts: BlogPost[] = [
     author: 'InnerSpell 팀',
     tags: ['데일리타로', '마음챙김', '자기계발', '습관'],
     date: '2024-02-28',
+    createdAt: new Date('2024-02-28'),
+    updatedAt: new Date('2024-02-28'),
   },
 ];
 
 
-// Helper function to convert Firestore document to BlogPost
 export function mapDocToBlogPost(doc: FirebaseFirestore.DocumentSnapshot): BlogPost {
   const data = doc.data()!;
-  const createdAt = data.createdAt as Timestamp; // Firestore Timestamp
-  // Ensure date is formatted as YYYY-MM-DD string
-  const isoDate = createdAt ? createdAt.toDate().toISOString() : new Date().toISOString();
+  const createdAtTimestamp = data.createdAt as Timestamp;
+  const updatedAtTimestamp = data.updatedAt as Timestamp; 
+  
+  const createdAt = createdAtTimestamp ? createdAtTimestamp.toDate() : new Date();
+  const updatedAt = updatedAtTimestamp ? updatedAtTimestamp.toDate() : createdAt; // If updatedAt is missing, use createdAt
+
+  const isoDate = createdAt.toISOString();
   const formattedDate = isoDate.split('T')[0];
 
   return {
@@ -84,12 +96,13 @@ export function mapDocToBlogPost(doc: FirebaseFirestore.DocumentSnapshot): BlogP
     slug: data.slug,
     excerpt: data.excerpt,
     content: data.content,
-    imageSrc: data.imageSrc || 'https://placehold.co/600x400.png', // Default placeholder
+    imageSrc: data.imageSrc || 'https://placehold.co/600x400.png', 
     dataAiHint: data.dataAiHint || 'placeholder image',
     author: data.author || 'InnerSpell 팀',
     tags: data.tags || [],
-    date: formattedDate,
-    createdAt: createdAt ? createdAt.toDate() : new Date(),
+    date: formattedDate, // YYYY-MM-DD format for display
+    createdAt: createdAt, // Full Date object
+    updatedAt: updatedAt, // Full Date object
   };
 }
 
@@ -99,60 +112,64 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | undefined>
     const snapshot = await firestore.collection('blogPosts').where('slug', '==', slug).limit(1).get();
     if (snapshot.empty) {
       console.log(`Post with slug "${slug}" not found in Firestore, trying fallback posts.`);
-      return fallbackBlogPosts.find(post => post.slug === slug);
+      const fallbackPost = fallbackBlogPosts.find(post => post.slug === slug);
+      return fallbackPost ? { ...fallbackPost, createdAt: new Date(fallbackPost.date), updatedAt: new Date(fallbackPost.date) } : undefined;
     }
     return mapDocToBlogPost(snapshot.docs[0]);
   } catch (error) {
     console.error(`Error fetching post by slug ${slug} from Firestore, trying fallback posts:`, error);
-    return fallbackBlogPosts.find(post => post.slug === slug);
+    const fallbackPost = fallbackBlogPosts.find(post => post.slug === slug);
+    return fallbackPost ? { ...fallbackPost, createdAt: new Date(fallbackPost.date), updatedAt: new Date(fallbackPost.date) } : undefined;
   }
 }
 
-// Helper function to get sorted posts, prioritizing Firestore then fallback
 async function getSortedPostsWithFallback(order: 'asc' | 'desc'): Promise<BlogPost[]> {
   let posts: BlogPost[] = [];
   try {
-    // Using the Server Action to get posts ensures firebase-admin isn't bundled client-side
-    posts = await getAllPostsAction();
+    posts = await getAllPostsAction(); // This action now ensures createdAt/updatedAt
     if (posts.length === 0) {
-        // Server action returned empty (either Firestore is empty or had an issue handled by the action)
-        // Now use fallback posts
         console.log("getAllPostsAction returned empty or failed, using fallback posts for sorting.");
-        posts = [...fallbackBlogPosts];
+        posts = [...fallbackBlogPosts].map(post => ({ // Ensure fallback has full date objects
+          ...post,
+          createdAt: new Date(post.date),
+          updatedAt: new Date(post.date),
+        }));
     }
   } catch (error) {
     console.error(`Error calling getAllPostsAction for sorted posts (${order}), using fallback posts:`, error);
-    // Error calling the action, use fallback posts
-    posts = [...fallbackBlogPosts];
+    posts = [...fallbackBlogPosts].map(post => ({
+      ...post,
+      createdAt: new Date(post.date),
+      updatedAt: new Date(post.date),
+    }));
   }
 
-  // Sort the chosen list (either Firestore results or fallback)
   return posts.sort((a, b) => {
-    const dateA = new Date(a.date).getTime();
-    const dateB = new Date(b.date).getTime();
+    const dateA = a.createdAt instanceof Date ? a.createdAt.getTime() : new Date(a.date).getTime();
+    const dateB = b.createdAt instanceof Date ? b.createdAt.getTime() : new Date(b.date).getTime();
     return order === 'asc' ? dateA - dateB : dateB - dateA;
   });
 }
 
 
 export async function getPreviousPost(currentSlug: string): Promise<BlogPost | undefined> {
-  const sortedPosts = await getSortedPostsWithFallback('desc'); // Newest first for this logic
+  const sortedPosts = await getSortedPostsWithFallback('desc'); 
   const currentIndex = sortedPosts.findIndex(post => post.slug === currentSlug);
 
   if (currentIndex !== -1 && currentIndex < sortedPosts.length - 1) {
-    return sortedPosts[currentIndex + 1]; // Previous post is at currentIndex + 1 because array is newest first
+    return sortedPosts[currentIndex + 1]; 
   }
   return undefined;
 }
 
 export async function getNextPost(currentSlug: string): Promise<BlogPost | undefined> {
-  const sortedPosts = await getSortedPostsWithFallback('desc'); // Newest first for this logic
+  const sortedPosts = await getSortedPostsWithFallback('desc'); 
   const currentIndex = sortedPosts.findIndex(post => post.slug === currentSlug);
 
   if (currentIndex > 0) {
-    return sortedPosts[currentIndex - 1]; // Next post is at currentIndex - 1 because array is newest first
+    return sortedPosts[currentIndex - 1]; 
   }
   return undefined;
 }
 
-export { fallbackBlogPosts }; // Export fallback for admin page if needed
+export { fallbackBlogPosts };

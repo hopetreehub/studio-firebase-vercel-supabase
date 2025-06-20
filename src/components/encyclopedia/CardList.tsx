@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { TarotCard } from '@/types';
@@ -22,7 +23,7 @@ const SuitIcon = ({ suit, className }: { suit: TarotCard['suit'], className?: st
     case 'cups': return <CupIcon {...props} />;
     case 'swords': return <SwordIcon {...props} />;
     case 'pentacles': return <PentacleIcon {...props} />;
-    case 'major': return <Star {...props} />; // Using Star for Major Arcana
+    case 'major': return <Star {...props} />; 
     default: return null;
   }
 };
@@ -33,18 +34,19 @@ export function CardList({ cards }: CardListProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6"> {/* Added xl:grid-cols-6 for larger screens */}
       {cards.map((card) => (
         <Link key={card.id} href={`/encyclopedia/${card.id}`} passHref>
           <Card className="h-full flex flex-col overflow-hidden shadow-lg hover:shadow-primary/20 hover:border-primary/50 transition-all duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer border border-transparent group">
-            <CardHeader className="p-0 relative aspect-[3/5] w-full overflow-hidden">
+            <CardHeader className="p-0 relative aspect-[275/475] w-full overflow-hidden"> {/* Enforce aspect ratio */}
               <Image
                 src={card.imageSrc}
                 alt={card.name}
-                width={300}
-                height={500}
+                width={275} // Base width
+                height={475} // Base height for correct aspect ratio
                 className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
                 data-ai-hint={card.dataAiHint}
+                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16.6vw" // More granular sizes
               />
                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
                <div className="absolute bottom-2 left-2 right-2 p-1">

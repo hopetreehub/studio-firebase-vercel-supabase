@@ -6,18 +6,34 @@ import RootLayoutClient from './RootLayoutClient';
 import './globals.css';
 import { ThemeProvider } from '@/components/layout/ThemeProvider';
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
 export const metadata: Metadata = {
-  title: 'InnerSpell - 당신의 내면을 탐험하세요',
-  description: 'AI 기반 타로 해석과 함께 현대적인 영적 타로 서비스를 경험하세요.',
-  // Basic Open Graph and Twitter Card setup - can be overridden by specific pages
+  metadataBase: new URL(siteUrl), // Added for resolving relative image paths
+  title: {
+    default: 'InnerSpell - 당신의 내면을 탐험하세요',
+    template: '%s - InnerSpell',
+  },
+  description: 'AI 기반 타로 해석과 함께 현대적인 영적 타로 서비스를 경험하세요. 타로 카드 리딩, 카드 백과사전, 영적 성장 블로그를 제공합니다.',
+  keywords: ['타로', 'AI 타로', '타로카드', '운세', '점성술', '영적 성장', '명상', 'InnerSpell', '인공지능 타로', '타로 리딩', '타로 해석'],
+  manifest: '/manifest.json',
+  themeColor: [ // Added theme color for light and dark modes
+    { media: '(prefers-color-scheme: light)', color: '#F3E5F5' }, // Light theme background
+    { media: '(prefers-color-scheme: dark)', color: '#221C2E' },  // Dark theme background (approximated)
+  ],
   openGraph: {
     type: 'website',
     locale: 'ko_KR',
-    url: 'https://www.innerspell.com', // Replace with your actual domain
+    url: siteUrl,
     siteName: 'InnerSpell',
+    title: {
+      default: 'InnerSpell - 당신의 내면을 탐험하세요',
+      template: '%s - InnerSpell',
+    },
+    description: 'AI 기반 타로 해석, 타로 카드 백과사전, 영적 성장 블로그를 통해 당신의 내면을 발견하세요.',
     images: [
       {
-        url: '/logo-og.png', // Replace with path to your open graph image in /public
+        url: '/logo-og.png', 
         width: 1200,
         height: 630,
         alt: 'InnerSpell 로고',
@@ -26,15 +42,19 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    // title: (Handled by individual pages or default above)
-    // description: (Handled by individual pages or default above)
-    // images: ['/logo-twitter.png'], // Replace with path to your twitter card image in /public
-    // site: '@yourTwitterHandle', // Optional: your Twitter handle
-    // creator: '@creatorTwitterHandle', // Optional: content creator's Twitter handle
+    title: {
+      default: 'InnerSpell - 당신의 내면을 탐험하세요',
+      template: '%s - InnerSpell',
+    },
+    description: 'AI 기반 타로 해석, 타로 카드 백과사전, 영적 성장 블로그를 통해 당신의 내면을 발견하세요.',
+    images: [`${siteUrl}/logo-og.png`], // Ensure absolute URL for Twitter
+    // site: '@yourTwitterHandle', 
+    // creator: '@creatorTwitterHandle', 
   },
-  // You can add more global metadata here:
-  // keywords: ['tarot', 'AI tarot', '타로', 'AI 타로', '운세', '영적 성장', '명상'],
-  // themeColor: '#673AB7', // Example primary color
+  icons: { // Added icons for favicon and apple-touch-icon
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export default function RootLayout({
@@ -49,7 +69,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Belleza&display=swap" rel="stylesheet" />
-        {/* Noto Sans KR for Korean text */}
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
         {/* 
           If you are integrating Google AdSense, the script provided by AdSense
@@ -75,5 +94,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-    
