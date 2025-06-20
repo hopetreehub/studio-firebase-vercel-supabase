@@ -53,7 +53,7 @@ type ReadingStage =
   | 'interpreting'
   | 'interpretation_ready';
 
-const CARD_BACK_IMAGE = '/images/tarot/back.png'; // 경로 확인
+const CARD_BACK_IMAGE = '/images/tarot/back.png'; // Ensured path
 const NUM_VISUAL_CARDS_IN_STACK = 15;
 const N_ANIMATING_CARDS_FOR_SHUFFLE = 7;
 
@@ -208,7 +208,7 @@ export function TarotReadingClient() {
       });
       return;
     }
-    // Reveal all cards from the deck
+    
     const drawnPool = deck.map((card) => ({ 
       ...card, 
       isFaceUp: false, 
@@ -609,7 +609,7 @@ export function TarotReadingClient() {
                   onClick={() => {
                     setSelectedCardsForReading([]);
                     const drawnPool = deck.map((card) => ({ ...card, isFaceUp: false, isReversed: Math.random() > 0.5 }));
-                    setRevealedSpreadCards(drawnPool);
+                    setRevealedSpreadCards(drawnPool); // Reset to full deck spread
                     setStage('spread_revealed'); 
                   }}
                   className="mt-4"

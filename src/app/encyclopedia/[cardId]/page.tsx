@@ -53,8 +53,8 @@ export async function generateMetadata(
       images: [
         {
           url: imageUrl,
-          width: 275, // Standard card image width
-          height: 475, // Standard card image height
+          width: 275, 
+          height: 475, 
           alt: cardName,
         },
         ...previousImages
@@ -108,10 +108,9 @@ export default function CardDetailPage({ params }: Props) {
   const nextCard = getNextCard(params.cardId);
   const imageUrl = card.imageSrc.startsWith('http') ? card.imageSrc : `${siteUrl}${card.imageSrc}`;
 
-  // Basic JSON-LD for the Tarot Card (Thing or CreativeWork could be suitable)
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'CreativeWork', // Or Thing, or a more specific type if available
+    '@type': 'CreativeWork', 
     name: card.name,
     description: card.description || card.meaningUpright.substring(0, 160) + "...",
     image: imageUrl,
@@ -124,7 +123,6 @@ export default function CardDetailPage({ params }: Props) {
     }
   };
 
-
   return (
     <>
       <Script
@@ -134,17 +132,17 @@ export default function CardDetailPage({ params }: Props) {
       />
       <div className="max-w-4xl mx-auto space-y-8 py-8">
         <Card className="overflow-hidden shadow-xl border-primary/10">
-          <div className="grid md:grid-cols-3">
+          <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
             <div className="md:col-span-1 p-4 sm:p-6 bg-primary/5 flex justify-center items-center">
               <Image
                 src={card.imageSrc} 
                 alt={card.name}
-                width={275} // Standard card width
-                height={475} // Standard card height
-                className="rounded-lg shadow-lg object-contain max-h-[475px] w-auto" // Ensure max-h matches height
+                width={275} 
+                height={475} 
+                className="rounded-lg shadow-lg object-contain max-h-[475px] w-auto" 
                 data-ai-hint={card.dataAiHint}
-                priority // LCP element
-                sizes="(max-width: 768px) 90vw, 275px" // More specific sizes
+                priority 
+                sizes="(max-width: 768px) 90vw, 275px" 
               />
             </div>
             <div className="md:col-span-2 p-6 sm:p-8">
