@@ -47,7 +47,7 @@ function ExistingBlogPosts({ onEditPost, onPostsLoaded }: { onEditPost: (post: B
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const fetchedPosts = await getAllPosts(); 
+      const fetchedPosts = await getAllPosts();
       setPosts(fetchedPosts);
       setError(null);
     } catch (err: any) {
@@ -62,7 +62,7 @@ function ExistingBlogPosts({ onEditPost, onPostsLoaded }: { onEditPost: (post: B
   useEffect(() => {
     fetchPosts();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onPostsLoaded]); 
+  }, [onPostsLoaded]);
 
   const handleDeleteConfirm = async () => {
     if (!postToDelete) return;
@@ -84,63 +84,66 @@ function ExistingBlogPosts({ onEditPost, onPostsLoaded }: { onEditPost: (post: B
   }
 
   return (
-    <Card className="shadow-lg border-primary/10 mt-6">
-      <CardHeader>
-        <CardTitle className="font-headline text-xl text-primary flex items-center">
-          <ListChecks className="mr-2 h-5 w-5" /> 기존 블로그 게시물
-        </CardTitle>
-        <CardDescription>게시물을 수정하거나 삭제할 수 있습니다.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {posts.length === 0 ? (
-          <p className="text-muted-foreground text-center">게시물이 없습니다.</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>제목</TableHead>
-                <TableHead>슬러그</TableHead>
-                <TableHead>작성일</TableHead>
-                <TableHead className="text-right">작업</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {posts.map((post) => (
-                <TableRow key={post.id}>
-                  <TableCell className="font-medium max-w-xs truncate" title={post.title}>{post.title}</TableCell>
-                  <TableCell className="max-w-xs truncate" title={post.slug}>{post.slug}</TableCell>
-                  <TableCell>{new Date(post.date).toLocaleDateString('ko-KR')}</TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => onEditPost(post)}>
-                      <Edit className="mr-1 h-4 w-4" /> 수정
-                    </Button>
-                    <AlertDialogTrigger asChild>
-                       <Button variant="destructive" size="sm" onClick={() => setPostToDelete(post)}>
-                        <Trash2 className="mr-1 h-4 w-4" /> 삭제
-                      </Button>
-                    </AlertDialogTrigger>
-                  </TableCell>
+    // AlertDialog를 Card와 AlertDialogContent를 포함하는 최상위 래퍼로 이동
+    <AlertDialog open={!!postToDelete} onOpenChange={(open) => !open && setPostToDelete(null)}>
+      <Card className="shadow-lg border-primary/10 mt-6">
+        <CardHeader>
+          <CardTitle className="font-headline text-xl text-primary flex items-center">
+            <ListChecks className="mr-2 h-5 w-5" /> 기존 블로그 게시물
+          </CardTitle>
+          <CardDescription>게시물을 수정하거나 삭제할 수 있습니다.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {posts.length === 0 ? (
+            <p className="text-muted-foreground text-center">게시물이 없습니다.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>제목</TableHead>
+                  <TableHead>슬러그</TableHead>
+                  <TableHead>작성일</TableHead>
+                  <TableHead className="text-right">작업</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-        <AlertDialog open={!!postToDelete} onOpenChange={(open) => !open && setPostToDelete(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center"><AlertTriangle className="mr-2 text-destructive"/>정말로 삭제하시겠습니까?</AlertDialogTitle>
-              <AlertDialogDescription>
-                "{postToDelete?.title}" 게시물을 삭제합니다. 이 작업은 되돌릴 수 없습니다.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setPostToDelete(null)}>취소</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">삭제 확인</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {posts.map((post) => (
+                  <TableRow key={post.id}>
+                    <TableCell className="font-medium max-w-xs truncate" title={post.title}>{post.title}</TableCell>
+                    <TableCell className="max-w-xs truncate" title={post.slug}>{post.slug}</TableCell>
+                    <TableCell>{new Date(post.date).toLocaleDateString('ko-KR')}</TableCell>
+                    <TableCell className="text-right space-x-2">
+                      <Button variant="outline" size="sm" onClick={() => onEditPost(post)}>
+                        <Edit className="mr-1 h-4 w-4" /> 수정
+                      </Button>
+                      {/* AlertDialogTrigger는 이제 AlertDialog의 자식 요소임 */}
+                      <AlertDialogTrigger asChild>
+                         <Button variant="destructive" size="sm" onClick={() => setPostToDelete(post)}>
+                          <Trash2 className="mr-1 h-4 w-4" /> 삭제
+                        </Button>
+                      </AlertDialogTrigger>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+      {/* AlertDialogContent는 AlertDialog의 직접적인 자식으로 Card 외부에 위치 */}
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center"><AlertTriangle className="mr-2 text-destructive"/>정말로 삭제하시겠습니까?</AlertDialogTitle>
+          <AlertDialogDescription>
+            "{postToDelete?.title}" 게시물을 삭제합니다. 이 작업은 되돌릴 수 없습니다.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setPostToDelete(null)}>취소</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">삭제 확인</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 
@@ -156,7 +159,7 @@ export default function AdminDashboardPage() {
   const handleCancelEdit = () => {
     setEditingPost(undefined);
   };
-  
+
   const handleFormSubmitSuccess = () => {
     setEditingPost(undefined); // Clear editing mode
     setRefreshPostListKey(prev => prev + 1); // Trigger list refresh
@@ -218,9 +221,9 @@ export default function AdminDashboardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <BlogManagementForm 
+              <BlogManagementForm
                 key={editingPost ? editingPost.id : 'new'} // Re-mount form when editingPost changes
-                initialData={editingPost} 
+                initialData={editingPost}
                 onFormSubmitSuccess={handleFormSubmitSuccess}
                 onCancelEdit={handleCancelEdit}
               />
