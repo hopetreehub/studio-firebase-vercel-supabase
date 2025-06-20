@@ -1,27 +1,18 @@
 
 import admin from 'firebase-admin';
 
-// Check if the app is already initialized to prevent re-initialization
+// Check if the app is already initialized to prevent re-initialization.
+// This is important for Next.js's hot-reloading environment.
 if (!admin.apps.length) {
-  console.log('[Firebase Admin] Initializing SDK...');
-  try {
-    // Use applicationDefault() which works for both local development (via GOOGLE_APPLICATION_CREDENTIALS)
-    // and Firebase/Google Cloud environments (like App Hosting) automatically.
-    admin.initializeApp({
-      credential: admin.credential.applicationDefault(),
-    });
-    console.log('[Firebase Admin] SDK Initialized Successfully.');
-  } catch (error: any) {
-    console.error(
-      '[Firebase Admin CRITICAL ERROR] SDK failed to initialize. This is a fatal error and the application will not work correctly. ' +
-      'Ensure GOOGLE_APPLICATION_CREDENTIALS environment variable is set for local development, ' +
-      'or that the service account has the correct permissions in a cloud environment. ' +
-      'Error details:', error.message
-    );
-    // If initialization fails, subsequent calls to Firestore will fail, making the error visible.
-  }
+  // This will throw a detailed error if credentials are not found or are invalid,
+  // which is better than catching it and causing a secondary, less clear error.
+  // The hosting environment should provide the necessary credentials automatically.
+  admin.initializeApp({
+    credential: admin.credential.applicationDefault(),
+  });
 }
 
+// Get the firestore instance. This will only work if initializeApp was successful.
 const firestore = admin.firestore();
 
 export { admin, firestore };
