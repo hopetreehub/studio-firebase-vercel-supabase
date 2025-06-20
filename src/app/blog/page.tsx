@@ -1,5 +1,5 @@
 
-'use client'; // Changed to client component for pagination state
+'use client'; 
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,8 +7,6 @@ import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CalendarDays, Feather, Tag, ListChecks, ChevronLeft, ChevronRight } from 'lucide-react';
-// Removed Metadata import as it's less common in client components
-// import type { Metadata } from 'next';
 import { getAllPosts } from '@/actions/blogActions';
 import { format } from 'date-fns';
 import type { BlogPost } from '@/types';
@@ -16,17 +14,6 @@ import { Spinner } from '@/components/ui/spinner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 
-
-// export const metadata: Metadata = { // Metadata is usually set in Server Components or layout files
-//   title: '블로그',
-//   description: '타로, 영성, 자아 발견에 대한 최신 기사와 깊이 있는 통찰을 만나보세요. InnerSpell 블로그에서 영감을 얻으세요.',
-//   openGraph: {
-//     title: 'InnerSpell 블로그 - 영적 사색과 타로 이야기',
-//     description: '타로 카드 해석, 영적 성장 팁, 명상 가이드 등 다양한 주제의 글을 탐색하세요.',
-//   },
-// };
-
-// export const revalidate = 60; // Revalidation strategy for Server Components
 
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 15];
 
@@ -38,7 +25,6 @@ export default function BlogPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState<number | 'all'>(ITEMS_PER_PAGE_OPTIONS[0]);
 
-  // Dummy data for sidebar - replace with actual data fetching if needed
   const categories = ['타로 해석', '영적 성장', '명상 가이드', '카드 이야기'];
   const popularTags = ['운세', '사랑', '직업', '조언', '치유'];
   const [recentPosts, setRecentPosts] = useState<{title: string, slug: string}[]>([]);
@@ -50,8 +36,10 @@ export default function BlogPage() {
       setError(null);
       try {
         const posts = await getAllPosts();
-        setAllPosts(posts);
-        setRecentPosts(posts.slice(0, 3).map(p => ({ title: p.title, slug: p.slug })));
+        // Ensure posts are sorted by date descending for recentPosts and initial display consistency
+        const sortedPosts = posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setAllPosts(sortedPosts);
+        setRecentPosts(sortedPosts.slice(0, 3).map(p => ({ title: p.title, slug: p.slug })));
       } catch (err: any) {
         console.error("Failed to fetch blog posts:", err);
         setError('블로그 게시물을 불러오는 데 실패했습니다.');
@@ -70,12 +58,13 @@ export default function BlogPage() {
     }
     setCurrentPage(1);
   };
-
+  
   const postsToDisplay = itemsPerPage === 'all' 
     ? allPosts 
     : allPosts.slice((currentPage - 1) * (itemsPerPage as number), currentPage * (itemsPerPage as number));
   
-  const totalPages = itemsPerPage === 'all' ? 1 : Math.ceil(allPosts.length / (itemsPerPage as number));
+  const totalPages = itemsPerPage === 'all' ? 1 : (allPosts.length > 0 && typeof itemsPerPage === 'number' ? Math.ceil(allPosts.length / itemsPerPage) : 1);
+
 
   const handlePrevPage = () => {
     setCurrentPage((prev) => Math.max(prev - 1, 1));
@@ -108,10 +97,8 @@ export default function BlogPage() {
       </header>
 
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Main Blog Posts Area */}
         <div className="w-full lg:w-2/3 space-y-8">
-          {/* Pagination Controls Top */}
-           {itemsPerPage !== 'all' && totalPages > 1 && (
+           {itemsPerPage !== 'all' && totalPages > 0 && (
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 p-4 bg-card border border-border rounded-lg shadow-sm">
               <div className="flex items-center gap-2">
                 <Label htmlFor="items-per-page-select-blog" className="text-sm font-medium text-muted-foreground">페이지당 글 수:</Label>
@@ -130,25 +117,27 @@ export default function BlogPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={currentPage === 1}>
-                  <ChevronLeft className="h-4 w-4" />
-                  <span className="ml-1">이전</span>
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  {currentPage} / {totalPages} 페이지
-                </span>
-                <Button variant="outline" size="sm" onClick={handleNextPage} disabled={currentPage === totalPages}>
-                  <span className="mr-1">다음</span>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
+              {totalPages > 1 && (
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={currentPage === 1}>
+                    <ChevronLeft className="h-4 w-4" />
+                    <span className="ml-1">이전</span>
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    {currentPage} / {totalPages} 페이지
+                  </span>
+                  <Button variant="outline" size="sm" onClick={handleNextPage} disabled={currentPage === totalPages}>
+                    <span className="mr-1">다음</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 
           {postsToDisplay.length > 0 ? (
             postsToDisplay.map((post) => {
-              const displayDate = format(new Date(post.date), 'yyyy년 MM월 dd일');
+              const displayDate = post.date ? format(new Date(post.date), 'yyyy년 MM월 dd일') : '날짜 없음';
               return (
                 <Card key={post.id} className="overflow-hidden shadow-lg hover:shadow-primary/20 transition-shadow duration-300 group border border-transparent hover:border-primary/30">
                   <Link href={`/blog/${post.slug}`} className="block md:flex md:flex-row h-full">
@@ -185,12 +174,13 @@ export default function BlogPage() {
               );
             })
           ) : (
-            <p className="text-center text-muted-foreground py-10 text-lg">
-              아직 게시된 글이 없습니다. 곧 흥미로운 내용으로 찾아뵙겠습니다!
-            </p>
+             allPosts.length === 0 && !loading ? (
+                <p className="text-center text-muted-foreground py-10 text-lg">
+                  아직 게시된 글이 없습니다. 곧 흥미로운 내용으로 찾아뵙겠습니다!
+                </p>
+             ) : null
           )}
-           {/* Pagination Controls Bottom */}
-          {itemsPerPage !== 'all' && totalPages > 1 && (
+           {itemsPerPage !== 'all' && totalPages > 1 && (
             <div className="flex justify-center items-center gap-2 mt-8">
                 <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={currentPage === 1}>
                   <ChevronLeft className="h-4 w-4" />
@@ -207,7 +197,6 @@ export default function BlogPage() {
           )}
         </div>
 
-        {/* Sidebar Area */}
         <aside className="w-full lg:w-1/3 space-y-6 lg:sticky lg:top-20 self-start">
           <Card className="shadow-md border-primary/10">
             <CardHeader>
