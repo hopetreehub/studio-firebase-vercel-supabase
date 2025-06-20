@@ -172,8 +172,8 @@ export default async function BlogPostPage({ params }: Props) {
 
           <div 
             className="p-6 sm:p-8 prose prose-lg max-w-none text-foreground/80 prose-headings:text-primary prose-headings:font-headline prose-a:text-accent hover:prose-a:text-accent/80 prose-strong:text-primary/90"
-            style={{ whiteSpace: 'pre-line' }}
-            dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br />') }} 
+            style={{ whiteSpace: 'pre-line' }} // Changed for better newline handling
+            dangerouslySetInnerHTML={{ __html: post.content }} // Removed .replace(/\n/g, '<br />')
           />
         </article>
 

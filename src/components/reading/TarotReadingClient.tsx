@@ -53,7 +53,7 @@ type ReadingStage =
   | 'interpreting'
   | 'interpretation_ready';
 
-const CARD_BACK_IMAGE = '/images/tarot/back.png';
+const CARD_BACK_IMAGE = '/images/tarot/back.png'; // 경로 확인
 const NUM_VISUAL_CARDS_IN_STACK = 15;
 const N_ANIMATING_CARDS_FOR_SHUFFLE = 7;
 
@@ -344,6 +344,8 @@ export function TarotReadingClient() {
           : undefined
       }
       aria-disabled={isShufflingAnimationActive}
+      aria-busy={isShufflingAnimationActive}
+      aria-label={isShufflingAnimationActive ? "카드를 섞는 중" : "카드 덱, 클릭하여 섞기"}
     >
       {visualCardAnimControls.map((controls, i) => (
         <motion.div
@@ -415,6 +417,7 @@ export function TarotReadingClient() {
               onChange={(e) => setQuestion(e.target.value)}
               className="min-h-[100px] bg-background/70 text-base"
               disabled={isShufflingAnimationActive || stage === 'shuffling' || stage === 'interpreting'}
+              aria-disabled={isShufflingAnimationActive || stage === 'shuffling' || stage === 'interpreting'}
             />
           </div>
           <div className="grid gap-6 md:grid-cols-2">
@@ -442,8 +445,9 @@ export function TarotReadingClient() {
                   });
                 }}
                 disabled={isShufflingAnimationActive || stage === 'shuffling' || stage === 'interpreting'}
+                aria-disabled={isShufflingAnimationActive || stage === 'shuffling' || stage === 'interpreting'}
               >
-                <SelectTrigger id="spread-type" className="h-12 text-base">
+                <SelectTrigger id="spread-type" className="h-12 text-base" aria-label="타로 스프레드 종류 선택">
                   <SelectValue placeholder="스프레드 선택" />
                 </SelectTrigger>
                 <SelectContent>
@@ -468,10 +472,12 @@ export function TarotReadingClient() {
                   setInterpretationMethod(value as TarotInterpretationMethod)
                 }
                 disabled={isShufflingAnimationActive || stage === 'shuffling' || stage === 'interpreting'}
+                aria-disabled={isShufflingAnimationActive || stage === 'shuffling' || stage === 'interpreting'}
               >
                 <SelectTrigger
                   id="interpretation-method"
                   className="h-12 text-base"
+                  aria-label="타로 해석 스타일 선택"
                 >
                   <SelectValue placeholder="해석 스타일 선택" />
                 </SelectTrigger>
@@ -508,9 +514,9 @@ export function TarotReadingClient() {
                 <Button
                   onClick={handleShuffle}
                   className="w-full bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto"
-                  disabled={
-                    isShufflingAnimationActive || stage === 'interpreting'
-                  }
+                  disabled={isShufflingAnimationActive || stage === 'interpreting'}
+                  aria-disabled={isShufflingAnimationActive || stage === 'interpreting'}
+                  aria-label={isShufflingAnimationActive || stage === 'shuffling' ? '카드를 섞는 중' : '카드 섞기'}
                 >
                   {isShufflingAnimationActive || stage === 'shuffling' ? (
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -524,6 +530,8 @@ export function TarotReadingClient() {
                 <Button
                   onClick={handleRevealSpread}
                   disabled={isShufflingAnimationActive || stage !== 'shuffled'}
+                  aria-disabled={isShufflingAnimationActive || stage !== 'shuffled'}
+                  aria-label={isShufflingAnimationActive || stage !== 'shuffled' ? '카드 펼치기 비활성화됨' : '카드 펼치기'}
                   className="w-full sm:w-auto"
                 >
                   <Layers className="mr-2 h-5 w-5" />
@@ -539,19 +547,25 @@ export function TarotReadingClient() {
                 <h3 className="font-headline text-xl text-primary">
                   펼쳐진 카드 ({selectedCardsForReading.length}/{selectedSpread.numCards} 선택됨)
                 </h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground" id="spread-instruction">
                   {selectedSpread.description} 카드를 클릭하여 {selectedSpread.numCards}장 선택하세요.
                 </p>
               </div>
               <div
                 ref={spreadContainerRef}
                 className="flex items-center overflow-x-auto p-2 w-full scrollbar-thin scrollbar-thumb-muted scrollbar-track-background" 
+                role="group"
+                aria-labelledby="spread-instruction"
               >
                 <div className="flex space-x-[-130px]">
                   <AnimatePresence>
                     {displayableRevealedCards.map((cardInSpread, index) => (
                         <motion.div
                           key={cardInSpread.id + (cardInSpread.isReversed ? '-rev-spread' : '-upr-spread')} 
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`펼쳐진 ${index + 1}번째 카드 선택`}
+                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleCardSelectFromSpread(cardInSpread); }}
                           layoutId={cardInSpread.id + (cardInSpread.isReversed ? '-rev-layout' : '-upr-layout')} 
                           initial={{ opacity: 0, y: 20, scale: 0.9 }}
                           animate={{
@@ -567,7 +581,7 @@ export function TarotReadingClient() {
                           }}
                           transition={{ duration: 0.25, delay: index * 0.03 }}
                           onClick={() => handleCardSelectFromSpread(cardInSpread)}
-                          className={`${TARGET_CARD_HEIGHT_CLASS} shrink-0 cursor-pointer transform transition-all duration-200 hover:scale-105 hover:z-20 shadow-md border border-black/10 hover:border-primary/50`}
+                          className={`${TARGET_CARD_HEIGHT_CLASS} shrink-0 cursor-pointer transform transition-all duration-200 hover:scale-105 hover:z-20 shadow-md border border-black/10 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 rounded-lg`}
                           style={{ aspectRatio: `${IMAGE_ORIGINAL_WIDTH} / ${IMAGE_ORIGINAL_HEIGHT}` }}
                         >
                           <motion.div
@@ -599,6 +613,7 @@ export function TarotReadingClient() {
                     setStage('spread_revealed'); 
                   }}
                   className="mt-4"
+                  aria-label="선택한 카드 모두 초기화"
                 >
                   선택 초기화
                 </Button>
@@ -621,17 +636,19 @@ export function TarotReadingClient() {
           </CardHeader>
           <CardContent>
             <LayoutGroup>
-              <div className="flex flex-wrap justify-center gap-3 min-h-[calc(theme(space.60)_+_theme(space.3))]"> 
+              <div className="flex flex-wrap justify-center gap-3 min-h-[calc(theme(space.60)_+_theme(space.3))]" role="list" aria-label="선택된 카드 목록"> 
                 <AnimatePresence>
                   {selectedCardsForReading.map((card, index) => (
                     <motion.div
                       key={card.id + (card.isReversed ? '-rev-selected' : '-upr-selected')} 
+                      role="listitem"
                       layoutId={card.id + (card.isReversed ? '-rev-layout' : '-upr-layout')} 
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1, transition: { delay: 0.1 } }}
                       exit={{ opacity: 0, scale: 0.8, transition: {duration: 0.2} }}
                       className={`${TARGET_CARD_HEIGHT_CLASS} overflow-hidden rounded-lg shadow-lg border-2 ${card.isReversed ? 'border-destructive/50' : 'border-primary/50'}`}
                       style={{ aspectRatio: `${IMAGE_ORIGINAL_WIDTH} / ${IMAGE_ORIGINAL_HEIGHT}` }}
+                      aria-label={`${index + 1}번째 선택된 카드: ${card.name} (${card.isReversed ? '역방향' : '정방향'})`}
                     >
                       <motion.div
                         className={`relative h-full w-full overflow-hidden rounded-lg`}
@@ -642,7 +659,7 @@ export function TarotReadingClient() {
                         <div style={{ backfaceVisibility: 'hidden' }}>
                            <Image
                             src={card.imageSrc}
-                            alt={card.name}
+                            alt={`${card.name} (${card.isReversed ? '역방향' : '정방향'})`}
                             width={IMAGE_ORIGINAL_WIDTH}
                             height={IMAGE_ORIGINAL_HEIGHT}
                             className={`h-full w-full object-contain rounded-lg ${card.isReversed ? 'rotate-180 transform' : ''}`}
@@ -666,7 +683,13 @@ export function TarotReadingClient() {
                   stage === 'interpreting' ||
                   stage !== 'cards_selected' 
                 }
+                aria-disabled={
+                  isShufflingAnimationActive ||
+                  stage === 'interpreting' ||
+                  stage !== 'cards_selected' 
+                }
                 className="bg-accent px-6 py-3 text-lg text-accent-foreground hover:bg-accent/90"
+                aria-label={stage === 'interpreting' ? 'AI가 해석하는 중' : 'AI 해석 받기'}
               >
                 {stage === 'interpreting' ? (
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -682,7 +705,7 @@ export function TarotReadingClient() {
 
 
       {(stage === 'interpreting' || stage === 'interpretation_ready') && (
-        <Card className="animate-fade-in mt-8">
+        <Card className="animate-fade-in mt-8" aria-live="polite">
           <CardHeader>
             <CardTitle className="font-headline flex items-center text-3xl text-primary">
               <Sparkles className="mr-2 h-7 w-7 text-accent" />
