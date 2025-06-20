@@ -35,59 +35,59 @@ export function CardList({ cards }: CardListProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"> {/* Reverted to multi-column grid */}
+    <div className="grid grid-cols-1 gap-6 sm:gap-8">
       {cards.map((card) => (
         <Link key={card.id} href={`/encyclopedia/${card.id}`} passHref legacyBehavior>
-          <a className="block group h-full"> {/* Added h-full for consistent card heights if needed by grid */}
-            <Card className="flex flex-col h-full overflow-hidden shadow-lg hover:shadow-primary/20 hover:border-primary/30 transition-all duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer border border-transparent bg-card/90 backdrop-blur-sm">
-              {/* Image Container: Aspect ratio for tarot card, responsive height */}
-              <div className="relative w-full aspect-[275/475] overflow-hidden rounded-t-lg bg-primary/5">
+          <a className="block group max-w-2xl mx-auto w-full"> {/* 아이템 최대 너비 제한 및 중앙 정렬 */}
+            <Card className="flex flex-col md:flex-row h-full overflow-hidden shadow-lg hover:shadow-primary/20 hover:border-primary/30 transition-all duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer border border-transparent bg-card/90 backdrop-blur-sm">
+              {/* Image Container */}
+              <div className="md:w-48 w-full shrink-0 bg-primary/5 relative aspect-[275/475] md:aspect-auto md:h-auto rounded-t-lg md:rounded-l-lg md:rounded-r-none overflow-hidden">
                 <Image
                   src={card.imageSrc}
                   alt={card.name}
                   fill
-                  className="object-contain group-hover:scale-105 transition-transform duration-500"
+                  className="object-contain group-hover:scale-105 transition-transform duration-500 p-2"
                   data-ai-hint={card.dataAiHint}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" // Adjusted sizes
+                  sizes="(max-width: 768px) 100vw, 200px"
                 />
               </div>
               
               {/* Content Container */}
-              <div className="flex flex-col flex-1 p-3 sm:p-4 justify-between">
-                <CardHeader className="p-0 pb-2">
-                  <CardTitle className="font-headline text-lg md:text-xl text-primary group-hover:text-accent transition-colors mb-1 line-clamp-2">
+              <div className="flex flex-col flex-1 p-4 sm:p-5 justify-between">
+                <CardHeader className="p-0 pb-2 sm:pb-3">
+                  <CardTitle className="font-headline text-xl md:text-2xl text-primary group-hover:text-accent transition-colors mb-1.5 line-clamp-2">
                     {card.name}
                   </CardTitle>
-                  <div className="flex items-center space-x-1.5 text-xs text-muted-foreground">
-                    <Badge variant={card.suit === 'major' ? 'default' : 'secondary'} className="capitalize text-[10px] px-1.5 py-0.5">
-                      <SuitIcon suit={card.suit} className="w-2.5 h-2.5 mr-1" />
+                  <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                    <Badge variant={card.suit === 'major' ? 'default' : 'secondary'} className="capitalize text-[11px] px-2 py-0.5">
+                      <SuitIcon suit={card.suit} className="w-3 h-3 mr-1.5" />
                       {card.suit === 'major' ? '메이저' : card.suit}
                     </Badge>
                     {(card.number !== undefined) && (
-                       <span className="font-mono text-[11px]">
+                       <span className="font-mono text-xs">
                          No. {card.suit === 'major' ? card.number : (typeof card.number === 'string' ? card.number.charAt(0).toUpperCase() + card.number.slice(1) : card.number)}
                        </span>
                     )}
                   </div>
                 </CardHeader>
 
-                <CardContent className="p-0 mt-2 flex-grow space-y-1.5">
+                <CardContent className="p-0 mt-2 sm:mt-3 flex-grow space-y-2">
                   <div>
-                    <h4 className="text-[11px] font-semibold text-muted-foreground">정방향 키워드:</h4>
-                    <p className="text-xs text-foreground/75 line-clamp-2">
+                    <h4 className="text-xs font-semibold text-muted-foreground mb-0.5">정방향 키워드:</h4>
+                    <p className="text-sm text-foreground/80 line-clamp-2">
                       {card.keywordsUpright.join(', ')}
                     </p>
                   </div>
                   <div>
-                    <h4 className="text-[11px] font-semibold text-muted-foreground mt-1">역방향 키워드:</h4>
-                    <p className="text-xs text-foreground/75 line-clamp-2">
+                    <h4 className="text-xs font-semibold text-muted-foreground mt-1.5 mb-0.5">역방향 키워드:</h4>
+                    <p className="text-sm text-foreground/80 line-clamp-2">
                       {card.keywordsReversed.join(', ')}
                     </p>
                   </div>
                 </CardContent>
 
-                <CardFooter className="p-0 mt-2 pt-2 border-t border-border/20">
-                  <Button variant="link" asChild className="text-accent p-0 hover:text-accent/80 text-xs ml-auto">
+                <CardFooter className="p-0 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border/20">
+                  <Button variant="link" asChild className="text-accent p-0 hover:text-accent/80 text-sm ml-auto">
                     <span>자세히 보기 &rarr;</span>
                   </Button>
                 </CardFooter>
