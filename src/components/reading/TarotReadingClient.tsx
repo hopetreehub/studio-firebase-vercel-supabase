@@ -444,7 +444,7 @@ export function TarotReadingClient() {
                 htmlFor="spread-type"
                 className="text-lg font-semibold text-foreground/90"
               >
-                스프레드 선택:
+                어떤 방식으로 카드를 펼쳐볼까요?
               </Label>
               <Select
                 value={selectedSpread.id}
@@ -503,7 +503,7 @@ export function TarotReadingClient() {
                 <SelectContent>
                   {tarotInterpretationStyles.map((style) => (
                     <SelectItem key={style.id} value={style.id}>
-                      <span className="flex flex-col">
+                      <span className="flex flex-col py-1">
                         <span>{style.name}</span>
                         <span className="text-xs text-muted-foreground mt-0.5">
                           {style.description}
@@ -724,7 +724,7 @@ export function TarotReadingClient() {
 
       {(stage === 'interpretation_ready' || stage === 'interpreting') && interpretation && (
          <AlertDialog open={isInterpretationDialogOpen} onOpenChange={setIsInterpretationDialogOpen}>
-            <AlertDialogContent className="max-w-2xl w-[90vw] max-h-[80vh] flex flex-col">
+            <AlertDialogContent className="max-w-2xl w-[90vw] max-h-[85vh] flex flex-col">
               <AlertDialogHeader>
                 <AlertDialogTitle className="font-headline text-2xl text-primary flex items-center">
                   <Sparkles className="mr-2 h-6 w-6 text-accent" />
@@ -742,7 +742,7 @@ export function TarotReadingClient() {
                   </div>
                 )}
                 <div
-                  className="prose prose-lg max-w-none prose-headings:font-headline prose-headings:text-primary prose-p:text-foreground/90 prose-strong:text-primary/90 text-base leading-relaxed"
+                  className="prose prose-lg max-w-none prose-headings:font-headline prose-headings:text-accent prose-headings:text-xl sm:prose-headings:text-2xl prose-headings:mb-3 prose-headings:mt-5 prose-p:text-foreground/90 prose-strong:text-primary/90 text-lg leading-relaxed"
                   style={{ whiteSpace: 'pre-wrap' }}
                 >
                   {displayedInterpretation}
@@ -777,4 +777,3 @@ export function TarotReadingClient() {
     </div>
   );
 }
-

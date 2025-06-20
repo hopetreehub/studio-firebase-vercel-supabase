@@ -39,33 +39,33 @@ export type InterpretationStyleInfo = {
 export const tarotInterpretationStyles: InterpretationStyleInfo[] = [
   {
     id: "전통 RWS",
-    name: "전통 RWS",
-    description: "라이더-웨이트-스미스 덱의 상징과 고전적 의미에 기반한 해석입니다.",
+    name: "전통 라이더-웨이트-스미스 (RWS)",
+    description: "고전 RWS 덱 상징 기반 해석.",
   },
   {
     id: "토트 기반",
     name: "토트 기반",
-    description: "알리스터 크로울리의 토트 덱과 관련된 비교(秘敎)적, 점성학적 요소를 탐구합니다.",
+    description: "토트 덱 비교(秘敎) 및 점성학적 탐구.",
   },
   {
     id: "심리학적 원형",
     name: "심리학적 원형",
-    description: "칼 융의 분석심리학 관점에서 카드를 원형적 상징으로 해석합니다.",
+    description: "칼 융 심리학 기반 원형 상징 해석.",
   },
   {
     id: "영적 안내",
     name: "영적 안내",
-    description: "카드를 영적 성장과 자기 성찰을 위한 메시지로 받아들입니다.",
+    description: "영적 성장과 자기 성찰을 위한 메시지.",
   },
   {
     id: "행동 지향적 조언",
     name: "행동 지향적 조언",
-    description: "현재 상황에 대한 실질적이고 구체적인 행동 방침을 얻는 데 초점을 맞춥니다.",
+    description: "실질적이고 구체적인 행동 방침 조언.",
   },
   {
     id: "그림자 작업 초점",
     name: "그림자 작업 초점",
-    description: "내면의 숨겨진 측면(그림자)을 탐색하고 통합하는 데 중점을 둡니다.",
+    description: "내면의 숨겨진 그림자 탐색 및 통합.",
   },
 ];
 
