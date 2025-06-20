@@ -1,6 +1,6 @@
 
 import { getCardById, tarotDeck, getPreviousCard, getNextCard } from '@/lib/tarot-data';
-import type { TarotCard as TarotCardType } from '@/types'; 
+import type { TarotCard as TarotCardType } from '@/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -27,14 +27,14 @@ export async function generateMetadata(
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const card = getCardById(params.cardId);
-  
+
   if (!card) {
     return {
       title: '카드를 찾을 수 없습니다',
       description: '요청하신 타로 카드를 찾을 수 없습니다.',
     };
   }
-  
+
   const cardName = card.name;
   const previousImages = (await parent).openGraph?.images || [];
   const imageUrl = card.imageSrc.startsWith('http') ? card.imageSrc : `${siteUrl}${card.imageSrc}`;
@@ -49,12 +49,12 @@ export async function generateMetadata(
       title: `${cardName} - InnerSpell 타로 카드 의미`,
       description: card.meaningUpright.substring(0, 150) + '...',
       url: `${siteUrl}/encyclopedia/${card.id}`,
-      type: 'article', 
+      type: 'article',
       images: [
         {
           url: imageUrl,
-          width: 275, 
-          height: 475, 
+          width: 275,
+          height: 475,
           alt: cardName,
         },
         ...previousImages
@@ -110,7 +110,7 @@ export default function CardDetailPage({ params }: Props) {
 
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'CreativeWork', 
+    '@type': 'CreativeWork',
     name: card.name,
     description: card.description || card.meaningUpright.substring(0, 160) + "...",
     image: imageUrl,
@@ -135,14 +135,14 @@ export default function CardDetailPage({ params }: Props) {
           <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
             <div className="md:col-span-1 p-4 sm:p-6 bg-primary/5 flex justify-center items-center">
               <Image
-                src={card.imageSrc} 
+                src={card.imageSrc}
                 alt={card.name}
-                width={275} 
-                height={475} 
-                className="rounded-lg shadow-lg object-contain max-h-[475px] w-auto" 
+                width={275}
+                height={475}
+                className="rounded-lg shadow-lg object-contain max-h-[475px] w-auto"
                 data-ai-hint={card.dataAiHint}
-                priority 
-                sizes="(max-width: 768px) 90vw, 275px" 
+                priority
+                sizes="(max-width: 768px) 90vw, 275px"
               />
             </div>
             <div className="md:col-span-2 p-6 sm:p-8">
@@ -161,7 +161,7 @@ export default function CardDetailPage({ params }: Props) {
                 <CardTitle className="font-headline text-4xl text-primary">{card.name}</CardTitle>
                 {card.description && <CardDescription className="text-md text-foreground/70 mt-2">{card.description}</CardDescription>}
               </CardHeader>
-              
+
               <Separator className="my-6 bg-primary/20" />
 
               <CardContent className="p-0 space-y-6">
@@ -214,7 +214,7 @@ export default function CardDetailPage({ params }: Props) {
                     </DetailSection>
                   </>
                 )}
-                
+
                 {(card.astrology || card.element) && (
                   <>
                     <Separator className="my-4 bg-primary/10" />
@@ -250,7 +250,7 @@ export default function CardDetailPage({ params }: Props) {
               </Link>
             </Button>
           ) : (
-            <div className="w-full sm:w-auto" /> 
+            <div className="w-full sm:w-auto" />
           )}
 
           <Button asChild variant="outline" className="group hover:bg-primary/5 w-full sm:w-auto">
