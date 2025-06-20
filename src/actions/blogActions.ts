@@ -46,20 +46,18 @@ export async function submitBlogPost(
 
     const { title, slug, excerpt, content, imageSrc, dataAiHint, author, tags } = validationResult.data;
 
-    // If not updating, check if slug already exists
-    if (!postId) {
+    // Slug uniqueness check
+    if (!postId) { // Creating a new post
       const slugExistsQuery = await firestore.collection('blogPosts').where('slug', '==', slug).limit(1).get();
       if (!slugExistsQuery.empty) {
-        return { success: false, error: { slug: 'This slug is already in use. Please choose a unique slug.' } };
+        return { success: false, error: { slug: '이 슬러그는 이미 사용 중입니다. 고유한 슬러그를 선택해주세요.' } };
       }
-    } else {
-      // If updating, check if the new slug conflicts with another post's slug
+    } else { // Updating an existing post
       const slugExistsQuery = await firestore.collection('blogPosts').where('slug', '==', slug).limit(1).get();
       if (!slugExistsQuery.empty && slugExistsQuery.docs[0].id !== postId) {
-         return { success: false, error: { slug: 'This slug is already in use by another post. Please choose a unique slug.' } };
+         return { success: false, error: { slug: '이 슬러그는 다른 게시물에서 이미 사용 중입니다. 고유한 슬러그를 선택해주세요.' } };
       }
     }
-
 
     const postData = {
       title,
@@ -77,20 +75,22 @@ export async function submitBlogPost(
       // Update existing post
       const postRef = firestore.collection('blogPosts').doc(postId);
       await postRef.update(postData);
+      console.log(`Blog post ${postId} updated successfully.`);
       return { success: true, postId: postId };
     } else {
       // Create new post
       const newPostDataWithTimestamp = {
         ...postData,
-        createdAt: FieldValue.serverTimestamp(), // This should be a server timestamp
+        createdAt: FieldValue.serverTimestamp(), 
       };
       const docRef = await firestore.collection('blogPosts').add(newPostDataWithTimestamp);
+      console.log(`New blog post created successfully with ID: ${docRef.id}.`);
       return { success: true, postId: docRef.id };
     }
 
   } catch (error) {
     console.error('Error submitting blog post to Firestore:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred while saving to database' };
+    return { success: false, error: error instanceof Error ? error.message : '데이터베이스 저장 중 알 수 없는 오류가 발생했습니다.' };
   }
 }
 
@@ -102,9 +102,11 @@ export async function deleteBlogPost(
   }
   try {
     await firestore.collection('blogPosts').doc(postId).delete();
+    console.log(`Blog post ${postId} deleted successfully.`);
     return { success: true };
   } catch (error) {
     console.error('Error deleting blog post from Firestore:', error);
     return { success: false, error: error instanceof Error ? error.message : '데이터베이스에서 게시물을 삭제하는 중 오류가 발생했습니다.' };
   }
 }
+

@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -62,21 +63,29 @@ const generateTarotInterpretationFlow = ai.defineFlow(
 
       if (configDoc.exists) {
         const configData = configDoc.data();
-        if (configData?.promptTemplate && typeof configData.promptTemplate === 'string') {
+        if (configData?.promptTemplate && typeof configData.promptTemplate === 'string' && configData.promptTemplate.trim() !== '') {
           promptTemplate = configData.promptTemplate;
+          console.log("AI 프롬프트 템플릿을 Firestore에서 불러왔습니다.");
+        } else {
+          console.log("Firestore에서 유효한 AI 프롬프트 템플릿을 찾을 수 없습니다. 기본 템플릿을 사용합니다.");
         }
+
         if (configData?.safetySettings && Array.isArray(configData.safetySettings)) {
-           // Basic validation for safety settings structure
           const validSafetySettings = configData.safetySettings.filter(
-            (setting: any) => typeof setting.category === 'string' && typeof setting.threshold === 'string'
+            (setting: any): setting is SafetySetting => 
+              setting && typeof setting.category === 'string' && typeof setting.threshold === 'string'
           );
           if (validSafetySettings.length > 0) {
-            safetySettings = validSafetySettings as SafetySetting[];
+            safetySettings = validSafetySettings;
+            console.log("AI 안전 설정을 Firestore에서 불러왔습니다.");
+          } else {
+            console.log("Firestore에서 유효한 AI 안전 설정을 찾을 수 없습니다. 기본 설정을 사용합니다.");
           }
+        } else {
+           console.log("Firestore에 AI 안전 설정이 없거나 형식이 올바르지 않습니다. 기본 설정을 사용합니다.");
         }
-        console.log("AI 프롬프트 설정을 Firestore에서 불러왔습니다.");
       } else {
-        console.log("Firestore에서 AI 프롬프트 설정을 찾을 수 없습니다. 기본값을 사용합니다.");
+        console.log("Firestore에서 AI 프롬프트 설정 문서를 찾을 수 없습니다. 기본값을 사용합니다.");
       }
     } catch (error) {
       console.error("Firestore에서 AI 프롬프트 설정을 불러오는 중 오류 발생. 기본값을 사용합니다:", error);
@@ -94,6 +103,11 @@ const generateTarotInterpretationFlow = ai.defineFlow(
     });
 
     const { output } = await dynamicPrompt(input);
-    return output!;
+    if (!output) {
+      console.error('AI 해석 생성 실패: 프롬프트에서 출력을 받지 못했습니다.');
+      return { interpretation: 'AI 해석을 생성하는 데 문제가 발생했습니다. 나중에 다시 시도해주세요.' };
+    }
+    return output;
   }
 );
+
