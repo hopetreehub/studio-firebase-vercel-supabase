@@ -1,18 +1,52 @@
 
+'use client';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShieldCheck, Server, Database, BrainCircuit, CheckCircle, AlertTriangle, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import React, { useState, useEffect } from 'react'; // Import useState and useEffect
 
-const systemStatuses = [
+const initialSystemStatuses = [
   { name: "애플리케이션 서버", status: "Online", icon: <Server className="h-5 w-5" />, variant: "default" as const },
   { name: "데이터베이스 연결", status: "Connected", icon: <Database className="h-5 w-5" />, variant: "default" as const },
   { name: "AI 생성 서비스 (Genkit)", status: "Operational", icon: <BrainCircuit className="h-5 w-5" />, variant: "default" as const },
-  { name: "최근 백업 상태", status: "Success (2시간 전)", icon: <CheckCircle className="h-5 w-5" />, variant: "default" as const },
+  { name: "최근 백업 상태", status: "Calculating...", icon: <CheckCircle className="h-5 w-5" />, variant: "default" as const, id: "backup-status" },
   { name: "보안 경고", status: "없음", icon: <Info className="h-5 w-5" />, variant: "secondary" as const },
 ];
 
 
 export function SystemManagement() {
+  const [systemStatuses, setSystemStatuses] = useState(initialSystemStatuses);
+
+  useEffect(() => {
+    const now = new Date();
+    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000 - 15 * 60 * 1000); // 2 hours 15 minutes ago for example
+    
+    const diffMs = now.getTime() - twoHoursAgo.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    let timeAgoMessage = "Success (";
+    if (diffHours > 0) {
+      timeAgoMessage += `${diffHours}시간 `;
+    }
+    if (diffMinutes > 0 || diffHours === 0) { // Show minutes if hours is 0 or minutes exist
+      timeAgoMessage += `${diffMinutes}분 `;
+    }
+    timeAgoMessage += "전)";
+    
+    if (diffHours === 0 && diffMinutes === 0) {
+      timeAgoMessage = "Success (방금 전)";
+    }
+
+
+    setSystemStatuses(prevStatuses => 
+      prevStatuses.map(item => 
+        item.id === "backup-status" ? { ...item, status: timeAgoMessage } : item
+      )
+    );
+  }, []);
+
   return (
     <Card className="shadow-lg border-primary/10">
       <CardHeader>
@@ -31,13 +65,13 @@ export function SystemManagement() {
               <Card key={item.name} className="p-4 bg-card/70 border-border/50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <span className={item.status === "Online" || item.status === "Connected" || item.status.startsWith("Success") || item.status === "Operational" || item.status === "없음" ? "text-green-500" : "text-yellow-500"}>
+                    <span className={item.status.startsWith("Online") || item.status.startsWith("Connected") || item.status.startsWith("Success") || item.status.startsWith("Operational") || item.status === "없음" ? "text-green-500" : item.status === "Calculating..." ? "text-yellow-500" : "text-yellow-500"}>
                        {item.icon}
                     </span>
                     <p className="text-sm font-medium text-foreground/80">{item.name}</p>
                   </div>
                   <Badge variant={item.variant} className={
-                     item.status === "Online" || item.status === "Connected" || item.status.startsWith("Success") || item.status === "Operational" || item.status === "없음" ? "bg-green-500/10 text-green-700 border-green-500/30" : "bg-yellow-500/10 text-yellow-700 border-yellow-500/30"
+                     item.status.startsWith("Online") || item.status.startsWith("Connected") || item.status.startsWith("Success") || item.status.startsWith("Operational") || item.status === "없음" ? "bg-green-500/10 text-green-700 border-green-500/30" : item.status === "Calculating..." ? "bg-yellow-500/10 text-yellow-700 border-yellow-500/30" : "bg-yellow-500/10 text-yellow-700 border-yellow-500/30"
                   }>
                     {item.status}
                   </Badge>
