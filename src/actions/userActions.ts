@@ -1,7 +1,7 @@
 
 'use server';
 
-import { admin } from '@/lib/firebase/admin';
+import { admin, firestore } from '@/lib/firebase/admin';
 import type { UserRecord } from 'firebase-admin/auth';
 
 export interface AppUser {
@@ -11,8 +11,7 @@ export interface AppUser {
   photoURL?: string;
   creationTime?: string;
   lastSignInTime?: string;
-  role?: string; // Added for custom claims
-  // Add other relevant fields if needed
+  role?: string; 
 }
 
 export async function listFirebaseUsers(
@@ -50,15 +49,24 @@ export async function listFirebaseUsers(
   }
 }
 
-// Placeholder for future role change action - requires backend logic (e.g., Firebase Function)
-// export async function changeUserRole(uid: string, newRole: string): Promise<{ success: boolean, error?: string }> {
-//   try {
-//     // THIS REQUIRES A FIREBASE FUNCTION OR SIMILAR BACKEND TO SET CUSTOM CLAIMS
-//     // await admin.auth().setCustomUserClaims(uid, { role: newRole });
-//     console.log(`(시뮬레이션) 사용자 ${uid}의 역할을 ${newRole}(으)로 변경 요청됨. 백엔드 구현 필요.`);
-//     return { success: true };
-//   } catch (error: any) {
-//     console.error('Error changing user role (simulation):', error);
-//     return { success: false, error: `역할 변경 실패 (시뮬레이션): ${error.message}` };
-//   }
-// }
+// Placeholder for actual role change - requires backend logic (e.g., Firebase Function to set custom claims)
+export async function changeUserRole(uid: string, newRole: string): Promise<{ success: boolean, message: string }> {
+  // In a real application, this would involve calling a Firebase Function
+  // that uses the Admin SDK to set custom claims: admin.auth().setCustomUserClaims(uid, { role: newRole });
+  
+  // For now, this is a simulation.
+  console.log(`(SIMULATION) Role change requested for user ${uid} to '${newRole}'. Backend implementation (e.g., Firebase Function with setCustomUserClaims) is required for this to take actual effect.`);
+  
+  // Simulate a potential update in a separate user roles collection for display purposes if desired,
+  // but this won't affect Firebase Auth custom claims directly.
+  try {
+    // Example: if you had a 'user_roles' collection to mirror claims for easier querying/display:
+    // await firestore.collection('user_roles').doc(uid).set({ role: newRole }, { merge: true });
+    
+    // This toast message will be shown to the admin in the UI.
+    return { success: true, message: `(시뮬레이션) 사용자 ${uid}의 역할을 '${newRole}'(으)로 변경 요청했습니다. 실제 역할 적용은 백엔드 설정(Firebase Custom Claims)이 필요합니다.` };
+  } catch (error: any) {
+    console.error('Error during simulated role change:', error);
+    return { success: false, message: `(시뮬레이션) 역할 변경 중 오류: ${error.message}` };
+  }
+}

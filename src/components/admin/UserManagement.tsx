@@ -6,9 +6,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, Edit, AlertCircle, Loader2, ShieldQuestion } from "lucide-react";
-import { listFirebaseUsers, type AppUser } from '@/actions/userActions';
+import { Users, ShieldQuestion, AlertCircle, Loader2 } from "lucide-react";
+import { listFirebaseUsers, changeUserRole, type AppUser } from '@/actions/userActions'; // Import changeUserRole
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 
 export function UserManagement() {
   const [users, setUsers] = useState<AppUser[]>([]);
@@ -16,36 +30,56 @@ export function UserManagement() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    async function fetchUsers() {
-      setLoading(true);
-      setError(null);
-      const result = await listFirebaseUsers(100); // Fetch up to 100 users
-      if (result.error) {
-        setError(result.error);
-        toast({
-          variant: 'destructive',
-          title: '사용자 로딩 오류',
-          description: result.error,
-        });
-      } else {
-        setUsers(result.users);
-      }
-      setLoading(false);
-    }
-    fetchUsers();
-  }, [toast]);
+  const [userToEditRole, setUserToEditRole] = useState<AppUser | null>(null);
+  const [selectedNewRole, setSelectedNewRole] = useState<string>('');
+  const [isUpdatingRole, setIsUpdatingRole] = useState(false);
 
-  const handleSimulateChangeRole = (userId: string, currentEmail?: string, currentRole?: string) => {
-    // In a real app, this would call an API to update the user's role using custom claims.
-    // For this prototype, we'll just log it and show a toast.
-    const newRole = currentRole === 'admin' ? 'user' : 'admin'; // Example toggle
-    console.log(`Simulating role change for user ${userId} (${currentEmail || 'N/A'}) to '${newRole}'. This feature requires backend implementation with Firebase Custom Claims.`);
+  async function fetchUsers() {
+    setLoading(true);
+    setError(null);
+    const result = await listFirebaseUsers(100); 
+    if (result.error) {
+      setError(result.error);
+      toast({
+        variant: 'destructive',
+        title: '사용자 로딩 오류',
+        description: result.error,
+      });
+    } else {
+      setUsers(result.users);
+    }
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    fetchUsers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleOpenRoleDialog = (user: AppUser) => {
+    setUserToEditRole(user);
+    setSelectedNewRole(user.role || '사용자'); // Pre-fill with current role
+  };
+
+  const handleConfirmRoleChange = async () => {
+    if (!userToEditRole || !selectedNewRole) return;
+
+    setIsUpdatingRole(true);
+    const result = await changeUserRole(userToEditRole.uid, selectedNewRole);
+    setIsUpdatingRole(false);
+
     toast({
-      title: '역할 변경 (시뮬레이션)',
-      description: `사용자 ${currentEmail || userId}의 역할을 '${newRole}'(으)로 변경하는 기능은 현재 지원되지 않습니다. Firebase Custom Claims를 사용한 백엔드 구현이 필요합니다.`,
+      title: result.success ? '역할 변경 요청 성공' : '역할 변경 요청 실패',
+      description: result.message,
       duration: 7000,
     });
+
+    if (result.success) {
+      // Optimistically update UI or re-fetch users
+      // For simulation, we can update the local state:
+      setUsers(users.map(u => u.uid === userToEditRole.uid ? {...u, role: selectedNewRole} : u));
+    }
+    setUserToEditRole(null);
   };
 
   if (loading) {
@@ -85,67 +119,103 @@ export function UserManagement() {
   }
 
   return (
-    <Card className="shadow-lg border-primary/10">
-      <CardHeader>
-        <CardTitle className="font-headline text-2xl text-primary flex items-center">
-          <Users className="mr-2 h-6 w-6" /> 사용자 관리
-        </CardTitle>
-        <CardDescription>
-          Firebase Authentication에서 실제 사용자 목록을 표시합니다. 역할 변경 기능은 현재 시뮬레이션 상태입니다.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {users.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>닉네임</TableHead>
-                <TableHead>이메일</TableHead>
-                <TableHead>역할</TableHead>
-                <TableHead>가입일</TableHead>
-                <TableHead>마지막 로그인</TableHead>
-                <TableHead className="text-right">작업</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.uid}>
-                  <TableCell className="font-medium">{user.displayName || <span className="text-muted-foreground">N/A</span>}</TableCell>
-                  <TableCell>{user.email || <span className="text-muted-foreground">N/A</span>}</TableCell>
-                  <TableCell>
-                    <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                      {user.role || '사용자'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {user.creationTime ? new Date(user.creationTime).toLocaleDateString('ko-KR') : 'N/A'}
-                  </TableCell>
-                   <TableCell>
-                    {user.lastSignInTime ? new Date(user.lastSignInTime).toLocaleDateString('ko-KR') : 'N/A'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleSimulateChangeRole(user.uid, user.email, user.role)}
-                      title={'역할 변경 (준비 중)'}
-                    >
-                      <ShieldQuestion className="mr-1 h-4 w-4" /> 역할 변경 (임시)
-                    </Button>
-                  </TableCell>
+    <>
+      <Card className="shadow-lg border-primary/10">
+        <CardHeader>
+          <CardTitle className="font-headline text-2xl text-primary flex items-center">
+            <Users className="mr-2 h-6 w-6" /> 사용자 관리
+          </CardTitle>
+          <CardDescription>
+            Firebase Authentication에서 실제 사용자 목록을 표시합니다. 역할 변경 기능은 현재 시뮬레이션 상태입니다.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {users.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>닉네임</TableHead>
+                  <TableHead>이메일</TableHead>
+                  <TableHead>역할</TableHead>
+                  <TableHead>가입일</TableHead>
+                  <TableHead>마지막 로그인</TableHead>
+                  <TableHead className="text-right">작업</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        ) : (
-          <div className="text-center py-10">
-            <p className="text-lg text-muted-foreground">등록된 사용자가 없습니다.</p>
-          </div>
-        )}
-         <p className="text-xs text-muted-foreground mt-4">
-            참고: 실제 사용자 역할 변경 기능은 Firebase Custom Claims를 사용한 백엔드 구현(예: Firebase Functions)이 필요합니다. 현재는 시뮬레이션으로 작동하며, 역할은 기본 '사용자'로 표시되거나 Custom Claim이 있다면 해당 값이 표시됩니다.
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.uid}>
+                    <TableCell className="font-medium">{user.displayName || <span className="text-muted-foreground">N/A</span>}</TableCell>
+                    <TableCell>{user.email || <span className="text-muted-foreground">N/A</span>}</TableCell>
+                    <TableCell>
+                      <Badge variant={user.role?.toLowerCase() === 'admin' ? 'default' : 'secondary'}>
+                        {user.role || '사용자'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {user.creationTime ? new Date(user.creationTime).toLocaleDateString('ko-KR') : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      {user.lastSignInTime ? new Date(user.lastSignInTime).toLocaleDateString('ko-KR') : 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleOpenRoleDialog(user)}
+                        >
+                          <ShieldQuestion className="mr-1 h-4 w-4" /> 역할 변경
+                        </Button>
+                      </AlertDialogTrigger>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="text-center py-10">
+              <p className="text-lg text-muted-foreground">등록된 사용자가 없습니다.</p>
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground mt-4">
+            참고: 실제 사용자 역할 변경 기능은 Firebase Custom Claims를 사용한 백엔드 구현(예: Firebase Functions)이 필요합니다. 현재는 시뮬레이션으로 작동하며, Custom Claim이 있다면 해당 값이 표시됩니다.
           </p>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {userToEditRole && (
+        <AlertDialog open={!!userToEditRole} onOpenChange={(open) => !open && setUserToEditRole(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>역할 변경: {userToEditRole.displayName || userToEditRole.email}</AlertDialogTitle>
+              <AlertDialogDescription>
+                사용자 '{userToEditRole.email}'의 역할을 변경합니다. 이 작업은 현재 시뮬레이션이며, 실제 적용을 위해서는 백엔드 설정이 필요합니다.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="py-4 space-y-2">
+              <Label htmlFor="role-select">새 역할 선택</Label>
+              <Select value={selectedNewRole} onValueChange={setSelectedNewRole}>
+                <SelectTrigger id="role-select">
+                  <SelectValue placeholder="역할 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="사용자">사용자</SelectItem>
+                  <SelectItem value="admin">관리자 (Admin)</SelectItem>
+                  {/* Add other roles as needed */}
+                </SelectContent>
+              </Select>
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setUserToEditRole(null)}>취소</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmRoleChange} disabled={isUpdatingRole}>
+                {isUpdatingRole && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isUpdatingRole ? '변경 중...' : '변경 확인 (시뮬레이션)'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </>
   );
 }

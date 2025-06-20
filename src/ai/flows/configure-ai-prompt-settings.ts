@@ -11,6 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { firestore } from '@/lib/firebase/admin'; // Import Firestore admin instance
 
 const ConfigureAIPromptSettingsInputSchema = z.object({
   promptTemplate: z
@@ -61,27 +62,26 @@ const configureAIPromptSettingsFlow = ai.defineFlow(
     inputSchema: ConfigureAIPromptSettingsInputSchema,
     outputSchema: ConfigureAIPromptSettingsOutputSchema,
   },
-  async input => {
+  async (input: ConfigureAIPromptSettingsInput) => {
     try {
-      // Here, instead of calling an LLM, we would typically update
-      // a configuration file or a database with the new prompt settings.
-      // For this example, we'll just log the settings.
-      console.log('New prompt template:', input.promptTemplate);
-      console.log('New safety settings:', input.safetySettings);
+      const settingsToSave = {
+        promptTemplate: input.promptTemplate,
+        safetySettings: input.safetySettings || [], // Ensure safetySettings is always an array
+      };
 
-      // In a real application, you might save the prompt template and safety settings
-      // to a database or configuration file here.
+      await firestore.collection('aiConfiguration').doc('promptSettings').set(settingsToSave);
+      
+      console.log('AI Prompt settings saved to Firestore:', settingsToSave);
 
-      // For now, just return a success message.
       return {
         success: true,
-        message: 'AI Prompt settings updated successfully.',
+        message: 'AI 프롬프트 설정이 Firestore에 성공적으로 저장되었습니다.',
       };
     } catch (error: any) {
-      console.error('Failed to update AI Prompt settings:', error);
+      console.error('Failed to save AI Prompt settings to Firestore:', error);
       return {
         success: false,
-        message: `Failed to update AI Prompt settings: ${error.message}`,
+        message: `AI 프롬프트 설정 저장 실패: ${error.message}`,
       };
     }
   }
