@@ -6,15 +6,25 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Cog, Palette, Bell } from 'lucide-react'; 
+import { Cog, Palette, Bell, AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation'; 
-import { Spinner } from '@/components/ui/spinner'; 
+import { useRouter } from 'next/navigation';
+import { Spinner } from '@/components/ui/spinner';
 import { useTheme } from 'next-themes';
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function SettingsPage() {
-  const { user, loading: authLoading } = useAuth(); 
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -22,14 +32,14 @@ export default function SettingsPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
-  
-  useEffect(() => { 
+
+  useEffect(() => {
     if (!authLoading && !user) {
       router.push('/sign-in?redirect=/settings');
     }
   }, [user, authLoading, router]);
 
-  if (authLoading || !user || !mounted) { 
+  if (authLoading || !user || !mounted) {
      return (
       <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
         <Spinner size="large" />
@@ -57,12 +67,12 @@ export default function SettingsPage() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <Label htmlFor="dark-mode-toggle" className="text-md">다크 모드</Label>
-            <Switch 
-              id="dark-mode-toggle" 
+            <Switch
+              id="dark-mode-toggle"
               checked={theme === 'dark'}
               onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
               aria-label="다크 모드 토글"
-            /> 
+            />
           </div>
         </CardContent>
       </Card>
@@ -85,7 +95,29 @@ export default function SettingsPage() {
 
       <Separator />
       <div className="text-center">
-        <Button variant="destructive" disabled>계정 삭제 (준비 중)</Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" className="opacity-70 hover:opacity-100">
+              <AlertTriangle className="mr-2 h-4 w-4" />
+              계정 삭제 (준비 중)
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center">
+                 <AlertTriangle className="mr-2 h-5 w-5 text-destructive" /> 계정 삭제 안내
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                계정 삭제 기능은 현재 준비 중입니다. 이 기능이 활성화되면 계정을 영구적으로 삭제할 수 있게 됩니다.
+                <br /><br />
+                계정 삭제는 되돌릴 수 없는 작업이며, 모든 개인 정보와 활동 기록이 제거됩니다. 신중하게 결정해주세요.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>닫기</AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
