@@ -1,4 +1,5 @@
 
+
 export type Suit = 'major' | 'wands' | 'cups' | 'swords' | 'pentacles';
 
 export type TarotCard = {
@@ -20,6 +21,7 @@ export type TarotCard = {
   element?: string;
   isReversed?: boolean; 
   isFaceUp?: boolean; 
+  position?: string; // For cards within a spread
 };
 
 export type TarotInterpretationMethod =
@@ -40,32 +42,32 @@ export const tarotInterpretationStyles: InterpretationStyleInfo[] = [
   {
     id: "전통 RWS (라이더-웨이트-스미스)",
     name: "전통 RWS (라이더-웨이트-스미스)",
-    description: "고전 라이더-웨이트-스미스 덱의 상징 체계에 기반한 해석입니다.",
+    description: "라이더-웨이트-스미스 덱의 고전적 상징 기반 해석.",
   },
   {
     id: "토트 기반 심층 분석",
     name: "토트 기반 심층 분석",
-    description: "알리스터 크로울리의 토트 덱 비교(秘敎) 및 점성학적 요소를 탐구합니다.",
+    description: "토트 덱의 비교(秘敎) 및 점성학적 요소 탐구.",
   },
   {
     id: "심리학적 원형 탐구",
     name: "심리학적 원형 탐구",
-    description: "칼 융의 분석 심리학을 바탕으로 카드의 원형적 상징을 해석합니다.",
+    description: "칼 융 심리학 기반, 카드의 원형적 상징 해석.",
   },
   {
     id: "영적 성장과 자기 성찰",
     name: "영적 성장과 자기 성찰",
-    description: "개인의 영적 발전과 자기 이해를 돕는 메시지에 초점을 맞춥니다.",
+    description: "개인의 영적 발전과 자기 이해를 돕는 메시지 중심.",
   },
   {
     id: "실질적 행동 지침",
     name: "실질적 행동 지침",
-    description: "현재 상황에 적용할 수 있는 구체적이고 실용적인 조언을 제공합니다.",
+    description: "현재 상황에 적용할 구체적이고 실용적인 조언 제공.",
   },
   {
     id: "내면의 그림자 작업",
     name: "내면의 그림자 작업",
-    description: "무의식 속 숨겨진 그림자를 발견하고 통합하는 과정을 돕습니다.",
+    description: "무의식 속 숨겨진 그림자 발견 및 통합 과정 지원.",
   },
 ];
 
@@ -100,4 +102,23 @@ export type BlogPost = {
   tags?: string[];
   createdAt?: Date;
   updatedAt?: Date; // Added for sitemap and JSON-LD
+};
+
+export type SavedReadingCard = {
+  id: string; // TarotCard id
+  name: string;
+  imageSrc: string;
+  isReversed: boolean;
+  position?: string; // Position in the spread, e.g., "Past", "Present"
+};
+
+export type SavedReading = {
+  id: string; // Firestore document ID
+  userId: string;
+  question: string;
+  spreadName: string;
+  spreadNumCards: number;
+  drawnCards: SavedReadingCard[];
+  interpretationText: string;
+  createdAt: Date; // Firestore Timestamp will be converted to Date
 };

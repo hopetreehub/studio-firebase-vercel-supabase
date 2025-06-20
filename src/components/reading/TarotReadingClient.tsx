@@ -38,10 +38,14 @@ import type {
   TarotInterpretationMethod,
   SpreadConfiguration,
   InterpretationStyleInfo,
+  SavedReadingCard,
 } from '@/types';
 import { tarotInterpretationStyles, tarotSpreads } from '@/types';
 import { tarotDeck as allCards } from '@/lib/tarot-data';
 import { generateTarotInterpretation } from '@/ai/flows/generate-tarot-interpretation';
+import { saveUserReading } from '@/actions/readingActions';
+import { useAuth } from '@/context/AuthContext';
+
 
 import Image from 'next/image';
 import {
@@ -50,6 +54,7 @@ import {
   Shuffle,
   Layers,
   BookOpenText,
+  Save,
 } from 'lucide-react';
 
 import { useToast } from '@/hooks/use-toast';
@@ -76,9 +81,10 @@ const CARD_IMAGE_SIZES = "140px";
 
 
 export function TarotReadingClient() {
+  const { user } = useAuth();
   const [question, setQuestion] = useState<string>('');
   const [selectedSpread, setSelectedSpread] = useState<SpreadConfiguration>(
-    tarotSpreads[1],
+    tarotSpreads[1], // Default to Trinity View (3 cards)
   );
   const [interpretationMethod, setInterpretationMethod] =
     useState<TarotInterpretationMethod>(tarotInterpretationStyles[0].id);
@@ -94,6 +100,8 @@ export function TarotReadingClient() {
     useState<string>('');
   const [stage, setStage] = useState<ReadingStage>('setup');
   const [isInterpretationDialogOpen, setIsInterpretationDialogOpen] = useState(false);
+  const [isSavingReading, setIsSavingReading] = useState(false);
+  const [readingJustSaved, setReadingJustSaved] = useState(false);
 
 
   const { toast } = useToast();
@@ -108,6 +116,7 @@ export function TarotReadingClient() {
   useEffect(() => {
     setDeck([...allCards].sort(() => 0.5 - Math.random()));
     setStage('deck_ready');
+    setReadingJustSaved(false);
     visualCardAnimControls.forEach((controls, i) => {
       controls.start(
         {
@@ -123,11 +132,25 @@ export function TarotReadingClient() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const resetReadingState = () => {
+    setStage('deck_ready');
+    setRevealedSpreadCards([]);
+    setSelectedCardsForReading([]);
+    setInterpretation('');
+    setDisplayedInterpretation('');
+    setIsInterpretationDialogOpen(false);
+    setReadingJustSaved(false);
+    visualCardAnimControls.forEach((controls, i) => {
+      controls.start({ x: i * 0.2, y: i * -0.2, zIndex: NUM_VISUAL_CARDS_IN_STACK - i, rotate: 0, opacity: 1 }, { duration: 0 });
+    });
+  }
+
   const handleShuffle = async () => {
     if (isShufflingAnimationActive) return;
 
     setIsShufflingAnimationActive(true);
     setStage('shuffling');
+    setReadingJustSaved(false);
     setRevealedSpreadCards([]);
     setSelectedCardsForReading([]);
     setInterpretation('');
@@ -236,6 +259,7 @@ export function TarotReadingClient() {
     setInterpretation('');
     setDisplayedInterpretation('');
     setIsInterpretationDialogOpen(false);
+    setReadingJustSaved(false);
     setStage('spread_revealed');
   };
 
@@ -301,6 +325,7 @@ export function TarotReadingClient() {
     setStage('interpreting');
     setDisplayedInterpretation('');
     setIsInterpretationDialogOpen(false);
+    setReadingJustSaved(false);
 
 
     const cardInterpretationsText = selectedCardsForReading
@@ -349,6 +374,45 @@ export function TarotReadingClient() {
       return () => clearInterval(intervalId);
     }
   }, [interpretation, stage, isInterpretationDialogOpen]);
+
+
+  const handleSaveReading = async () => {
+    if (!user) {
+      toast({ variant: 'destructive', title: '로그인 필요', description: '리딩을 저장하려면 먼저 로그인해주세요.' });
+      return;
+    }
+    if (!interpretation || selectedCardsForReading.length === 0) {
+      toast({ variant: 'destructive', title: '저장 오류', description: '저장할 해석 내용이나 선택된 카드가 없습니다.' });
+      return;
+    }
+
+    setIsSavingReading(true);
+    const drawnCardsToSave: SavedReadingCard[] = selectedCardsForReading.map((card, index) => ({
+      id: card.id,
+      name: card.name,
+      imageSrc: card.imageSrc,
+      isReversed: !!card.isReversed,
+      position: selectedSpread.positions?.[index] || `카드 ${index + 1}`,
+    }));
+
+    const result = await saveUserReading({
+      userId: user.uid,
+      question: question,
+      spreadName: selectedSpread.name,
+      spreadNumCards: selectedSpread.numCards,
+      drawnCards: drawnCardsToSave,
+      interpretationText: interpretation,
+    });
+
+    if (result.success) {
+      toast({ title: '저장 완료', description: '리딩 기록이 성공적으로 저장되었습니다.' });
+      setReadingJustSaved(true);
+    } else {
+      toast({ variant: 'destructive', title: '저장 실패', description: typeof result.error === 'string' ? result.error : '리딩 저장 중 오류가 발생했습니다.' });
+    }
+    setIsSavingReading(false);
+  };
+
 
   const cardStack = (
     <div
@@ -452,15 +516,7 @@ export function TarotReadingClient() {
                     tarotSpreads.find((s) => s.id === value) ||
                     tarotSpreads[0];
                   setSelectedSpread(newSpread);
-                  setStage('deck_ready');
-                  setRevealedSpreadCards([]);
-                  setSelectedCardsForReading([]);
-                  setInterpretation('');
-                  setDisplayedInterpretation('');
-                  setIsInterpretationDialogOpen(false);
-                  visualCardAnimControls.forEach((controls, i) => {
-                    controls.start({ x: i * 0.2, y: i * -0.2, zIndex: NUM_VISUAL_CARDS_IN_STACK - i, rotate: 0, opacity: 1 }, { duration: 0 });
-                  });
+                  resetReadingState();
                 }}
                 disabled={isShufflingAnimationActive || stage === 'shuffling' || stage === 'interpreting'}
                 aria-disabled={isShufflingAnimationActive || stage === 'shuffling' || stage === 'interpreting'}
@@ -504,7 +560,7 @@ export function TarotReadingClient() {
                     <SelectItem key={style.id} value={style.id}>
                       <span className="flex flex-col py-1">
                         <span>{style.name}</span>
-                        <span className="text-xs text-muted-foreground mt-0.5">
+                        <span className="text-xs text-muted-foreground mt-0.5 whitespace-normal">
                           {style.description}
                         </span>
                       </span>
@@ -747,8 +803,24 @@ export function TarotReadingClient() {
                   {displayedInterpretation}
                 </div>
               </div>
-              <AlertDialogFooter className="mt-4 pt-4 border-t">
-                <AlertDialogCancel>닫기</AlertDialogCancel>
+              <AlertDialogFooter className="mt-4 pt-4 border-t flex-col sm:flex-row gap-2">
+                {user && !readingJustSaved && (
+                   <Button
+                    variant="default"
+                    onClick={handleSaveReading}
+                    disabled={isSavingReading}
+                    className="w-full sm:w-auto bg-primary hover:bg-primary/80"
+                  >
+                    {isSavingReading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                    {isSavingReading ? '저장 중...' : '이 리딩 저장하기'}
+                  </Button>
+                )}
+                {readingJustSaved && (
+                  <Button variant="ghost" disabled className="w-full sm:w-auto text-green-600">
+                    저장 완료!
+                  </Button>
+                )}
+                <AlertDialogCancel className="w-full sm:w-auto mt-0">닫기</AlertDialogCancel>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -763,12 +835,29 @@ export function TarotReadingClient() {
               AI 해석 준비 완료
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground mb-4">AI가 생성한 해석을 다시 보려면 아래 버튼을 클릭하세요.</p>
-             <Button onClick={() => setIsInterpretationDialogOpen(true)} className="bg-accent text-accent-foreground hover:bg-accent/90">
-              <Sparkles className="mr-2 h-5 w-5" />
-              해석 다시 보기
-            </Button>
+          <CardContent className="flex flex-col sm:flex-row items-center gap-4">
+            <p className="text-muted-foreground">AI가 생성한 해석을 다시 보거나 저장할 수 있습니다.</p>
+             <div className="flex gap-2">
+                <Button onClick={() => setIsInterpretationDialogOpen(true)} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                    <Sparkles className="mr-2 h-5 w-5" />
+                    해석 다시 보기
+                </Button>
+                {user && !readingJustSaved && (
+                    <Button
+                        variant="outline"
+                        onClick={handleSaveReading}
+                        disabled={isSavingReading}
+                    >
+                        {isSavingReading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                        {isSavingReading ? '저장 중...' : '리딩 저장'}
+                    </Button>
+                )}
+                 {readingJustSaved && (
+                  <Button variant="ghost" disabled className="text-green-600">
+                    저장 완료!
+                  </Button>
+                )}
+             </div>
           </CardContent>
         </Card>
       )}
