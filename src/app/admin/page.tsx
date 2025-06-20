@@ -9,8 +9,8 @@ import { SystemManagement } from '@/components/admin/SystemManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Cog, FileText, Users, ShieldCheck, ListChecks, Edit, Trash2, AlertTriangle } from 'lucide-react';
-import type { Metadata } from 'next';
-import { getAllPosts, deleteBlogPost } from '@/lib/blog-data'; // Assuming getAllPosts is updated or use direct action
+
+import { getAllPosts, deleteBlogPost } from '@/actions/blogActions'; // Import from actions
 import type { BlogPost } from '@/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,11 +36,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Spinner } from '@/components/ui/spinner';
 import { Separator } from '@/components/ui/separator';
 
-// No dynamic metadata for client component, can be set in a layout if needed
-// export const metadata: Metadata = {
-//   title: '관리자 대시보드 - InnerSpell',
-//   description: 'InnerSpell 애플리케이션 설정을 관리합니다.',
-// };
 
 function ExistingBlogPosts({ onEditPost, onPostsLoaded }: { onEditPost: (post: BlogPost) => void; onPostsLoaded: () => void; }) {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -52,7 +47,7 @@ function ExistingBlogPosts({ onEditPost, onPostsLoaded }: { onEditPost: (post: B
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const fetchedPosts = await getAllPosts(); // Make sure getAllPosts is from blog-data or a server action
+      const fetchedPosts = await getAllPosts(); 
       setPosts(fetchedPosts);
       setError(null);
     } catch (err: any) {
@@ -67,7 +62,7 @@ function ExistingBlogPosts({ onEditPost, onPostsLoaded }: { onEditPost: (post: B
   useEffect(() => {
     fetchPosts();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onPostsLoaded]); // Add onPostsLoaded to dependencies
+  }, [onPostsLoaded]); 
 
   const handleDeleteConfirm = async () => {
     if (!postToDelete) return;

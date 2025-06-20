@@ -4,7 +4,8 @@
 import type { BlogPost } from '@/types';
 import { z } from 'zod';
 import { firestore } from '@/lib/firebase/admin';
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { mapDocToBlogPost, fallbackBlogPosts } from '@/lib/blog-data'; // Import helper and fallback
 
 const BlogFormDataSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -18,6 +19,20 @@ const BlogFormDataSchema = z.object({
 });
 
 export type BlogFormData = z.infer<typeof BlogFormDataSchema>;
+
+export async function getAllPosts(): Promise<BlogPost[]> {
+  try {
+    const snapshot = await firestore.collection('blogPosts').orderBy('createdAt', 'desc').get();
+    if (snapshot.empty) {
+      console.log("No posts found in Firestore, returning fallback posts from action.");
+      return fallbackBlogPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }
+    return snapshot.docs.map(mapDocToBlogPost);
+  } catch (error) {
+    console.error("Error fetching all posts from Firestore in action, returning fallback posts:", error);
+    return fallbackBlogPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+}
 
 export async function submitBlogPost(
   formData: BlogFormData,
@@ -67,7 +82,7 @@ export async function submitBlogPost(
       // Create new post
       const newPostDataWithTimestamp = {
         ...postData,
-        createdAt: FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(), // This should be a server timestamp
       };
       const docRef = await firestore.collection('blogPosts').add(newPostDataWithTimestamp);
       return { success: true, postId: docRef.id };

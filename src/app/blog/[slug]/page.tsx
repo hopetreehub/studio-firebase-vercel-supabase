@@ -1,5 +1,6 @@
 
-import { getPostBySlug, getAllPosts, getPreviousPost, getNextPost } from '@/lib/blog-data';
+import { getPostBySlug, getPreviousPost, getNextPost } from '@/lib/blog-data';
+import { getAllPosts as getAllPostsAction } from '@/actions/blogActions'; // Import action
 import type { BlogPost } from '@/types';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -63,10 +64,8 @@ export async function generateMetadata(
 }
 
 export async function generateStaticParams() {
-  // Fallback to empty array if getAllPosts fails or returns empty,
-  // to prevent build errors. Dynamic rendering will still work.
   try {
-    const posts = await getAllPosts(); 
+    const posts = await getAllPostsAction(); // Use Server Action
     return posts.map((post) => ({
       slug: post.slug,
     }));
@@ -175,5 +174,3 @@ export default async function BlogPostPage({ params }: Props) {
     </div>
   );
 }
-
-    

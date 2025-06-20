@@ -2,6 +2,8 @@
 import type { BlogPost } from '@/types';
 import { firestore } from '@/lib/firebase/admin';
 import type { Timestamp } from 'firebase-admin/firestore';
+import { getAllPosts as getAllPostsAction } from '@/actions/blogActions'; // Import for functions that might still need it, though ideally they call the action too.
+
 
 // Firestore에서 데이터 가져오기 실패 또는 데이터 없을 시 사용할 기본 샘플 데이터
 const fallbackBlogPosts: BlogPost[] = [
@@ -69,7 +71,7 @@ const fallbackBlogPosts: BlogPost[] = [
 
 
 // Helper function to convert Firestore document to BlogPost
-function mapDocToBlogPost(doc: FirebaseFirestore.DocumentSnapshot): BlogPost {
+export function mapDocToBlogPost(doc: FirebaseFirestore.DocumentSnapshot): BlogPost {
   const data = doc.data()!;
   const createdAt = data.createdAt as Timestamp; // Firestore Timestamp
   // Ensure date is formatted as YYYY-MM-DD string
@@ -87,22 +89,10 @@ function mapDocToBlogPost(doc: FirebaseFirestore.DocumentSnapshot): BlogPost {
     author: data.author || 'InnerSpell 팀',
     tags: data.tags || [],
     date: formattedDate,
+    createdAt: createdAt ? createdAt.toDate() : new Date(),
   };
 }
 
-export async function getAllPosts(): Promise<BlogPost[]> {
-  try {
-    const snapshot = await firestore.collection('blogPosts').orderBy('createdAt', 'desc').get();
-    if (snapshot.empty) {
-      console.log("No posts found in Firestore, returning fallback posts.");
-      return fallbackBlogPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }
-    return snapshot.docs.map(mapDocToBlogPost);
-  } catch (error) {
-    console.error("Error fetching all posts from Firestore, returning fallback posts:", error);
-    return fallbackBlogPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }
-}
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | undefined> {
   try {
@@ -122,16 +112,17 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | undefined>
 async function getSortedPostsWithFallback(order: 'asc' | 'desc'): Promise<BlogPost[]> {
   let posts: BlogPost[] = [];
   try {
-    const snapshot = await firestore.collection('blogPosts').orderBy('createdAt', order).get();
-    if (!snapshot.empty) {
-      posts = snapshot.docs.map(mapDocToBlogPost);
-    } else {
-      // Firestore is empty, use fallback posts
-      posts = [...fallbackBlogPosts];
+    // Using the Server Action to get posts ensures firebase-admin isn't bundled client-side
+    posts = await getAllPostsAction();
+    if (posts.length === 0) {
+        // Server action returned empty (either Firestore is empty or had an issue handled by the action)
+        // Now use fallback posts
+        console.log("getAllPostsAction returned empty or failed, using fallback posts for sorting.");
+        posts = [...fallbackBlogPosts];
     }
   } catch (error) {
-    console.error(`Error fetching sorted posts (${order}) from Firestore, using fallback posts:`, error);
-    // Error fetching from Firestore, use fallback posts
+    console.error(`Error calling getAllPostsAction for sorted posts (${order}), using fallback posts:`, error);
+    // Error calling the action, use fallback posts
     posts = [...fallbackBlogPosts];
   }
 
@@ -164,4 +155,4 @@ export async function getNextPost(currentSlug: string): Promise<BlogPost | undef
   return undefined;
 }
 
-    
+export { fallbackBlogPosts }; // Export fallback for admin page if needed

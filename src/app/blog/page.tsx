@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { CalendarDays, Feather } from 'lucide-react';
 import type { Metadata } from 'next';
-import { getAllPosts } from '@/lib/blog-data';
+import { getAllPosts } from '@/actions/blogActions'; // Import from actions
 import { format } from 'date-fns';
 
 export const metadata: Metadata = {
@@ -82,5 +82,3 @@ export default async function BlogPage() {
     </div>
   );
 }
-
-    
