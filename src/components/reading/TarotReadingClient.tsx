@@ -288,21 +288,17 @@ export function TarotReadingClient() {
         const meaning = card.isReversed
           ? card.meaningReversed
           : card.meaningUpright;
-        const pos = selectedSpread.positions?.[index]
-          ? ` (${selectedSpread.positions[index]})`
-          : '';
-        return `${card.name}${pos} (${orientation}): ${meaning.substring(
-          0,
-          100,
-        )}...`;
+        // Use spread position name if available
+        const positionName = selectedSpread.positions?.[index] ? ` (${selectedSpread.positions[index]})` : '';
+        return `${index + 1}. ${card.name}${positionName} (${orientation}): ${meaning.substring(0,100)}...`;
       })
       .join('\n');
 
     try {
       const result = await generateTarotInterpretation({
         question: `${question} (해석 스타일: ${interpretationMethod})`,
-        cardSpread: selectedSpread.name,
-        cardInterpretations: cardInterpretationsText,
+        cardSpread: selectedSpread.name, // Pass spread name
+        cardInterpretations: cardInterpretationsText, // Pass detailed card info with positions
       });
       setInterpretation(result.interpretation);
       setStage('interpretation_ready');
@@ -311,9 +307,9 @@ export function TarotReadingClient() {
       toast({
         variant: 'destructive',
         title: '해석 오류',
-        description: 'AI 해석을 생성하는 데 실패했습니다.',
+        description: 'AI 해석을 생성하는 데 실패했습니다. 잠시 후 다시 시도해주세요.',
       });
-      setStage('cards_selected');
+      setStage('cards_selected'); // Revert to a safe stage
     }
   };
 
@@ -343,9 +339,9 @@ export function TarotReadingClient() {
           ? handleShuffle
           : undefined
       }
-      aria-disabled={isShufflingAnimationActive}
-      aria-busy={isShufflingAnimationActive}
-      aria-label={isShufflingAnimationActive ? "카드를 섞는 중" : "카드 덱, 클릭하여 섞기"}
+      aria-disabled={isShufflingAnimationActive || stage === 'interpreting'}
+      aria-busy={isShufflingAnimationActive || stage === 'shuffling'}
+      aria-label={isShufflingAnimationActive || stage === 'shuffling' ? "카드를 섞는 중" : (stage === 'deck_ready' || stage === 'shuffled' ? "카드 덱, 클릭하여 섞기" : "카드 덱")}
     >
       {visualCardAnimControls.map((controls, i) => (
         <motion.div
@@ -564,7 +560,7 @@ export function TarotReadingClient() {
                           key={cardInSpread.id + (cardInSpread.isReversed ? '-rev-spread' : '-upr-spread')} 
                           role="button"
                           tabIndex={0}
-                          aria-label={`펼쳐진 ${index + 1}번째 카드 선택`}
+                          aria-label={`펼쳐진 ${index + 1}번째 카드 선택 (${cardInSpread.name})`}
                           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleCardSelectFromSpread(cardInSpread); }}
                           layoutId={cardInSpread.id + (cardInSpread.isReversed ? '-rev-layout' : '-upr-layout')} 
                           initial={{ opacity: 0, y: 20, scale: 0.9 }}

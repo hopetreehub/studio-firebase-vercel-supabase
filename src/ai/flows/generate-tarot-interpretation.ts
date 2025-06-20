@@ -11,13 +11,13 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { firestore } from '@/lib/firebase/admin'; // Import Firestore admin instance
-import type { SafetySetting } from '@genkit-ai/googleai'; // Import SafetySetting type
+import { firestore } from '@/lib/firebase/admin';
+import type { SafetySetting } from '@genkit-ai/googleai';
 
 const GenerateTarotInterpretationInputSchema = z.object({
   question: z.string().describe('The user provided question for the tarot reading.'),
-  cardSpread: z.string().describe('The selected tarot card spread (e.g., 1-card, 3-card, custom).'),
-  cardInterpretations: z.string().describe('The interpretation of each card in the spread.'),
+  cardSpread: z.string().describe('The selected tarot card spread (e.g., 1-card, 3-card, custom). Also includes card position names if defined for the spread.'),
+  cardInterpretations: z.string().describe('The interpretation of each card in the spread, including its name, orientation (upright/reversed), and potentially its position in the spread.'),
 });
 export type GenerateTarotInterpretationInput = z.infer<typeof GenerateTarotInterpretationInputSchema>;
 
@@ -26,28 +26,36 @@ const GenerateTarotInterpretationOutputSchema = z.object({
 });
 export type GenerateTarotInterpretationOutput = z.infer<typeof GenerateTarotInterpretationOutputSchema>;
 
-// Default prompt template and safety settings if Firestore is unavailable or data is missing
-const DEFAULT_PROMPT_TEMPLATE = `당신은 따뜻하고 지혜로운 타로 상담가입니다. 당신의 역할은 사용자의 질문에 깊이 공감하며, 타로 카드를 통해 희망과 긍정의 메시지를 전달하고, 마치 한 편의 감동적인 이야기를 들려주듯 해석을 풀어내는 것입니다. 사용자가 자신의 잠재력을 발견하고 삶의 도전을 성장의 기회로 삼을 수 있도록 용기를 주세요.
+const DEFAULT_PROMPT_TEMPLATE = `당신은 따뜻하고 지혜로우며 공감 능력이 뛰어난 타로 상담가입니다. 당신의 역할은 사용자의 질문에 깊이 공감하며, 타로 카드를 통해 희망과 긍정의 메시지를 전달하는 것입니다. 단순한 카드 의미 나열이 아닌, 각 카드가 사용자의 질문과 상황에 어떻게 연결되는지, 그리고 카드들이 서로 어떻게 상호작용하며 하나의 통합된 이야기를 만들어가는지 마치 한 편의 감동적인 이야기를 들려주듯 해석을 풀어내 주세요. 사용자가 자신의 잠재력을 발견하고 삶의 도전을 성장의 기회로 삼을 수 있도록 용기를 북돋아 주는 것이 중요합니다.
 
 사용자의 질문: "{{{question}}}"
 선택된 스프레드: "{{{cardSpread}}}"
-카드와 그 의미:
+카드와 그 의미 (필요시 각 카드의 위치와 의미를 고려):
 {{{cardInterpretations}}}
 
 위 정보를 바탕으로, 다음 지침에 따라 해석해주세요:
 
-1.  **서론**: 사용자의 질문에 공감하며 리딩을 시작합니다. 선택된 카드들이 어떤 여정을 안내할지 기대감을 심어주세요.
-2.  **본론 (스토리텔링)**:
-    *   각 카드의 의미를 단순히 나열하는 대신, 카드들이 서로 어떻게 연결되고 상호작용하며 하나의 이야기를 만들어가는지 설명해주세요.
-    *   긍정적인 측면과 가능성을 강조하되, 어려움이나 도전이 있다면 그것을 성장을 위한 디딤돌로 표현하고 극복할 수 있다는 희망을 주세요. (예: "이 카드는 어려움을 암시하지만, 동시에 당신 안에 숨겨진 강인함을 발견할 기회이기도 합니다.")
-    *   추상적인 설명보다는 구체적인 상황이나 감정에 빗대어 사용자가 쉽게 공감할 수 있도록 이야기해주세요.
-3.  **조언 및 격려**:
-    *   리딩을 바탕으로 사용자가 현재 상황에서 취할 수 있는 긍정적인 행동이나 마음에 새길 조언을 1-2가지 제시해주세요.
-    *   영감을 줄 수 있는 짧은 명언이나 비유를 포함해도 좋습니다 (선택 사항).
-4.  **결론**:
-    *   전체 리딩을 따뜻하게 마무리하며, 사용자에게 꿈과 희망을 가지고 앞으로 나아갈 수 있도록 격려해주세요. 당신의 해석이 작은 위로와 빛이 되기를 바란다는 메시지를 전달해주세요.
+1.  **서론 (공감과 기대감 형성)**:
+    *   사용자의 질문에 진심으로 공감하며 리딩을 시작합니다. 따뜻한 위로나 격려의 말로 사용자의 마음을 열어주세요.
+    *   선택된 카드들이 어떤 여정을 안내할지, 어떤 통찰을 줄 수 있을지에 대한 기대감을 부드럽게 심어줍니다.
 
-전체적으로 친절하고, 이해하기 쉬우며, 감동을 주는 어조를 사용해주세요. 해석은 충분히 길고 상세하게 작성하여 사용자가 깊은 만족감을 느낄 수 있도록 합니다.`;
+2.  **본론 (스토리텔링 방식의 카드 해석)**:
+    *   **카드 연결성:** 각 카드의 의미를 개별적으로 설명하는 것을 넘어, 카드들이 서로 어떻게 연결되고 영향을 주고받으며 사용자의 질문에 대한 전체적인 이야기를 형성하는지 설명해주세요. 스프레드에 각 카드 위치의 의미(예: 과거, 현재, 미래, 장애물, 조언 등)가 명시되어 있다면, 그 위치의 의미를 반드시 고려하여 해석에 깊이를 더해주세요.
+    *   **긍정적이고 희망적인 관점 유지:** 긍정적인 측면과 가능성을 강조하되, 어려움이나 도전적인 카드가 나타난다면 그것을 성장을 위한 디딤돌이나 극복 가능한 과제로 표현해주세요. (예: "이 카드는 현재 약간의 어려움을 암시하지만, 동시에 당신 안에 숨겨진 강인함과 지혜를 발견하고 이를 통해 한 단계 더 성장할 수 있는 소중한 기회이기도 합니다.")
+    *   **구체성과 공감:** 추상적인 설명보다는 사용자가 처한 상황이나 감정에 빗대어 구체적으로 이야기해주세요. 사용자가 "내 이야기 같다"고 느낄 수 있도록 공감대를 형성하는 것이 중요합니다.
+    *   **균형 잡힌 메시지:** 지나치게 낙관적이거나 현실과 동떨어진 메시지만 전달하기보다는, 현실적인 어려움도 인정하되 그것을 극복할 수 있다는 희망과 구체적인 가능성을 함께 제시하여 신뢰를 주세요.
+    *   **스토리의 흐름:** 해석이 물 흐르듯 자연스럽게 이어지도록 하고, 기승전결이 있는 짧은 이야기처럼 구성하면 더욱 좋습니다.
+
+3.  **조언 및 격려 (실질적이고 영감을 주는)**:
+    *   리딩을 바탕으로 사용자가 현재 상황에서 취할 수 있는 구체적이고 긍정적인 행동이나 마음에 새길 조언을 1-2가지 명확하게 제시해주세요.
+    *   필요하다면, 해석의 맥락과 어울리는 짧은 명언이나 비유를 포함하여 영감을 줄 수 있습니다 (선택 사항).
+
+4.  **결론 (따뜻한 마무리와 희망 전달)**:
+    *   전체 리딩을 따뜻하게 마무리하며, 사용자에게 스스로의 힘과 가능성을 믿고 꿈과 희망을 가지고 앞으로 나아갈 수 있도록 격려해주세요.
+    *   당신의 해석이 사용자에게 작은 위로와 빛이 되기를 바란다는 진심 어린 메시지를 전달하며 끝맺습니다.
+
+**전체적인 어조:** 친절하고, 이해하기 쉬우며, 공감적이고, 감동을 주는 어조를 사용해주세요. 해석은 충분히 길고 상세하게 작성하여 사용자가 깊은 만족감을 느낄 수 있도록 합니다. 질문과 카드에 따라 유연하게 이 지침을 적용하되, 핵심은 사용자의 마음을 어루만지고 긍정적인 방향으로 나아갈 수 있도록 돕는 것입니다.
+`;
 
 const DEFAULT_SAFETY_SETTINGS: SafetySetting[] = [
   { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
@@ -67,9 +75,9 @@ const generateTarotInterpretationFlow = ai.defineFlow(
     inputSchema: GenerateTarotInterpretationInputSchema,
     outputSchema: GenerateTarotInterpretationOutputSchema,
   },
-  async (input: GenerateTarotInterpretationInput) => {
-    let promptTemplate = DEFAULT_PROMPT_TEMPLATE;
-    let safetySettings: SafetySetting[] = [...DEFAULT_SAFETY_SETTINGS]; // Use a copy
+  async (flowInput: GenerateTarotInterpretationInput) => {
+    let promptTemplateToUse = DEFAULT_PROMPT_TEMPLATE;
+    let safetySettingsToUse: SafetySetting[] = [...DEFAULT_SAFETY_SETTINGS]; // Use a copy
 
     try {
       const configDocRef = firestore.collection('aiConfiguration').doc('promptSettings');
@@ -78,7 +86,7 @@ const generateTarotInterpretationFlow = ai.defineFlow(
       if (configDoc.exists) {
         const configData = configDoc.data();
         if (configData?.promptTemplate && typeof configData.promptTemplate === 'string' && configData.promptTemplate.trim() !== '') {
-          promptTemplate = configData.promptTemplate;
+          promptTemplateToUse = configData.promptTemplate;
           console.log("AI 프롬프트 템플릿을 Firestore에서 불러왔습니다.");
         } else {
           console.log("Firestore에서 유효한 AI 프롬프트 템플릿을 찾을 수 없습니다. 기본 템플릿을 사용합니다.");
@@ -90,7 +98,7 @@ const generateTarotInterpretationFlow = ai.defineFlow(
               setting && typeof setting.category === 'string' && typeof setting.threshold === 'string'
           );
           if (validSafetySettings.length > 0) {
-            safetySettings = validSafetySettings;
+            safetySettingsToUse = validSafetySettings;
             console.log("AI 안전 설정을 Firestore에서 불러왔습니다.");
           } else {
             console.log("Firestore에서 유효한 AI 안전 설정을 찾을 수 없습니다. 기본 설정을 사용합니다.");
@@ -105,23 +113,56 @@ const generateTarotInterpretationFlow = ai.defineFlow(
       console.error("Firestore에서 AI 프롬프트 설정을 불러오는 중 오류 발생. 기본값을 사용합니다:", error);
     }
     
-    // Dynamically define the prompt with loaded or default settings
-    const dynamicPrompt = ai.definePrompt({
-      name: 'dynamicGenerateTarotInterpretationPrompt', // Unique name for this dynamic instance
-      input: { schema: GenerateTarotInterpretationInputSchema },
-      output: { schema: GenerateTarotInterpretationOutputSchema },
-      prompt: promptTemplate,
-      config: {
-        model: ai.getModel('googleai/gemini-2.0-flash'), // Ensure we use the pre-configured model
-        safetySettings: safetySettings.length > 0 ? safetySettings : undefined,
-      },
-    });
+    // Data for Handlebars replacement in the prompt template
+    const promptInputData = {
+      question: flowInput.question,
+      cardSpread: flowInput.cardSpread,
+      cardInterpretations: flowInput.cardInterpretations,
+    };
 
-    const { output } = await dynamicPrompt(input);
-    if (!output) {
-      console.error('AI 해석 생성 실패: 프롬프트에서 출력을 받지 못했습니다.');
-      return { interpretation: 'AI 해석을 생성하는 데 문제가 발생했습니다. 나중에 다시 시도해주세요.' };
+    try {
+      // Use ai.generate directly
+      const generationResult = await ai.generate({
+        prompt: promptTemplateToUse, // The template string
+        input: promptInputData,      // Data for the template
+        // model: is already configured globally in the 'ai' object in genkit.ts
+        config: {
+          safetySettings: safetySettingsToUse.length > 0 ? safetySettingsToUse : undefined,
+        },
+        // The flow's outputSchema implies we want the whole output as GenerateTarotInterpretationOutputSchema
+        // However, ai.generate returns a GenerateResponse. We need to extract the text.
+        // If we wanted structured JSON output directly from the model, we'd specify:
+        // output: { schema: GenerateTarotInterpretationOutputSchema, format: 'json' }
+        // But for now, we expect the LLM to produce the interpretation as text.
+      });
+
+      const interpretationText = generationResult.text; // Accessing the text output
+
+      if (!interpretationText) {
+        console.error('AI 해석 생성 실패: 생성된 텍스트가 없습니다.');
+        return { interpretation: 'AI 해석을 생성하는 데 문제가 발생했습니다. 생성된 내용이 없습니다.' };
+      }
+      
+      // The flow's outputSchema is GenerateTarotInterpretationOutputSchema, which is { interpretation: string }
+      // So we wrap the text in that structure.
+      return { interpretation: interpretationText };
+
+    } catch (e: any) {
+      console.error('AI.generate 호출 중 오류 발생:', e);
+      let userMessage = 'AI 해석 생성 중 일반 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      if (e.message) {
+        userMessage = `AI 해석 오류: ${e.message}`;
+      }
+      if (e.finishReason && e.finishReason !== 'STOP') {
+         userMessage = `AI 생성이 완료되지 못했습니다 (이유: ${e.finishReason}). 콘텐츠 안전 문제 또는 다른 제약 때문일 수 있습니다. 프롬프트를 조정하거나 안전 설정을 확인해보세요.`;
+      }
+      // To provide more specific feedback to the user, check for common issues if possible
+      // For example, safety blocks:
+      if (e.toString && e.toString().includes("SAFETY")) {
+         userMessage = "생성된 콘텐츠가 안전 기준에 부합하지 않아 차단되었습니다. 질문이나 해석 요청 내용을 수정해 보세요.";
+      }
+
+      return { interpretation: userMessage };
     }
-    return output;
   }
 );
