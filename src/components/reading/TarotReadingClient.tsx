@@ -551,7 +551,7 @@ export function TarotReadingClient() {
                 ref={spreadContainerRef}
                 className="flex items-center overflow-x-auto p-2 w-full scrollbar-thin scrollbar-thumb-muted scrollbar-track-background" 
               >
-                <div className="flex space-x-3"> {/* Changed space-x-2 to space-x-3 */}
+                <div className="flex space-x-[-120px]">
                   <AnimatePresence>
                     {displayableRevealedCards.map((cardInSpread, index) => (
                         <motion.div
