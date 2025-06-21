@@ -111,49 +111,45 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | undefined>
   try {
     const snapshot = await firestore.collection('blogPosts').where('slug', '==', slug).limit(1).get();
     if (snapshot.empty) {
-      console.log(`Post with slug "${slug}" not found in Firestore, trying fallback posts.`);
       const fallbackPost = fallbackBlogPosts.find(post => post.slug === slug);
-      return fallbackPost ? { ...fallbackPost, createdAt: new Date(fallbackPost.date), updatedAt: new Date(fallbackPost.date) } : undefined;
+      if (fallbackPost) {
+        return { 
+          ...fallbackPost, 
+          createdAt: new Date(fallbackPost.date), 
+          updatedAt: new Date(fallbackPost.date) 
+        };
+      }
+      return undefined;
     }
     return mapDocToBlogPost(snapshot.docs[0]);
   } catch (error) {
     console.error(`Error fetching post by slug ${slug} from Firestore, trying fallback posts:`, error);
     const fallbackPost = fallbackBlogPosts.find(post => post.slug === slug);
-    return fallbackPost ? { ...fallbackPost, createdAt: new Date(fallbackPost.date), updatedAt: new Date(fallbackPost.date) } : undefined;
+     if (fallbackPost) {
+        return { 
+          ...fallbackPost, 
+          createdAt: new Date(fallbackPost.date), 
+          updatedAt: new Date(fallbackPost.date) 
+        };
+      }
+    return undefined;
   }
 }
 
-async function getSortedPostsWithFallback(order: 'asc' | 'desc'): Promise<BlogPost[]> {
-  let posts: BlogPost[] = [];
-  try {
-    posts = await getAllPostsAction(); // This action now ensures createdAt/updatedAt
-    if (posts.length === 0) {
-        console.log("getAllPostsAction returned empty or failed, using fallback posts for sorting.");
-        posts = [...fallbackBlogPosts].map(post => ({ // Ensure fallback has full date objects
-          ...post,
-          createdAt: new Date(post.date),
-          updatedAt: new Date(post.date),
-        }));
-    }
-  } catch (error) {
-    console.error(`Error calling getAllPostsAction for sorted posts (${order}), using fallback posts:`, error);
-    posts = [...fallbackBlogPosts].map(post => ({
-      ...post,
-      createdAt: new Date(post.date),
-      updatedAt: new Date(post.date),
-    }));
-  }
+async function getSortedPosts(order: 'asc' | 'desc'): Promise<BlogPost[]> {
+  const posts = await getAllPostsAction(); // This action already handles fallbacks.
 
   return posts.sort((a, b) => {
-    const dateA = a.createdAt instanceof Date ? a.createdAt.getTime() : new Date(a.date).getTime();
-    const dateB = b.createdAt instanceof Date ? b.createdAt.getTime() : new Date(b.date).getTime();
+    // The action ensures createdAt is a Date object.
+    const dateA = a.createdAt!.getTime();
+    const dateB = b.createdAt!.getTime();
     return order === 'asc' ? dateA - dateB : dateB - dateA;
   });
 }
 
 
 export async function getPreviousPost(currentSlug: string): Promise<BlogPost | undefined> {
-  const sortedPosts = await getSortedPostsWithFallback('desc'); 
+  const sortedPosts = await getSortedPosts('desc'); 
   const currentIndex = sortedPosts.findIndex(post => post.slug === currentSlug);
 
   if (currentIndex !== -1 && currentIndex < sortedPosts.length - 1) {
@@ -163,7 +159,7 @@ export async function getPreviousPost(currentSlug: string): Promise<BlogPost | u
 }
 
 export async function getNextPost(currentSlug: string): Promise<BlogPost | undefined> {
-  const sortedPosts = await getSortedPostsWithFallback('desc'); 
+  const sortedPosts = await getSortedPosts('desc'); 
   const currentIndex = sortedPosts.findIndex(post => post.slug === currentSlug);
 
   if (currentIndex > 0) {
