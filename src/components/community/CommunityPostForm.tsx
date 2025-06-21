@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, FilePlus2, AlertTriangle, Users, HelpCircle, Library } from 'lucide-react';
+import { Loader2, FilePlus2, AlertTriangle, Users, HelpCircle, Library, BookUser } from 'lucide-react';
 import { createCommunityPost } from '@/actions/communityActions';
 import { CommunityPostFormData, CommunityPostFormSchema, CommunityPostCategory } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -26,7 +26,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 interface CommunityPostFormProps {
-  category: 'free-discussion' | 'q-and-a' | 'deck-review';
+  category: 'free-discussion' | 'q-and-a' | 'deck-review' | 'study-group';
 }
 
 const formMetas = {
@@ -47,6 +47,12 @@ const formMetas = {
     title: '새 덱 리뷰 작성하기',
     description: '소장하고 있는 타로덱의 사진, 특징, 사용 후기 등을 공유해주세요.',
     submitButtonText: '리뷰 등록',
+  },
+  'study-group': {
+    icon: <BookUser className="mr-3 h-8 w-8" />,
+    title: '새 스터디/모임 모집',
+    description: '함께 공부할 스터디 그룹을 만들거나, 오프라인 모임을 제안해보세요.',
+    submitButtonText: '모집 글 등록',
   }
 }
 

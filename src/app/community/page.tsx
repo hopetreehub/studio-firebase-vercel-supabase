@@ -1,6 +1,6 @@
 
 import type { Metadata } from 'next';
-import { MessageSquare, Heart, Users, HelpCircle, Library } from 'lucide-react';
+import { MessageSquare, Heart, Users, HelpCircle, Library, BookUser } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -34,6 +34,12 @@ const communityBoards = [
     href: '/community/deck-review',
     icon: <Library className="h-10 w-10 text-accent" />,
   },
+  {
+    title: '스터디/모임',
+    description: '타로 스터디 그룹을 만들거나, 함께 공부할 동료를 찾아보세요. 오프라인 모임도 좋아요.',
+    href: '/community/study-group',
+    icon: <BookUser className="h-10 w-10 text-accent" />,
+  },
 ];
 
 export default function CommunityHubPage() {
@@ -47,7 +53,7 @@ export default function CommunityHubPage() {
         </p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
         {communityBoards.map((board) => (
           <Link key={board.href} href={board.href} className="block group">
             <Card className="h-full transform hover:-translate-y-1 transition-transform duration-300 ease-in-out shadow-lg hover:shadow-primary/20 border-primary/10">

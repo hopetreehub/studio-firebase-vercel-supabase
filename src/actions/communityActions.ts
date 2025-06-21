@@ -79,6 +79,18 @@ const fallbackCommunityPosts: CommunityPost[] = [
     createdAt: new Date('2024-05-23T09:00:00Z'),
     updatedAt: new Date('2024-05-23T09:00:00Z'),
   },
+    {
+    id: 'fallback-5',
+    authorId: 'user-study-lead',
+    authorName: '스터디리더',
+    title: '[스터디 모집] 초보자를 위한 라이더-웨이트 타로 스터디',
+    content: '타로에 입문하고 싶지만 어디서부터 시작해야 할지 막막하신 분들을 위해 기초 스터디를 개설합니다. 매주 주말에 온라인으로 만나 함께 배우고 리딩 연습도 할 예정입니다. 관심 있는 분들은 댓글로 문의해주세요!',
+    viewCount: 25,
+    commentCount: 8,
+    category: 'study-group',
+    createdAt: new Date('2024-05-24T18:00:00Z'),
+    updatedAt: new Date('2024-05-24T18:00:00Z'),
+  },
 ];
 
 // Get community posts for a specific category
@@ -123,11 +135,11 @@ export async function getCommunityPostById(postId: string): Promise<CommunityPos
 }
 
 
-// Create a new free-discussion, q-and-a, or deck-review post
+// Create a new free-discussion, q-and-a, deck-review, or study-group post
 export async function createCommunityPost(
   formData: CommunityPostFormData,
   author: { uid: string; displayName?: string | null; photoURL?: string | null },
-  category: 'free-discussion' | 'q-and-a' | 'deck-review'
+  category: 'free-discussion' | 'q-and-a' | 'deck-review' | 'study-group'
 ): Promise<{ success: boolean; postId?: string; error?: string | object }> {
   try {
     const validationResult = CommunityPostFormSchema.safeParse(formData);

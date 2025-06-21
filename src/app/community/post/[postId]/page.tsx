@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CalendarDays, MessageCircle, User, Heart, HelpCircle, Layers, Users, Library } from 'lucide-react';
+import { CalendarDays, MessageCircle, User, Heart, HelpCircle, Layers, Users, Library, BookUser } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { Separator } from '@/components/ui/separator';
@@ -46,6 +46,8 @@ export default async function CommunityPostPage({ params }: Props) {
         return '/community/q-and-a';
       case 'deck-review':
         return '/community/deck-review';
+      case 'study-group':
+        return '/community/study-group';
       case 'free-discussion':
       default:
         return '/community/free-discussion';
@@ -62,6 +64,8 @@ export default async function CommunityPostPage({ params }: Props) {
             return <Badge variant="secondary" className="w-fit mb-2"><HelpCircle className="mr-1.5 h-3 w-3"/>질문과 답변</Badge>;
         case 'deck-review':
             return <Badge variant="secondary" className="w-fit mb-2"><Library className="mr-1.5 h-3 w-3"/>덱 리뷰</Badge>;
+        case 'study-group':
+            return <Badge variant="secondary" className="w-fit mb-2"><BookUser className="mr-1.5 h-3 w-3"/>스터디/모임</Badge>;
         case 'free-discussion':
             return <Badge variant="secondary" className="w-fit mb-2"><Users className="mr-1.5 h-3 w-3"/>자유 토론</Badge>;
         default:
