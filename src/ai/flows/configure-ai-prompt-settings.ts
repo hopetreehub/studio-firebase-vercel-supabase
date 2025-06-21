@@ -72,7 +72,7 @@ const configureAIPromptSettingsFlow = ai.defineFlow(
 
       await firestore.collection('aiConfiguration').doc('promptSettings').set(settingsToSave);
       
-      // console.log('AI Prompt settings saved to Firestore:', settingsToSave);
+      console.log('AI Prompt settings saved to Firestore:', settingsToSave);
 
       return {
         success: true,

@@ -121,7 +121,6 @@ export async function getCommunityPostById(postId: string): Promise<CommunityPos
     }
     // Increment view count
     await doc.ref.update({ viewCount: FieldValue.increment(1) });
-    const postData = mapDocToCommunityPost(doc);
     
     // After getting the post, refetch to get the updated view count
     const updatedDoc = await firestore.collection('communityPosts').doc(postId).get();
@@ -166,6 +165,7 @@ export async function createCommunityPost(
     };
 
     const docRef = await firestore.collection('communityPosts').add(newPostData);
+    console.log(`Created new community post with ID: ${docRef.id} in category '${category}'`);
     return { success: true, postId: docRef.id };
   } catch (error) {
     console.error('Error creating community post:', error);
@@ -205,6 +205,7 @@ export async function createReadingSharePost(
     };
 
     const docRef = await firestore.collection('communityPosts').add(newPostData);
+    console.log(`Created new reading-share post with ID: ${docRef.id}`);
     return { success: true, postId: docRef.id };
   } catch (error) {
     console.error('Error creating reading share post:', error);
@@ -232,6 +233,7 @@ export async function deleteCommunityPost(
     }
 
     await postRef.delete();
+    console.log(`Successfully deleted community post with ID: ${postId}`);
     // In a real app, you might want to delete associated comments as well.
     return { success: true };
   } catch (error) {
