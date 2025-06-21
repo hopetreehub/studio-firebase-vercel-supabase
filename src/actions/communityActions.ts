@@ -67,6 +67,18 @@ const fallbackCommunityPosts: CommunityPost[] = [
     createdAt: new Date('2024-05-22T11:00:00Z'),
     updatedAt: new Date('2024-05-22T11:00:00Z'),
   },
+  {
+    id: 'fallback-4',
+    authorId: 'user-789',
+    authorName: '컬렉터K',
+    title: '라이더-웨이트 덱의 다양한 에디션 비교!',
+    content: '가장 클래식한 라이더-웨이트 덱도 여러 버전이 있는 것 아시나요? 제가 가진 스미스-웨이트 센테니얼 에디션과 알비노-웨이트 덱을 간단히 비교해봤습니다. 색감이나 카드 질감이 미묘하게 달라서 리딩할 때 느낌도 달라요!',
+    viewCount: 35,
+    commentCount: 4,
+    category: 'deck-review',
+    createdAt: new Date('2024-05-23T09:00:00Z'),
+    updatedAt: new Date('2024-05-23T09:00:00Z'),
+  },
 ];
 
 // Get community posts for a specific category
@@ -111,11 +123,11 @@ export async function getCommunityPostById(postId: string): Promise<CommunityPos
 }
 
 
-// Create a new free-discussion or q-and-a post
+// Create a new free-discussion, q-and-a, or deck-review post
 export async function createCommunityPost(
   formData: CommunityPostFormData,
   author: { uid: string; displayName?: string | null; photoURL?: string | null },
-  category: 'free-discussion' | 'q-and-a'
+  category: 'free-discussion' | 'q-and-a' | 'deck-review'
 ): Promise<{ success: boolean; postId?: string; error?: string | object }> {
   try {
     const validationResult = CommunityPostFormSchema.safeParse(formData);

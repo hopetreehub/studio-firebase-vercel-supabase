@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, FilePlus2, AlertTriangle, Users, HelpCircle } from 'lucide-react';
+import { Loader2, FilePlus2, AlertTriangle, Users, HelpCircle, Library } from 'lucide-react';
 import { createCommunityPost } from '@/actions/communityActions';
 import { CommunityPostFormData, CommunityPostFormSchema, CommunityPostCategory } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -26,7 +26,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 interface CommunityPostFormProps {
-  category: 'free-discussion' | 'q-and-a';
+  category: 'free-discussion' | 'q-and-a' | 'deck-review';
 }
 
 const formMetas = {
@@ -41,6 +41,12 @@ const formMetas = {
     title: '새 질문 작성하기',
     description: '타로에 대해 궁금한 점을 질문하고 답변을 받아보세요.',
     submitButtonText: '질문 등록',
+  },
+  'deck-review': {
+    icon: <Library className="mr-3 h-8 w-8" />,
+    title: '새 덱 리뷰 작성하기',
+    description: '소장하고 있는 타로덱의 사진, 특징, 사용 후기 등을 공유해주세요.',
+    submitButtonText: '리뷰 등록',
   }
 }
 
