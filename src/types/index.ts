@@ -1,5 +1,7 @@
 
 
+import { z } from 'zod';
+
 export type Suit = 'major' | 'wands' | 'cups' | 'swords' | 'pentacles';
 
 export type TarotCard = {
@@ -122,3 +124,23 @@ export type SavedReading = {
   interpretationText: string;
   createdAt: Date; // Firestore Timestamp will be converted to Date
 };
+
+// Community Types
+export type CommunityPost = {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorPhotoURL?: string;
+  title: string;
+  content: string;
+  viewCount: number;
+  commentCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export const CommunityPostFormSchema = z.object({
+  title: z.string().min(5, "제목은 5자 이상이어야 합니다.").max(150, "제목은 150자를 넘을 수 없습니다."),
+  content: z.string().min(10, "내용은 10자 이상이어야 합니다."),
+});
+export type CommunityPostFormData = z.infer<typeof CommunityPostFormSchema>;
