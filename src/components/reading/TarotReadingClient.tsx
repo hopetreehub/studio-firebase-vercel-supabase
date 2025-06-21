@@ -70,8 +70,8 @@ type ReadingStage =
   | 'interpretation_ready';
 
 const CARD_BACK_IMAGE = '/images/tarot/back.png';
-const NUM_VISUAL_CARDS_IN_STACK = 15;
-const N_ANIMATING_CARDS_FOR_SHUFFLE = 10;
+const NUM_VISUAL_CARDS_IN_STACK = 20;
+const N_ANIMATING_CARDS_FOR_SHUFFLE = 20;
 
 const TARGET_CARD_HEIGHT_CLASS = "h-60";
 const IMAGE_ORIGINAL_WIDTH = 275;
@@ -156,7 +156,7 @@ export function TarotReadingClient() {
     setDisplayedInterpretation('');
     setIsInterpretationDialogOpen(false);
 
-    const SHUFFLE_REPETITIONS = 3;
+    const SHUFFLE_REPETITIONS = 2; // Two shuffles: one left-first, one right-first
     const pileSpacing = 120;
     const cardOffsetY = 2;
     const shufflePileCardRotation = -8;
@@ -164,8 +164,8 @@ export function TarotReadingClient() {
     const animatingControls = visualCardAnimControls.slice(0, N_ANIMATING_CARDS_FOR_SHUFFLE);
 
     for (let k = 0; k < SHUFFLE_REPETITIONS; k++) {
-      // Randomize which pile goes first for a more natural look
-      const leftFirst = Math.random() > 0.5;
+      // First shuffle is left-first, second is right-first
+      const leftFirst = k === 0;
       
       const leftPileAnimatingIndices: number[] = [];
       const rightPileAnimatingIndices: number[] = [];
@@ -794,7 +794,7 @@ export function TarotReadingClient() {
 
       {(stage === 'interpretation_ready' || (stage === 'interpreting' && interpretation)) && (
          <AlertDialog open={isInterpretationDialogOpen} onOpenChange={setIsInterpretationDialogOpen}>
-            <AlertDialogContent className="max-w-2xl w-[90vw] max-h-[85vh] flex flex-col">
+            <AlertDialogContent className="max-w-3xl w-[95vw] md:w-[90vw] max-h-[85vh] flex flex-col">
               <AlertDialogHeader>
                 <AlertDialogTitle className="font-headline text-2xl text-primary flex items-center">
                   <Sparkles className="mr-2 h-6 w-6 text-accent" />
@@ -812,7 +812,7 @@ export function TarotReadingClient() {
                   </div>
                 )}
                 <div
-                  className="prose prose-lg max-w-none prose-headings:font-headline prose-headings:text-accent prose-headings:text-xl sm:prose-headings:text-2xl prose-headings:mb-3 prose-headings:mt-5 prose-p:text-foreground/90 prose-strong:text-primary/90 text-lg leading-relaxed"
+                  className="prose prose-lg max-w-none prose-headings:font-headline prose-headings:text-accent prose-headings:text-xl sm:prose-headings:text-2xl prose-headings:mb-3 prose-headings:mt-5 prose-p:text-foreground/90 prose-strong:text-primary/90 leading-relaxed"
                   style={{ whiteSpace: 'pre-wrap' }}
                 >
                   {displayedInterpretation}
