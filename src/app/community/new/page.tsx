@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function NewPostPage() {
   return (
     <div>
-      <CommunityPostForm />
+      <CommunityPostForm category="free-discussion" />
     </div>
   );
 }

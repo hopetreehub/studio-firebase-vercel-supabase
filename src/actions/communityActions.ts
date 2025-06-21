@@ -54,7 +54,19 @@ const fallbackCommunityPosts: CommunityPost[] = [
     cardsInfo: '과거: The Hermit (은둔자), 현재: Two of Cups (컵 2), 미래: Ace of Wands (완드 에이스)',
     createdAt: new Date('2024-05-21T14:30:00Z'),
     updatedAt: new Date('2024-05-21T14:30:00Z'),
-  }
+  },
+   {
+    id: 'fallback-3',
+    authorId: 'user-456',
+    authorName: '진리탐구자',
+    title: '여황제 카드와 여사제 카드의 차이가 궁금해요!',
+    content: '두 카드 모두 강력한 여성적 에너지를 상징하는 것 같은데, 해석할 때마다 헷갈립니다. 두 카드의 핵심적인 차이점은 무엇일까요? 다른 분들의 의견이 궁금합니다.',
+    viewCount: 42,
+    commentCount: 3,
+    category: 'q-and-a',
+    createdAt: new Date('2024-05-22T11:00:00Z'),
+    updatedAt: new Date('2024-05-22T11:00:00Z'),
+  },
 ];
 
 // Get community posts for a specific category
@@ -85,17 +97,25 @@ export async function getCommunityPostById(postId: string): Promise<CommunityPos
     }
     // Increment view count
     await doc.ref.update({ viewCount: FieldValue.increment(1) });
-    return mapDocToCommunityPost(doc);
+    const postData = mapDocToCommunityPost(doc);
+    
+    // After getting the post, refetch to get the updated view count
+    const updatedDoc = await firestore.collection('communityPosts').doc(postId).get();
+    return mapDocToCommunityPost(updatedDoc);
+
   } catch (error) {
     console.error(`Error fetching post ${postId}:`, error);
-    return null;
+    const fallbackPost = fallbackCommunityPosts.find(p => p.id === postId);
+    return fallbackPost || null;
   }
 }
 
-// Create a new free-discussion post
+
+// Create a new free-discussion or q-and-a post
 export async function createCommunityPost(
   formData: CommunityPostFormData,
-  author: { uid: string; displayName?: string | null; photoURL?: string | null }
+  author: { uid: string; displayName?: string | null; photoURL?: string | null },
+  category: 'free-discussion' | 'q-and-a'
 ): Promise<{ success: boolean; postId?: string; error?: string | object }> {
   try {
     const validationResult = CommunityPostFormSchema.safeParse(formData);
@@ -114,7 +134,7 @@ export async function createCommunityPost(
       authorPhotoURL: author.photoURL || '',
       title,
       content,
-      category: 'free-discussion' as CommunityPostCategory,
+      category: category,
       viewCount: 0,
       commentCount: 0,
       createdAt: FieldValue.serverTimestamp(),

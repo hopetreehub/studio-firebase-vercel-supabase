@@ -18,14 +18,33 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, FilePlus2, AlertTriangle } from 'lucide-react';
+import { Loader2, FilePlus2, AlertTriangle, Users, HelpCircle } from 'lucide-react';
 import { createCommunityPost } from '@/actions/communityActions';
-import { CommunityPostFormData, CommunityPostFormSchema } from '@/types';
+import { CommunityPostFormData, CommunityPostFormSchema, CommunityPostCategory } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export function CommunityPostForm() {
+interface CommunityPostFormProps {
+  category: 'free-discussion' | 'q-and-a';
+}
+
+const formMetas = {
+  'free-discussion': {
+    icon: <Users className="mr-3 h-8 w-8" />,
+    title: '새 글 작성하기',
+    description: '자유롭게 여러분의 생각과 질문을 공유해주세요.',
+    submitButtonText: '게시물 등록',
+  },
+  'q-and-a': {
+    icon: <HelpCircle className="mr-3 h-8 w-8" />,
+    title: '새 질문 작성하기',
+    description: '타로에 대해 궁금한 점을 질문하고 답변을 받아보세요.',
+    submitButtonText: '질문 등록',
+  }
+}
+
+export function CommunityPostForm({ category }: CommunityPostFormProps) {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -39,6 +58,8 @@ export function CommunityPostForm() {
     },
   });
 
+  const meta = formMetas[category];
+
   const onSubmit = async (values: CommunityPostFormData) => {
     if (!user) {
       toast({ variant: 'destructive', title: '오류', description: '글을 작성하려면 로그인이 필요합니다.' });
@@ -46,11 +67,12 @@ export function CommunityPostForm() {
     }
     setLoading(true);
     
-    const result = await createCommunityPost(values, user);
+    // Pass category to the action
+    const result = await createCommunityPost(values, user, category);
 
     if (result.success && result.postId) {
       toast({
-        title: '게시물 작성 성공',
+        title: '작성 성공',
         description: '게시물이 성공적으로 등록되었습니다.',
       });
       router.push(`/community/post/${result.postId}`);
@@ -79,7 +101,7 @@ export function CommunityPostForm() {
         </CardHeader>
         <CardContent className="text-center">
             <Button asChild>
-                <Link href="/sign-in?redirect=/community/new">로그인 페이지로 이동</Link>
+                <Link href={`/sign-in?redirect=/community/${category}/new`}>로그인 페이지로 이동</Link>
             </Button>
         </CardContent>
       </Card>
@@ -89,8 +111,11 @@ export function CommunityPostForm() {
   return (
     <Card className="max-w-3xl mx-auto shadow-lg border-primary/10">
       <CardHeader>
-        <CardTitle className="font-headline text-3xl text-primary">새 글 작성하기</CardTitle>
-        <CardDescription>자유롭게 여러분의 생각과 질문을 공유해주세요.</CardDescription>
+        <CardTitle className="font-headline text-3xl text-primary flex items-center">
+          {meta.icon}
+          {meta.title}
+        </CardTitle>
+        <CardDescription>{meta.description}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -133,7 +158,7 @@ export function CommunityPostForm() {
               </Button>
               <Button type="submit" disabled={loading}>
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FilePlus2 className="mr-2 h-4 w-4" />}
-                {loading ? '등록 중...' : '게시물 등록'}
+                {loading ? '등록 중...' : meta.submitButtonText}
               </Button>
             </div>
           </form>

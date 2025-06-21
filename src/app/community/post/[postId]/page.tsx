@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CalendarDays, MessageCircle, User, Heart, HelpCircle, Layers } from 'lucide-react';
+import { CalendarDays, MessageCircle, User, Heart, HelpCircle, Layers, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { Separator } from '@/components/ui/separator';
@@ -38,17 +38,38 @@ export default async function CommunityPostPage({ params }: Props) {
     notFound();
   }
 
-  const backLink = post.category === 'reading-share' ? '/community/reading-share' : '/community/free-discussion';
+  const getBackLink = () => {
+    switch (post.category) {
+      case 'reading-share':
+        return '/community/reading-share';
+      case 'q-and-a':
+        return '/community/q-and-a';
+      case 'free-discussion':
+      default:
+        return '/community/free-discussion';
+    }
+  };
+
+  const backLink = getBackLink();
+
+  const CategoryBadge = () => {
+    switch(post.category) {
+        case 'reading-share':
+            return <Badge variant="secondary" className="w-fit mb-2"><Heart className="mr-1.5 h-3 w-3"/>리딩 공유</Badge>;
+        case 'q-and-a':
+            return <Badge variant="secondary" className="w-fit mb-2"><HelpCircle className="mr-1.5 h-3 w-3"/>질문과 답변</Badge>;
+        case 'free-discussion':
+            return <Badge variant="secondary" className="w-fit mb-2"><Users className="mr-1.5 h-3 w-3"/>자유 토론</Badge>;
+        default:
+            return null;
+    }
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
       <Card>
         <CardHeader>
-          {post.category === 'reading-share' && (
-            <Badge variant="secondary" className="w-fit mb-2">
-              <Heart className="mr-1.5 h-3 w-3"/>리딩 공유
-            </Badge>
-          )}
+          <CategoryBadge />
           <CardTitle className="font-headline text-3xl text-primary">{post.title}</CardTitle>
           <div className="flex items-center space-x-4 text-sm text-muted-foreground pt-2">
             <div className="flex items-center gap-2">

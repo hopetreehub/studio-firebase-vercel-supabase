@@ -1,6 +1,6 @@
 
 import type { Metadata } from 'next';
-import { MessageSquare, Heart, Users } from 'lucide-react';
+import { MessageSquare, Heart, Users, HelpCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -22,6 +22,12 @@ const communityBoards = [
     href: '/community/reading-share',
     icon: <Heart className="h-10 w-10 text-accent" />,
   },
+  {
+    title: '질문과 답변',
+    description: '타로 카드, 스프레드, 상징 등 궁금한 점을 질문하고 커뮤니티의 지혜를 얻으세요.',
+    href: '/community/q-and-a',
+    icon: <HelpCircle className="h-10 w-10 text-accent" />,
+  },
 ];
 
 export default function CommunityHubPage() {
@@ -35,7 +41,7 @@ export default function CommunityHubPage() {
         </p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
         {communityBoards.map((board) => (
           <Link key={board.href} href={board.href} className="block group">
             <Card className="h-full transform hover:-translate-y-1 transition-transform duration-300 ease-in-out shadow-lg hover:shadow-primary/20 border-primary/10">

@@ -125,7 +125,7 @@ export type SavedReading = {
 };
 
 // Community Types
-export type CommunityPostCategory = 'free-discussion' | 'reading-share';
+export type CommunityPostCategory = 'free-discussion' | 'reading-share' | 'q-and-a';
 
 export type CommunityPost = {
   id: string;
