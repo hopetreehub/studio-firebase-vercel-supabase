@@ -64,7 +64,7 @@ export function CardList({ cards }: CardListProps) {
   
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 p-4 bg-card border border-border rounded-lg shadow-sm">
+      <div className="max-w-2xl lg:max-w-3xl mx-auto w-full flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 p-4 bg-card border border-border rounded-lg shadow-sm">
         <div className="flex items-center gap-2">
           <Label htmlFor="items-per-page-select" className="text-sm font-medium text-muted-foreground">페이지당 카드 수:</Label>
           <Select
@@ -102,10 +102,8 @@ export function CardList({ cards }: CardListProps) {
       <div className="grid grid-cols-1 gap-6 sm:gap-8">
         {cardsToDisplay.map((card) => (
           <Link key={card.id} href={`/encyclopedia/${card.id}`} passHref legacyBehavior>
-            {/* 카드 아이템 너비 조정: max-w-xl lg:max-w-2xl -> max-w-2xl lg:max-w-3xl */}
             <a className="block group max-w-2xl lg:max-w-3xl mx-auto w-full">
               <Card className="flex flex-col md:flex-row h-full overflow-hidden shadow-lg hover:shadow-primary/20 hover:border-primary/30 transition-all duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer border border-transparent bg-card/90 backdrop-blur-sm">
-                {/* Image Container */}
                 <div className="md:w-48 w-full shrink-0 bg-primary/5 relative aspect-[275/475] md:aspect-auto md:h-auto rounded-t-lg md:rounded-l-lg md:rounded-r-none overflow-hidden">
                   <Image
                     src={card.imageSrc}
@@ -117,7 +115,6 @@ export function CardList({ cards }: CardListProps) {
                   />
                 </div>
                 
-                {/* Content Container */}
                 <div className="flex flex-col flex-1 p-4 sm:p-5 justify-between">
                   <CardHeader className="p-0 pb-2 sm:pb-3">
                     <CardTitle className="font-headline text-xl md:text-2xl text-primary group-hover:text-accent transition-colors mb-1.5 line-clamp-2">
@@ -163,9 +160,8 @@ export function CardList({ cards }: CardListProps) {
         ))}
       </div>
       
-      {/* Pagination controls at the bottom as well */}
       {itemsPerPage !== 'all' && totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-8">
+          <div className="max-w-2xl lg:max-w-3xl mx-auto w-full flex justify-center items-center gap-2 mt-8">
             <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={currentPage === 1}>
               <ChevronLeft className="h-4 w-4" />
               <span className="ml-1">이전</span>

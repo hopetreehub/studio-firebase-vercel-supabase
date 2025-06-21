@@ -56,7 +56,7 @@ export function BlogList({ initialPosts }: BlogListProps) {
   return (
     <div className="space-y-8">
       {/* Pagination Controls */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-4 bg-card border border-border rounded-lg shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-y py-4">
         <div className="flex items-center gap-2">
           <Label htmlFor="items-per-page-select-blog" className="text-sm font-medium text-muted-foreground">페이지당 글 수:</Label>
           <Select
