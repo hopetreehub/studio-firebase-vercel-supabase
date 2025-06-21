@@ -4,12 +4,13 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CalendarDays, MessageCircle, User } from 'lucide-react';
+import { CalendarDays, MessageCircle, User, Heart, HelpCircle, Layers } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
 
 type Props = {
   params: { postId: string };
@@ -37,10 +38,17 @@ export default async function CommunityPostPage({ params }: Props) {
     notFound();
   }
 
+  const backLink = post.category === 'reading-share' ? '/community/reading-share' : '/community/free-discussion';
+
   return (
     <div className="max-w-3xl mx-auto space-y-8">
       <Card>
         <CardHeader>
+          {post.category === 'reading-share' && (
+            <Badge variant="secondary" className="w-fit mb-2">
+              <Heart className="mr-1.5 h-3 w-3"/>리딩 공유
+            </Badge>
+          )}
           <CardTitle className="font-headline text-3xl text-primary">{post.title}</CardTitle>
           <div className="flex items-center space-x-4 text-sm text-muted-foreground pt-2">
             <div className="flex items-center gap-2">
@@ -59,7 +67,21 @@ export default async function CommunityPostPage({ params }: Props) {
           </div>
         </CardHeader>
         <Separator />
-        <CardContent className="py-6">
+        
+        {post.category === 'reading-share' && (
+          <CardContent className="pt-6 space-y-4">
+             <div className="space-y-2 p-4 bg-muted/50 rounded-lg">
+                <h3 className="font-semibold text-primary flex items-center"><HelpCircle className="mr-2 h-5 w-5"/>리딩 질문</h3>
+                <p className="text-foreground/80">{post.readingQuestion}</p>
+             </div>
+             <div className="space-y-2 p-4 bg-muted/50 rounded-lg">
+                <h3 className="font-semibold text-primary flex items-center"><Layers className="mr-2 h-5 w-5"/>뽑은 카드</h3>
+                <p className="text-foreground/80" style={{ whiteSpace: 'pre-wrap' }}>{post.cardsInfo}</p>
+             </div>
+          </CardContent>
+        )}
+
+        <CardContent className="pt-6">
           <div 
             className="prose prose-lg max-w-none text-foreground/80 prose-headings:text-primary prose-headings:font-headline prose-a:text-accent hover:prose-a:text-accent/80 prose-strong:text-primary/90"
             style={{ whiteSpace: 'pre-line' }}
@@ -84,7 +106,7 @@ export default async function CommunityPostPage({ params }: Props) {
 
        <div className="text-center mt-8">
         <Button asChild variant="outline">
-          <Link href="/community">
+          <Link href={backLink}>
             목록으로 돌아가기
           </Link>
         </Button>

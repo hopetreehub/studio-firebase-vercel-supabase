@@ -4,8 +4,8 @@
 import { z } from 'zod';
 import { firestore } from '@/lib/firebase/admin';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
-import type { CommunityPost } from '@/types';
-import { CommunityPostFormSchema, CommunityPostFormData } from '@/types';
+import type { CommunityPost, CommunityPostCategory } from '@/types';
+import { CommunityPostFormSchema, CommunityPostFormData, ReadingSharePostFormData, ReadingSharePostFormSchema } from '@/types';
 
 // Helper to map Firestore doc to CommunityPost type
 function mapDocToCommunityPost(doc: FirebaseFirestore.DocumentSnapshot): CommunityPost {
@@ -19,6 +19,9 @@ function mapDocToCommunityPost(doc: FirebaseFirestore.DocumentSnapshot): Communi
     content: data.content,
     viewCount: data.viewCount || 0,
     commentCount: data.commentCount || 0,
+    category: data.category || 'free-discussion',
+    readingQuestion: data.readingQuestion || '',
+    cardsInfo: data.cardsInfo || '',
     createdAt: (data.createdAt as Timestamp).toDate(),
     updatedAt: (data.updatedAt as Timestamp).toDate(),
   };
@@ -34,6 +37,7 @@ const fallbackCommunityPosts: CommunityPost[] = [
     content: '이곳은 타로와 영성에 대해 자유롭게 이야기를 나누는 공간입니다. 서로 존중하며 즐거운 커뮤니티를 함께 만들어가요.',
     viewCount: 150,
     commentCount: 2,
+    category: 'free-discussion',
     createdAt: new Date('2024-05-20T10:00:00Z'),
     updatedAt: new Date('2024-05-20T10:00:00Z'),
   },
@@ -45,22 +49,29 @@ const fallbackCommunityPosts: CommunityPost[] = [
     content: '최근 직장 문제로 3카드 스프레드를 뽑아봤는데, 과거-은둔자, 현재-컵2, 미래-완드에이스가 나왔어요. 혹시 다른 분들은 어떻게 해석하시나요?',
     viewCount: 78,
     commentCount: 5,
+    category: 'reading-share',
+    readingQuestion: '저의 현재 직장운은 어떤가요?',
+    cardsInfo: '과거: The Hermit (은둔자), 현재: Two of Cups (컵 2), 미래: Ace of Wands (완드 에이스)',
     createdAt: new Date('2024-05-21T14:30:00Z'),
     updatedAt: new Date('2024-05-21T14:30:00Z'),
   }
 ];
 
-// Get all community posts
-export async function getCommunityPosts(): Promise<CommunityPost[]> {
+// Get community posts for a specific category
+export async function getCommunityPosts(category: CommunityPostCategory): Promise<CommunityPost[]> {
   try {
-    const snapshot = await firestore.collection('communityPosts').orderBy('createdAt', 'desc').get();
+    const snapshot = await firestore.collection('communityPosts')
+      .where('category', '==', category)
+      .orderBy('createdAt', 'desc')
+      .get();
+      
     if (snapshot.empty) {
-      return fallbackCommunityPosts;
+      return fallbackCommunityPosts.filter(p => p.category === category);
     }
     return snapshot.docs.map(mapDocToCommunityPost);
   } catch (error) {
-    console.error("Error fetching community posts from Firestore, returning fallback posts:", error);
-    return fallbackCommunityPosts;
+    console.error(`Error fetching ${category} posts from Firestore, returning fallback posts:`, error);
+    return fallbackCommunityPosts.filter(p => p.category === category);
   }
 }
 
@@ -81,7 +92,7 @@ export async function getCommunityPostById(postId: string): Promise<CommunityPos
   }
 }
 
-// Create a new community post
+// Create a new free-discussion post
 export async function createCommunityPost(
   formData: CommunityPostFormData,
   author: { uid: string; displayName?: string | null; photoURL?: string | null }
@@ -103,6 +114,7 @@ export async function createCommunityPost(
       authorPhotoURL: author.photoURL || '',
       title,
       content,
+      category: 'free-discussion' as CommunityPostCategory,
       viewCount: 0,
       commentCount: 0,
       createdAt: FieldValue.serverTimestamp(),
@@ -114,6 +126,45 @@ export async function createCommunityPost(
   } catch (error) {
     console.error('Error creating community post:', error);
     return { success: false, error: error instanceof Error ? error.message : '게시물 생성 중 알 수 없는 오류가 발생했습니다.' };
+  }
+}
+
+// Create a new reading-share post
+export async function createReadingSharePost(
+  formData: ReadingSharePostFormData,
+  author: { uid: string; displayName?: string | null; photoURL?: string | null }
+): Promise<{ success: boolean; postId?: string; error?: string | object }> {
+  try {
+    const validationResult = ReadingSharePostFormSchema.safeParse(formData);
+    if (!validationResult.success) {
+      return { success: false, error: validationResult.error.flatten().fieldErrors };
+    }
+    if (!author || !author.uid) {
+      return { success: false, error: "글을 작성하려면 로그인이 필요합니다." };
+    }
+
+    const { title, readingQuestion, cardsInfo, content } = validationResult.data;
+
+    const newPostData = {
+      authorId: author.uid,
+      authorName: author.displayName || '익명 사용자',
+      authorPhotoURL: author.photoURL || '',
+      title,
+      readingQuestion,
+      cardsInfo,
+      content,
+      category: 'reading-share' as CommunityPostCategory,
+      viewCount: 0,
+      commentCount: 0,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+
+    const docRef = await firestore.collection('communityPosts').add(newPostData);
+    return { success: true, postId: docRef.id };
+  } catch (error) {
+    console.error('Error creating reading share post:', error);
+    return { success: false, error: error instanceof Error ? error.message : '리딩 공유 게시물 생성 중 알 수 없는 오류가 발생했습니다.' };
   }
 }
 

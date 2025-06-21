@@ -1,5 +1,4 @@
 
-
 import { z } from 'zod';
 
 export type Suit = 'major' | 'wands' | 'cups' | 'swords' | 'pentacles';
@@ -126,6 +125,8 @@ export type SavedReading = {
 };
 
 // Community Types
+export type CommunityPostCategory = 'free-discussion' | 'reading-share';
+
 export type CommunityPost = {
   id: string;
   authorId: string;
@@ -135,12 +136,25 @@ export type CommunityPost = {
   content: string;
   viewCount: number;
   commentCount: number;
+  category: CommunityPostCategory;
+  readingQuestion?: string; // Optional: for reading-share posts
+  cardsInfo?: string;     // Optional: for reading-share posts
   createdAt: Date;
   updatedAt: Date;
 };
 
+// Schema for Free Discussion Form
 export const CommunityPostFormSchema = z.object({
   title: z.string().min(5, "제목은 5자 이상이어야 합니다.").max(150, "제목은 150자를 넘을 수 없습니다."),
   content: z.string().min(10, "내용은 10자 이상이어야 합니다."),
 });
 export type CommunityPostFormData = z.infer<typeof CommunityPostFormSchema>;
+
+// Schema for Reading Share Form
+export const ReadingSharePostFormSchema = z.object({
+  title: z.string().min(5, "제목은 5자 이상이어야 합니다.").max(150, "제목은 150자를 넘을 수 없습니다."),
+  readingQuestion: z.string().min(5, "리딩 질문은 5자 이상이어야 합니다."),
+  cardsInfo: z.string().min(5, "뽑은 카드 정보는 5자 이상이어야 합니다."),
+  content: z.string().min(10, "해석이나 질문 내용은 10자 이상이어야 합니다."),
+});
+export type ReadingSharePostFormData = z.infer<typeof ReadingSharePostFormSchema>;
