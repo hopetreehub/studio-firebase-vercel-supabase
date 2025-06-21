@@ -1,24 +1,11 @@
 
 'use server';
 
-import type { BlogPost } from '@/types';
-import { z } from 'zod';
+import type { BlogPost, BlogFormData } from '@/types';
+import { BlogFormDataSchema } from '@/types';
 import { firestore } from '@/lib/firebase/admin';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { mapDocToBlogPost, fallbackBlogPosts } from '@/lib/blog-data'; 
-
-const BlogFormDataSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { message: 'Slug must be lowercase, numbers, and hyphens only.' }),
-  excerpt: z.string().min(1, "Excerpt is required"),
-  content: z.string().min(1, "Content is required"),
-  imageSrc: z.string().url().optional().or(z.literal('')),
-  dataAiHint: z.string().optional().or(z.literal('')),
-  author: z.string().optional().or(z.literal('')),
-  tags: z.array(z.string()).optional(),
-});
-
-export type BlogFormData = z.infer<typeof BlogFormDataSchema>;
 
 export async function getAllPosts(): Promise<BlogPost[]> {
   try {

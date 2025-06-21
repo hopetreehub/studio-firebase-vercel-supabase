@@ -24,6 +24,10 @@ export function UserNav() {
   const router = useRouter();
 
   const handleSignOut = async () => {
+    if (!auth) {
+      console.error("Firebase auth is not initialized, cannot sign out.");
+      return;
+    }
     try {
       await signOut(auth);
       router.push('/'); // Redirect to home page after sign out

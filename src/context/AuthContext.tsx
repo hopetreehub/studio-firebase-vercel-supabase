@@ -18,11 +18,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    if (auth) {
+      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        setUser(currentUser);
+        setLoading(false);
+      });
+      return () => unsubscribe();
+    } else {
+      // If Firebase is not configured, stop loading and treat user as not logged in.
       setLoading(false);
-    });
-    return () => unsubscribe();
+    }
   }, []);
 
   if (loading) {

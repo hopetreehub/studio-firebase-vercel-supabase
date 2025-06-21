@@ -47,6 +47,11 @@ export function SignInForm() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true);
+    if (!auth) {
+        toast({ variant: 'destructive', title: '설정 오류', description: 'Firebase 인증이 설정되지 않았습니다. 관리자에게 문의하세요.' });
+        setLoading(false);
+        return;
+    }
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({ title: '로그인 성공', description: 'InnerSpell에 오신 것을 환영합니다!' });
@@ -71,6 +76,11 @@ export function SignInForm() {
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
+    if (!auth) {
+        toast({ variant: 'destructive', title: '설정 오류', description: 'Firebase 인증이 설정되지 않았습니다. 관리자에게 문의하세요.' });
+        setLoading(false);
+        return;
+    }
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);

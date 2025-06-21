@@ -105,6 +105,19 @@ export type BlogPost = {
   updatedAt?: Date; // Added for sitemap and JSON-LD
 };
 
+export const BlogFormDataSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { message: 'Slug must be lowercase, numbers, and hyphens only.' }),
+  excerpt: z.string().min(1, "Excerpt is required"),
+  content: z.string().min(1, "Content is required"),
+  imageSrc: z.string().url().optional().or(z.literal('')),
+  dataAiHint: z.string().optional().or(z.literal('')),
+  author: z.string().optional().or(z.literal('')),
+  tags: z.array(z.string()).optional(),
+});
+export type BlogFormData = z.infer<typeof BlogFormDataSchema>;
+
+
 export type SavedReadingCard = {
   id: string; // TarotCard id
   name: string;

@@ -86,7 +86,7 @@ export default function ProfilePage() {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firebaseAuth.currentUser) return;
+    if (!firebaseAuth?.currentUser) return;
     setIsUpdating(true);
     try {
       await firebaseUpdateProfile(firebaseAuth.currentUser, { displayName });
@@ -101,7 +101,7 @@ export default function ProfilePage() {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firebaseAuth.currentUser || !user?.email) {
+    if (!firebaseAuth?.currentUser || !user?.email) {
       toast({ variant: 'destructive', title: '오류', description: '사용자 정보를 찾을 수 없습니다.' });
       return;
     }
@@ -238,7 +238,7 @@ export default function ProfilePage() {
         </CardHeader>
         <CardContent>
           {!showPasswordChangeForm ? (
-            <Button onClick={() => setShowPasswordChangeForm(true)} disabled={isEditing}>
+            <Button onClick={() => setShowPasswordChangeForm(true)} disabled={isEditing || !firebaseAuth}>
               비밀번호 변경하기
             </Button>
           ) : (

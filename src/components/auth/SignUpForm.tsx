@@ -53,6 +53,11 @@ export function SignUpForm() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true);
+    if (!auth) {
+        toast({ variant: 'destructive', title: '설정 오류', description: 'Firebase 인증이 설정되지 않았습니다. 관리자에게 문의하세요.' });
+        setLoading(false);
+        return;
+    }
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -85,6 +90,11 @@ export function SignUpForm() {
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
+    if (!auth) {
+        toast({ variant: 'destructive', title: '설정 오류', description: 'Firebase 인증이 설정되지 않았습니다. 관리자에게 문의하세요.' });
+        setLoading(false);
+        return;
+    }
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
