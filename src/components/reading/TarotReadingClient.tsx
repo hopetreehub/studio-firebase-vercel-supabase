@@ -1,4 +1,3 @@
-
 // src/components/reading/TarotReadingClient.tsx
 'use client';
 
@@ -72,7 +71,7 @@ type ReadingStage =
 
 const CARD_BACK_IMAGE = '/images/tarot/back.png';
 const NUM_VISUAL_CARDS_IN_STACK = 15;
-const N_ANIMATING_CARDS_FOR_SHUFFLE = 7;
+const N_ANIMATING_CARDS_FOR_SHUFFLE = 10;
 
 const TARGET_CARD_HEIGHT_CLASS = "h-60";
 const IMAGE_ORIGINAL_WIDTH = 275;
@@ -157,70 +156,86 @@ export function TarotReadingClient() {
     setDisplayedInterpretation('');
     setIsInterpretationDialogOpen(false);
 
-
+    const SHUFFLE_REPETITIONS = 3;
     const pileSpacing = 120;
     const cardOffsetY = 2;
     const shufflePileCardRotation = -8;
 
     const animatingControls = visualCardAnimControls.slice(0, N_ANIMATING_CARDS_FOR_SHUFFLE);
 
-    const leftPileAnimatingIndices: number[] = [];
-    const rightPileAnimatingIndices: number[] = [];
+    for (let k = 0; k < SHUFFLE_REPETITIONS; k++) {
+      // Randomize which pile goes first for a more natural look
+      const leftFirst = Math.random() > 0.5;
+      
+      const leftPileAnimatingIndices: number[] = [];
+      const rightPileAnimatingIndices: number[] = [];
 
-    for (let i = 0; i < N_ANIMATING_CARDS_FOR_SHUFFLE; i++) {
-      if (i % 2 === 0) leftPileAnimatingIndices.push(i);
-      else rightPileAnimatingIndices.push(i);
-    }
+      for (let i = 0; i < N_ANIMATING_CARDS_FOR_SHUFFLE; i++) {
+        if (i % 2 === 0) leftPileAnimatingIndices.push(i);
+        else rightPileAnimatingIndices.push(i);
+      }
 
-    const splitPromises = [];
-    leftPileAnimatingIndices.forEach((controlIndex, pileOrder) => {
-      splitPromises.push(
-        animatingControls[controlIndex].start({
-          x: -pileSpacing,
-          y: pileOrder * cardOffsetY,
-          rotate: shufflePileCardRotation,
-          zIndex: NUM_VISUAL_CARDS_IN_STACK + pileOrder,
-          transition: { duration: 0.25, ease: 'easeOut', delay: pileOrder * 0.04 },
-        }),
-      );
-    });
-    rightPileAnimatingIndices.forEach((controlIndex, pileOrder) => {
-      splitPromises.push(
-        animatingControls[controlIndex].start({
-          x: pileSpacing,
-          y: pileOrder * cardOffsetY,
-          rotate: -shufflePileCardRotation,
-          zIndex: NUM_VISUAL_CARDS_IN_STACK + pileOrder,
-          transition: { duration: 0.25, ease: 'easeOut', delay: pileOrder * 0.04 + 0.02 },
-        }),
-      );
-    });
-    await Promise.all(splitPromises);
-    await new Promise((r) => setTimeout(r, 150));
-
-    const interleaveOrderDefinition: number[] = [];
-    const maxPileLength = Math.max(leftPileAnimatingIndices.length, rightPileAnimatingIndices.length);
-    for (let i = 0; i < maxPileLength; i++) {
-      if (leftPileAnimatingIndices[i] !== undefined) interleaveOrderDefinition.push(leftPileAnimatingIndices[i]);
-      if (rightPileAnimatingIndices[i] !== undefined) interleaveOrderDefinition.push(rightPileAnimatingIndices[i]);
-    }
-
-    for (let i = 0; i < interleaveOrderDefinition.length; i++) {
-      const controlIndex = interleaveOrderDefinition[i];
-      await animatingControls[controlIndex].start({
-        x: 0 + i * 0.2,
-        y: 0 + i * -0.2,
-        rotate: 0,
-        zIndex: NUM_VISUAL_CARDS_IN_STACK * 2 + i,
-        transition: { duration: 0.1, ease: 'easeIn' },
+      const splitPromises = [];
+      leftPileAnimatingIndices.forEach((controlIndex, pileOrder) => {
+        splitPromises.push(
+          animatingControls[controlIndex].start({
+            x: -pileSpacing,
+            y: pileOrder * cardOffsetY,
+            rotate: shufflePileCardRotation,
+            zIndex: NUM_VISUAL_CARDS_IN_STACK + pileOrder,
+            transition: { duration: 0.2, ease: 'easeOut', delay: pileOrder * 0.03 },
+          }),
+        );
       });
-    }
-    await new Promise((r) => setTimeout(r, 200));
+      rightPileAnimatingIndices.forEach((controlIndex, pileOrder) => {
+        splitPromises.push(
+          animatingControls[controlIndex].start({
+            x: pileSpacing,
+            y: pileOrder * cardOffsetY,
+            rotate: -shufflePileCardRotation,
+            zIndex: NUM_VISUAL_CARDS_IN_STACK + pileOrder,
+            transition: { duration: 0.2, ease: 'easeOut', delay: pileOrder * 0.03 + 0.015 },
+          }),
+        );
+      });
+      await Promise.all(splitPromises);
+      await new Promise((r) => setTimeout(r, 100)); // a brief pause between splitting and merging
 
+      const interleaveOrderDefinition: number[] = [];
+      const maxPileLength = Math.max(leftPileAnimatingIndices.length, rightPileAnimatingIndices.length);
+      for (let i = 0; i < maxPileLength; i++) {
+        if (leftFirst) {
+            if (leftPileAnimatingIndices[i] !== undefined) interleaveOrderDefinition.push(leftPileAnimatingIndices[i]);
+            if (rightPileAnimatingIndices[i] !== undefined) interleaveOrderDefinition.push(rightPileAnimatingIndices[i]);
+        } else {
+            if (rightPileAnimatingIndices[i] !== undefined) interleaveOrderDefinition.push(rightPileAnimatingIndices[i]);
+            if (leftPileAnimatingIndices[i] !== undefined) interleaveOrderDefinition.push(leftPileAnimatingIndices[i]);
+        }
+      }
+
+      for (let i = 0; i < interleaveOrderDefinition.length; i++) {
+        const controlIndex = interleaveOrderDefinition[i];
+        await animatingControls[controlIndex].start({
+          x: 0 + i * 0.2,
+          y: 0 + i * -0.2,
+          rotate: 0,
+          zIndex: NUM_VISUAL_CARDS_IN_STACK * 2 + i,
+          transition: { duration: 0.08, ease: 'easeIn' },
+        });
+      }
+      
+      if (k < SHUFFLE_REPETITIONS - 1) {
+          // A brief pause before the next shuffle repetition
+          await new Promise((r) => setTimeout(r, 150));
+      }
+    }
+    
+    // Only set the deck after all shuffle animations are done
     setDeck([...allCards].sort(() => 0.5 - Math.random()));
     setStage('shuffled');
 
-     visualCardAnimControls.forEach((controls, i) => {
+    // Final reset of all visual cards to a neat stack
+    visualCardAnimControls.forEach((controls, i) => {
       controls.start({
         x: i * 0.2,
         y: i * -0.2,
@@ -230,6 +245,7 @@ export function TarotReadingClient() {
         transition: { duration: 0.3 },
       });
     });
+
     setIsShufflingAnimationActive(false);
 
     toast({
@@ -324,7 +340,7 @@ export function TarotReadingClient() {
 
     setStage('interpreting');
     setDisplayedInterpretation('');
-    setIsInterpretationDialogOpen(false);
+    setIsInterpretationDialogOpen(true);
     setReadingJustSaved(false);
 
 
@@ -347,7 +363,6 @@ export function TarotReadingClient() {
       });
       setInterpretation(result.interpretation);
       setStage('interpretation_ready');
-      setIsInterpretationDialogOpen(true); // Open dialog when interpretation is ready
     } catch (error) {
       console.error('해석 생성 오류:', error);
       toast({
@@ -777,7 +792,7 @@ export function TarotReadingClient() {
         </Card>
       )}
 
-      {(stage === 'interpretation_ready' || stage === 'interpreting') && interpretation && (
+      {(stage === 'interpretation_ready' || (stage === 'interpreting' && interpretation)) && (
          <AlertDialog open={isInterpretationDialogOpen} onOpenChange={setIsInterpretationDialogOpen}>
             <AlertDialogContent className="max-w-2xl w-[90vw] max-h-[85vh] flex flex-col">
               <AlertDialogHeader>
