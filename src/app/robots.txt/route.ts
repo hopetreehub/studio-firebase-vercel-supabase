@@ -1,7 +1,13 @@
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
 
 export async function GET() {
+  if (!SITE_URL) {
+    return new Response('Sitemap disabled: NEXT_PUBLIC_SITE_URL is not set.', {
+      status: 500,
+    });
+  }
+
   const content = `User-agent: *
 Allow: /
 

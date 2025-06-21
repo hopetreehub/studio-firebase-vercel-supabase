@@ -3,9 +3,10 @@ import { getAllPosts } from '@/actions/blogActions';
 import { tarotDeck } from '@/lib/tarot-data';
 import type { BlogPost, TarotCard } from '@/types';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
 
 function generateSitemapXml(
+  siteUrl: string,
   posts: BlogPost[],
   cards: TarotCard[],
   staticPages: { path: string; priority: number; changefreq: string }[]
@@ -19,7 +20,7 @@ function generateSitemapXml(
   staticPages.forEach(page => {
     xml += `
   <url>
-    <loc>${SITE_URL}${page.path}</loc>
+    <loc>${siteUrl}${page.path}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority.toFixed(1)}</priority>
@@ -33,7 +34,7 @@ function generateSitemapXml(
       : (post.createdAt ? post.createdAt.toISOString().split('T')[0] : today);
     xml += `
   <url>
-    <loc>${SITE_URL}/blog/${post.slug}</loc>
+    <loc>${siteUrl}/blog/${post.slug}</loc>
     <lastmod>${lastModified}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -44,7 +45,7 @@ function generateSitemapXml(
   cards.forEach(card => {
     xml += `
   <url>
-    <loc>${SITE_URL}/encyclopedia/${card.id}</loc>
+    <loc>${siteUrl}/encyclopedia/${card.id}</loc>
     <lastmod>${today}</lastmod> 
     <changefreq>yearly</changefreq>
     <priority>0.6</priority>
@@ -56,6 +57,12 @@ function generateSitemapXml(
 }
 
 export async function GET() {
+  if (!SITE_URL) {
+    return new Response('Sitemap disabled: NEXT_PUBLIC_SITE_URL is not set.', {
+      status: 500,
+    });
+  }
+
   const posts = await getAllPosts();
   const cards = tarotDeck;
 
@@ -69,7 +76,7 @@ export async function GET() {
     { path: '/sign-up', priority: 0.3, changefreq: 'yearly' },
   ];
 
-  const body = generateSitemapXml(posts, cards, staticAppPages);
+  const body = generateSitemapXml(SITE_URL, posts, cards, staticAppPages);
 
   return new Response(body, {
     status: 200,
