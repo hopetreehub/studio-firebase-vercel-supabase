@@ -171,3 +171,28 @@ export const ReadingSharePostFormSchema = z.object({
   content: z.string().min(10, "해석이나 질문 내용은 10자 이상이어야 합니다."),
 });
 export type ReadingSharePostFormData = z.infer<typeof ReadingSharePostFormSchema>;
+
+
+// --- API Specific Schemas ---
+
+const ApiAuthorSchema = z.object({
+  authorName: z.string().optional(),
+  authorPhotoURL: z.string().url().optional(),
+});
+
+// Schema for API posts in free-discussion, q-a, deck-review, study-group
+const ApiCommunityPostPayloadSchema = CommunityPostFormSchema.merge(ApiAuthorSchema).extend({
+    category: z.enum(['free-discussion', 'q-and-a', 'deck-review', 'study-group']),
+});
+
+// Schema for API posts in reading-share
+const ApiReadingSharePostPayloadSchema = ReadingSharePostFormSchema.merge(ApiAuthorSchema).extend({
+    category: z.literal('reading-share'),
+});
+
+// Combined discriminated union schema for validating any community post from the API
+export const ApiCommunityCombinedPayloadSchema = z.discriminatedUnion("category", [
+    ApiCommunityPostPayloadSchema,
+    ApiReadingSharePostPayloadSchema
+]);
+export type ApiCommunityCombinedPayload = z.infer<typeof ApiCommunityCombinedPayloadSchema>;
