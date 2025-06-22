@@ -63,7 +63,7 @@ const generateDreamInterpretationFlow = ai.defineFlow(
   },
   async (flowInput: GenerateDreamInterpretationInput) => {
     let promptTemplateToUse = DEFAULT_PROMPT_TEMPLATE;
-    let safetySettingsToUse: SafetySetting[] = [...DEFAULT_SAFETY_SETTINGS];
+    const safetySettingsToUse: SafetySetting[] = [...DEFAULT_SAFETY_SETTINGS];
 
     try {
       const configDocRef = firestore.collection('aiConfiguration').doc('dreamPromptSettings');
@@ -74,16 +74,6 @@ const generateDreamInterpretationFlow = ai.defineFlow(
         if (configData?.promptTemplate && typeof configData.promptTemplate === 'string' && configData.promptTemplate.trim() !== '') {
           promptTemplateToUse = configData.promptTemplate;
           console.log("Dream interpretation prompt template loaded from Firestore.");
-        }
-        if (configData?.safetySettings && Array.isArray(configData.safetySettings)) {
-           const validSafetySettings = configData.safetySettings.filter(
-            (setting: any): setting is SafetySetting =>
-              setting && typeof setting.category === 'string' && typeof setting.threshold === 'string'
-          );
-          if (validSafetySettings.length > 0) {
-            safetySettingsToUse = validSafetySettings;
-            console.log("Dream interpretation safety settings loaded from Firestore.");
-          }
         }
       }
     } catch (error) {
@@ -97,7 +87,7 @@ const generateDreamInterpretationFlow = ai.defineFlow(
         prompt: promptTemplateToUse,
         model: 'googleai/gemini-1.5-flash-latest',
         config: {
-          safetySettings: safetySettingsToUse.length > 0 ? safetySettingsToUse : undefined,
+          safetySettings: safetySettingsToUse,
         },
       });
 

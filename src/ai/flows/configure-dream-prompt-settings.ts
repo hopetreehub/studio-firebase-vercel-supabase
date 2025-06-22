@@ -18,26 +18,6 @@ const ConfigureDreamPromptSettingsInputSchema = z.object({
   promptTemplate: z
     .string()
     .describe('The new prompt template to use for generating dream interpretations.'),
-  safetySettings: z
-    .array(
-      z.object({
-        category: z.enum([
-          'HARM_CATEGORY_HATE_SPEECH',
-          'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-          'HARM_CATEGORY_HARASSMENT',
-          'HARM_CATEGORY_DANGEROUS_CONTENT',
-          'HARM_CATEGORY_CIVIC_INTEGRITY',
-        ]),
-        threshold: z.enum([
-          'BLOCK_LOW_AND_ABOVE',
-          'BLOCK_MEDIUM_AND_ABOVE',
-          'BLOCK_ONLY_HIGH',
-          'BLOCK_NONE',
-        ]),
-      })
-    )
-    .optional()
-    .describe('Optional safety settings to apply to the prompt.'),
 });
 export type ConfigureDreamPromptSettingsInput = z.infer<
   typeof ConfigureDreamPromptSettingsInputSchema
@@ -67,10 +47,10 @@ const configureDreamPromptSettingsFlow = ai.defineFlow(
     try {
       const settingsToSave = {
         promptTemplate: input.promptTemplate,
-        safetySettings: input.safetySettings || [],
       };
 
-      await firestore.collection('aiConfiguration').doc('dreamPromptSettings').set(settingsToSave);
+      // Use merge: true to avoid overwriting existing fields like safetySettings if they exist
+      await firestore.collection('aiConfiguration').doc('dreamPromptSettings').set(settingsToSave, { merge: true });
       
       console.log('Dream AI Prompt settings saved to Firestore:', settingsToSave);
 
