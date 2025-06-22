@@ -10,18 +10,18 @@ import {
   ConfigureDreamPromptSettingsInput,
 } from '@/ai/flows/configure-dream-prompt-settings';
 
-const SHORT_DEFAULT_PROMPT = `꿈 해몽 프롬프트를 여기에 입력하세요. {{{dreamDescription}}} 플레이스홀더를 사용하세요.`;
+const DEFAULT_PROMPT = `You are a dream interpreter. The user's dream is: {{{dreamDescription}}}`;
 
 export function DreamInterpretationConfigForm() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [promptTemplate, setPromptTemplate] = useState(SHORT_DEFAULT_PROMPT);
+  const [promptTemplate, setPromptTemplate] = useState(DEFAULT_PROMPT);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
-    if (promptTemplate.length < 10) {
+    if (promptTemplate.trim().length < 10) {
       toast({
         variant: 'destructive',
         title: '오류',
@@ -67,7 +67,7 @@ export function DreamInterpretationConfigForm() {
           className="min-h-[300px] bg-background/70 text-sm leading-relaxed"
         />
         <p className="text-sm text-muted-foreground">
-          `&#123;&#123;&#123;dreamDescription&#125;&#125;&#125;` 플레이스홀더를 사용하여 AI가 동적으로 꿈 내용을 채울 수 있도록 하세요.
+          &#96;&#123;&#123;&#123;dreamDescription&#125;&#125;&#125;&#96; 플레이스홀더를 사용하여 AI가 동적으로 꿈 내용을 채울 수 있도록 하세요.
         </p>
       </div>
       <Button
