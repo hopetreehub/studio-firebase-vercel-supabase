@@ -1,3 +1,4 @@
+
 // src/components/reading/TarotReadingClient.tsx
 'use client';
 
@@ -55,6 +56,8 @@ import {
   BookOpenText,
   Save,
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 import { useToast } from '@/hooks/use-toast';
 import { AnimatePresence, motion, useAnimation, LayoutGroup } from 'framer-motion';
@@ -637,7 +640,7 @@ export function TarotReadingClient() {
                   펼쳐진 카드 ({selectedCardsForReading.length}/{selectedSpread.numCards} 선택됨)
                 </h3>
                 <p className="text-sm text-muted-foreground" id="spread-instruction">
-                  {selectedSpread.description} 카드를 클릭하여 {selectedSpread.numCards}장 선택하세요.
+                  {selectedSpread.description} 카드를 클릭하여 ${selectedSpread.numCards}장 선택하세요.
                 </p>
               </div>
               <div
@@ -812,10 +815,9 @@ export function TarotReadingClient() {
                   </div>
                 )}
                 <div
-                  className="prose prose-lg max-w-none prose-headings:font-headline prose-headings:text-accent prose-headings:text-xl sm:prose-headings:text-2xl prose-headings:mb-3 prose-headings:mt-5 prose-p:text-foreground/90 prose-strong:text-primary/90 leading-relaxed"
-                  style={{ whiteSpace: 'pre-wrap' }}
+                  className="prose dark:prose-invert prose-lg max-w-none prose-headings:font-headline prose-headings:text-accent prose-headings:text-xl sm:prose-headings:text-2xl prose-headings:mb-3 prose-headings:mt-5 prose-p:text-foreground/90 prose-strong:text-primary/90 leading-relaxed"
                 >
-                  {displayedInterpretation}
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayedInterpretation}</ReactMarkdown>
                 </div>
               </div>
               <AlertDialogFooter className="mt-4 pt-4 border-t flex-col sm:flex-row gap-2">

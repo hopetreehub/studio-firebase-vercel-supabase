@@ -10,6 +10,8 @@ import type { Metadata, ResolvingMetadata } from 'next';
 import { notFound } from 'next/navigation';
 import { format } from 'date-fns';
 import Script from 'next/script'; // For JSON-LD
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 type Props = {
   params: { slug: string };
@@ -170,11 +172,10 @@ export default async function BlogPostPage({ params }: Props) {
             </div>
           )}
 
-          <div 
-            className="p-6 sm:p-8 prose prose-lg max-w-none text-foreground/80 prose-headings:text-primary prose-headings:font-headline prose-a:text-accent hover:prose-a:text-accent/80 prose-strong:text-primary/90"
-            style={{ whiteSpace: 'pre-line' }} // Changed for better newline handling
+          <div
+            className="p-6 sm:p-8 prose dark:prose-invert prose-lg max-w-none prose-headings:text-primary prose-headings:font-headline prose-a:text-accent hover:prose-a:text-accent/80 prose-strong:text-primary/90"
           >
-           <div dangerouslySetInnerHTML={{ __html: post.content }} />
+           <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
           </div>
         </article>
 

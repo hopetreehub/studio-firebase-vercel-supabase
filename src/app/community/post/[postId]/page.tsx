@@ -11,6 +11,8 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 type Props = {
   params: { postId: string };
@@ -111,11 +113,10 @@ export default async function CommunityPostPage({ params }: Props) {
         )}
 
         <CardContent className="pt-6">
-          <div 
-            className="prose prose-lg max-w-none text-foreground/80 prose-headings:text-primary prose-headings:font-headline prose-a:text-accent hover:prose-a:text-accent/80 prose-strong:text-primary/90"
-            style={{ whiteSpace: 'pre-line' }}
+          <div
+            className="prose dark:prose-invert prose-lg max-w-none prose-headings:text-primary prose-headings:font-headline prose-a:text-accent hover:prose-a:text-accent/80 prose-strong:text-primary/90"
           >
-            {post.content}
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
           </div>
         </CardContent>
       </Card>
