@@ -95,7 +95,7 @@ const generateDreamInterpretationFlow = ai.defineFlow(
         name: 'generateDreamInterpretationRuntimePrompt',
         input: { schema: GenerateDreamInterpretationInputSchema },
         prompt: promptTemplateToUse,
-        model: 'googleai/gemini-2.0-flash',
+        model: 'googleai/gemini-1.5-flash-latest',
         config: {
           safetySettings: safetySettingsToUse.length > 0 ? safetySettingsToUse : undefined,
         },
