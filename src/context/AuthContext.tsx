@@ -25,10 +25,30 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<AppUser | null>(null);
-  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  // NOTE: This is a temporary setup for development to bypass login.
+  const mockUser: AppUser = {
+    uid: 'dev-user-01',
+    email: 'dev@example.com',
+    displayName: '개발자 계정',
+    photoURL: null,
+    role: 'admin',
+  };
+  const mockFirebaseUser = {
+    uid: 'dev-user-01',
+    email: 'dev@example.com',
+    displayName: '개발자 계정',
+    photoURL: null,
+    metadata: {
+      creationTime: new Date().toISOString(),
+      lastSignInTime: new Date().toISOString(),
+    },
+  } as FirebaseUser;
 
+  const [user, setUser] = useState<AppUser | null>(mockUser);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(mockFirebaseUser);
+  const [loading, setLoading] = useState(false);
+
+  /* --- Original Auth Logic - Commented out for development ---
   useEffect(() => {
     if (auth) {
       const unsubscribe = onAuthStateChanged(auth, async (currentFirebaseUser) => {
@@ -75,6 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       </div>
     );
   }
+  */
 
   return (
     <AuthContext.Provider value={{ user, firebaseUser, loading }}>
