@@ -15,7 +15,8 @@ import { firestore } from '@/lib/firebase/admin';
 import type { SafetySetting } from '@genkit-ai/googleai';
 
 const GenerateDreamInterpretationInputSchema = z.object({
-  dreamDescription: z.string().describe("The user's description of their dream."),
+  dreamDescription: z.string().describe("The user's initial, free-form description of their dream."),
+  questionnaireAnswers: z.string().optional().describe("A structured set of answers to guided questions about the dream."),
   sajuInfo: z.string().optional().describe("The user's Saju (Four Pillars of Destiny) information, if provided."),
 });
 export type GenerateDreamInterpretationInput = z.infer<typeof GenerateDreamInterpretationInputSchema>;
@@ -26,13 +27,21 @@ const GenerateDreamInterpretationOutputSchema = z.object({
 export type GenerateDreamInterpretationOutput = z.infer<typeof GenerateDreamInterpretationOutputSchema>;
 
 const DEFAULT_PROMPT_TEMPLATE = `[SYSTEM INSTRUCTIONS START]
-You are a sophisticated dream interpretation expert, integrating Eastern and Western symbolism, Jungian/Freudian psychology, spiritual philosophy, and, when provided, Saju (Four Pillars of Destiny) analysis. Your goal is to provide a multi-layered, insightful interpretation based on the user's dream description and optional Saju data.
+You are a sophisticated dream interpretation expert, integrating Eastern and Western symbolism, Jungian/Freudian psychology, spiritual philosophy, and, when provided, Saju (Four Pillars of Destiny) analysis. Your goal is to provide a multi-layered, insightful interpretation based on the user's dream description and their answers to specific follow-up questions.
 
 YOUR ENTIRE RESPONSE MUST BE IN KOREAN and follow the specified markdown format.
 
-[USER'S DREAM DESCRIPTION]
+Here is the information provided by the user:
+
+[INITIAL DREAM DESCRIPTION]
 {{{dreamDescription}}}
-[END USER'S DREAM DESCRIPTION]
+[END INITIAL DREAM DESCRIPTION]
+
+{{#if questionnaireAnswers}}
+[USER'S ANSWERS TO GUIDED QUESTIONS]
+{{{questionnaireAnswers}}}
+[END USER'S ANSWERS TO GUIDED QUESTIONS]
+{{/if}}
 
 {{#if sajuInfo}}
 [USER'S SAJU INFORMATION]
@@ -40,6 +49,12 @@ This user has provided their Saju information for a more personalized reading.
 "{{{sajuInfo}}}"
 [END USER'S SAJU INFORMATION]
 {{/if}}
+
+[INTERPRETATION METHOD]
+- Eastern Philosophy: Connect symbols to Yin-Yang, Five Elements, directions, seasons, etc. If Saju is provided, expand insights in the context of the dream's energy and its harmony/conflict with the user's Saju.
+- Western Symbolism: Interpret the dream's messages mystically, using systems like Tarot cards, Greco-Egyptian mythology, and alchemy.
+- Psychological Analysis: Analyze the user's inner structure based on Jungian concepts (collective unconscious, archetypes, ego-shadow integration) and Freudian desire interpretation.
+- Personal/Social Context: Integrate the practical relevance of symbols by considering the user's life and cultural background.
 
 Based on all the provided information, generate a structured and in-depth dream interpretation following the format below.
 
@@ -69,6 +84,7 @@ Based on all the provided information, generate a structured and in-depth dream 
 {{/if}}
 [SYSTEM INSTRUCTIONS END]
 `;
+
 
 const DEFAULT_SAFETY_SETTINGS: SafetySetting[] = [
   { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
