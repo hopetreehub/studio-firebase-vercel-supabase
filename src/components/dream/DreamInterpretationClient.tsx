@@ -7,12 +7,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { generateDreamInterpretation } from '@/ai/flows/generate-dream-interpretation';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2, Info } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
+import Link from 'next/link';
 
 export function DreamInterpretationClient() {
+  const { user } = useAuth();
   const [dreamDescription, setDreamDescription] = useState<string>('');
   const [interpretation, setInterpretation] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -31,7 +34,10 @@ export function DreamInterpretationClient() {
     setInterpretation('');
 
     try {
-      const result = await generateDreamInterpretation({ dreamDescription });
+      const result = await generateDreamInterpretation({ 
+        dreamDescription,
+        sajuInfo: user?.sajuInfo,
+      });
       setInterpretation(result.interpretation);
     } catch (error) {
       console.error('꿈 해석 생성 오류:', error);
@@ -70,6 +76,24 @@ export function DreamInterpretationClient() {
               disabled={isLoading}
             />
           </div>
+          {user?.sajuInfo && (
+            <div className="flex items-start rounded-md border border-primary/20 bg-primary/5 p-3 text-sm text-primary/80">
+              <Info className="mr-2.5 mt-0.5 h-4 w-4 shrink-0" />
+              <p>프로필에 저장된 사주 정보를 바탕으로 더 개인화된 해석을 제공합니다.</p>
+            </div>
+          )}
+          {!user?.sajuInfo && user && (
+            <div className="flex items-start rounded-md border border-accent/20 bg-accent/5 p-3 text-sm text-accent/80">
+              <Info className="mr-2.5 mt-0.5 h-4 w-4 shrink-0" />
+              <p>
+                더 깊이 있는 해석을 원하시나요?{' '}
+                <Link href="/profile" className="font-semibold underline hover:text-accent">
+                  프로필
+                </Link>
+                에 사주 정보를 추가해보세요.
+              </p>
+            </div>
+          )}
           <Button onClick={handleGetInterpretation} disabled={isLoading || !dreamDescription} size="lg" className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground">
             {isLoading ? (
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />

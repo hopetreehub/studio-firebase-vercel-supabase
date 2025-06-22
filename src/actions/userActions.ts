@@ -3,6 +3,8 @@
 
 import { admin, firestore } from '@/lib/firebase/admin';
 import type { UserRecord } from 'firebase-admin/auth';
+import type { UserProfileFormData } from '@/types';
+import { UserProfileFormSchema } from '@/types';
 
 export interface AppUser {
   uid: string;
@@ -12,7 +14,75 @@ export interface AppUser {
   creationTime?: string;
   lastSignInTime?: string;
   role?: string; 
+  birthDate?: string;
+  sajuInfo?: string;
 }
+
+export async function getUserProfile(uid: string): Promise<AppUser | null> {
+  try {
+    const userRecord = await admin.auth().getUser(uid);
+    const profileDoc = await firestore.collection('profiles').doc(uid).get();
+
+    let role = 'user'; // Default role
+    if (userRecord.customClaims && userRecord.customClaims.role) {
+      role = userRecord.customClaims.role as string;
+    }
+
+    const appUser: AppUser = {
+      uid: userRecord.uid,
+      email: userRecord.email,
+      displayName: userRecord.displayName,
+      photoURL: userRecord.photoURL,
+      creationTime: userRecord.metadata.creationTime,
+      lastSignInTime: userRecord.metadata.lastSignInTime,
+      role: role,
+    };
+
+    if (profileDoc.exists) {
+      const profileData = profileDoc.data();
+      appUser.birthDate = profileData?.birthDate || '';
+      appUser.sajuInfo = profileData?.sajuInfo || '';
+    }
+
+    return appUser;
+
+  } catch (error: any) {
+     if (error.code === 'auth/user-not-found') {
+      return null;
+    }
+    console.error('Error getting user profile:', error);
+    return null;
+  }
+}
+
+export async function updateUserProfile(uid: string, data: UserProfileFormData): Promise<{ success: boolean; message: string }> {
+  const validation = UserProfileFormSchema.safeParse(data);
+  if (!validation.success) {
+    return { success: false, message: '유효하지 않은 데이터입니다.' };
+  }
+
+  const { displayName, birthDate, sajuInfo } = validation.data;
+
+  try {
+    // Update Firebase Auth profile
+    await admin.auth().updateUser(uid, {
+      displayName,
+    });
+
+    // Update Firestore profile document
+    await firestore.collection('profiles').doc(uid).set({
+      birthDate: birthDate || '',
+      sajuInfo: sajuInfo || '',
+    }, { merge: true });
+
+    return { success: true, message: '프로필이 성공적으로 업데이트되었습니다.' };
+
+  } catch (error: any) {
+    console.error('Error updating user profile:', error);
+    return { success: false, message: `프로필 업데이트 중 오류가 발생했습니다: ${error.message}` };
+  }
+}
+
 
 export async function listFirebaseUsers(
   limit: number = 100,
@@ -20,11 +90,8 @@ export async function listFirebaseUsers(
 ): Promise<{ users: AppUser[]; nextPageToken?: string; error?: string }> {
   try {
     const listUsersResult = await admin.auth().listUsers(limit, pageToken);
-    const users: AppUser[] = listUsersResult.users.map((userRecord: UserRecord) => {
-      let role = '사용자'; // Default role
-      if (userRecord.customClaims && userRecord.customClaims.role) {
-        role = userRecord.customClaims.role as string;
-      }
+    const users: AppUser[] = await Promise.all(listUsersResult.users.map(async (userRecord: UserRecord) => {
+      const profile = await getUserProfile(userRecord.uid);
       return {
         uid: userRecord.uid,
         email: userRecord.email,
@@ -32,9 +99,11 @@ export async function listFirebaseUsers(
         photoURL: userRecord.photoURL,
         creationTime: userRecord.metadata.creationTime,
         lastSignInTime: userRecord.metadata.lastSignInTime,
-        role: role,
+        role: profile?.role || 'user',
+        birthDate: profile?.birthDate,
+        sajuInfo: profile?.sajuInfo,
       };
-    });
+    }));
     return {
       users,
       nextPageToken: listUsersResult.pageToken,
@@ -50,16 +119,6 @@ export async function listFirebaseUsers(
 
 export async function changeUserRole(uid: string, newRole: string): Promise<{ success: boolean, message: string }> {
   console.log(`(SIMULATION) Role change requested for UID: ${uid} to new role: '${newRole}'.`);
-  
-  // --- 중요 알림 ---
-  // 이 함수는 현재 시뮬레이션으로만 작동합니다.
-  // 실제 프로덕션 환경에서 사용자 역할을 변경하려면 Firebase Admin SDK를 사용하여
-  // Firebase Functions (또는 다른 보안 백엔드 환경)에서
-  // admin.auth().setCustomUserClaims(uid, { role: newRole }); 와 같이 호출해야 합니다.
-  // Custom Claims는 Firebase Auth 토큰에 포함되어 클라이언트 및 보안 규칙에서 역할을 확인할 수 있게 합니다.
-  // Firestore에 'user_roles' 같은 별도 컬렉션을 두어 역할을 관리할 수도 있지만,
-  // Auth Custom Claims가 역할 관리의 주요 권장 방식입니다.
-  // -----------------
   
   await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate backend operation delay
 

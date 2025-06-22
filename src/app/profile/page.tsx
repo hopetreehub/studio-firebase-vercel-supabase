@@ -6,22 +6,21 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { UserCircle, Edit3, KeyRound, ShieldCheck, Eye, EyeOff, BookHeart, Trash2, AlertTriangle, Search } from 'lucide-react';
+import { UserCircle, Edit3, KeyRound, ShieldCheck, Eye, EyeOff, BookHeart, Trash2, AlertTriangle, Search, Calendar, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Spinner } from '@/components/ui/spinner';
 import { 
-  updateProfile as firebaseUpdateProfile, 
   reauthenticateWithCredential,
   EmailAuthProvider,
   updatePassword as firebaseUpdatePassword,
 } from 'firebase/auth';
 import { auth as firebaseAuth } from '@/lib/firebase/client';
 import { useToast } from '@/hooks/use-toast';
-import type { User } from 'firebase/auth';
 import type { SavedReading, SavedReadingCard } from '@/types';
-import { getUserReadings, deleteUserReading } from '@/actions/readingActions';
+import { getUserReadings, deleteUserReading, updateUserProfile } from '@/actions/userActions';
 import Image from 'next/image';
 import {
   AlertDialog,
@@ -43,11 +42,13 @@ const IMAGE_ORIGINAL_HEIGHT_SMALL = 173; // Aspect ratio: 275/475 * 100
 const CARD_IMAGE_SIZES_PROFILE = "80px";
 
 export default function ProfilePage() {
-  const { user, firebaseUser, loading: authLoading } = useAuth();
+  const { user, firebaseUser, loading: authLoading, refreshUser } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   
   const [displayName, setDisplayName] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [sajuInfo, setSajuInfo] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -66,7 +67,12 @@ export default function ProfilePage() {
   const [readingToDelete, setReadingToDelete] = useState<SavedReading | null>(null);
   const [isDeletingReading, setIsDeletingReading] = useState(false);
 
-
+  useEffect(() => {
+    if (!authLoading && !firebaseUser) {
+      router.push('/sign-in?redirect=/profile');
+    }
+  }, [firebaseUser, authLoading, router]);
+  
   useEffect(() => {
     const fetchReadings = async (userId: string) => {
       setLoadingReadings(true);
@@ -75,27 +81,36 @@ export default function ProfilePage() {
       setLoadingReadings(false);
     };
 
-    if (!authLoading && !firebaseUser) {
-      router.push('/sign-in?redirect=/profile');
+    if (user) {
+      setDisplayName(user.displayName || '');
+      setBirthDate(user.birthDate || '');
+      setSajuInfo(user.sajuInfo || '');
+      fetchReadings(user.uid);
     }
-    if (firebaseUser) {
-      setDisplayName(firebaseUser.displayName || '');
-      fetchReadings(firebaseUser.uid);
-    }
-  }, [firebaseUser, authLoading, router]);
+  }, [user]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firebaseUser) return;
+    if (!user) return;
     setIsUpdating(true);
-    try {
-      await firebaseUpdateProfile(firebaseUser, { displayName });
-      toast({ title: '성공', description: '프로필이 업데이트되었습니다.' });
+    const result = await updateUserProfile(user.uid, { displayName, birthDate, sajuInfo });
+    
+    if (result.success) {
+      toast({ title: '성공', description: result.message });
       setIsEditing(false);
-    } catch (error: any) {
-      toast({ variant: 'destructive', title: '오류', description: `프로필 업데이트 실패: ${error.message}` });
-    } finally {
-      setIsUpdating(false);
+      refreshUser(); // Refresh user data in context
+    } else {
+      toast({ variant: 'destructive', title: '오류', description: result.message });
+    }
+    setIsUpdating(false);
+  };
+  
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    if (user) {
+      setDisplayName(user.displayName || '');
+      setBirthDate(user.birthDate || '');
+      setSajuInfo(user.sajuInfo || '');
     }
   };
 
@@ -155,7 +170,7 @@ export default function ProfilePage() {
   };
 
 
-  if (authLoading || !firebaseUser) {
+  if (authLoading || !user) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
         <Spinner size="large" />
@@ -176,56 +191,94 @@ export default function ProfilePage() {
           <div className="flex justify-between items-center">
             <CardTitle className="font-headline text-2xl text-primary">계정 정보</CardTitle>
             {!isEditing && !showPasswordChangeForm && (
-              <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)} aria-label="닉네임 수정">
+              <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)} aria-label="프로필 수정">
                 <Edit3 className="h-5 w-5" />
               </Button>
             )}
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center space-x-4">
-            <Avatar className="h-20 w-20 border-2 border-primary">
-              <AvatarImage src={firebaseUser.photoURL || undefined} alt={firebaseUser.displayName || 'User'} />
-              <AvatarFallback className="text-2xl bg-primary/20 text-primary">
-                {(displayName || firebaseUser.email?.charAt(0) || 'U').toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              {isEditing ? (
-                <form onSubmit={handleUpdateProfile} className="space-y-2">
-                  <Label htmlFor="displayNameInput" className="sr-only">닉네임</Label>
-                  <Input 
-                    id="displayNameInput" 
-                    value={displayName} 
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="닉네임"
-                    className="text-lg font-semibold"
-                  />
-                   <div className="flex gap-2">
-                    <Button type="submit" size="sm" disabled={isUpdating}>
-                      {isUpdating && <Spinner size="small" className="mr-2" />}
-                      {isUpdating ? '저장 중...' : '저장'}
-                    </Button>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => { setIsEditing(false); setDisplayName(firebaseUser.displayName || '');}}>
-                      취소
-                    </Button>
-                   </div>
-                </form>
-              ) : (
-                <p className="text-2xl font-semibold text-foreground">{displayName || '닉네임 없음'}</p>
-              )}
-              <p className="text-muted-foreground">{firebaseUser.email}</p>
+        <CardContent>
+          <form onSubmit={handleUpdateProfile} className="space-y-6">
+            <div className="flex items-center space-x-4">
+              <Avatar className="h-20 w-20 border-2 border-primary">
+                <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
+                <AvatarFallback className="text-2xl bg-primary/20 text-primary">
+                  {(displayName || user.email?.charAt(0) || 'U').toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-grow">
+                {isEditing ? (
+                  <div className="space-y-2">
+                     <Label htmlFor="displayNameInput">닉네임</Label>
+                     <Input 
+                       id="displayNameInput" 
+                       value={displayName} 
+                       onChange={(e) => setDisplayName(e.target.value)}
+                       placeholder="닉네임"
+                     />
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-2xl font-semibold text-foreground">{displayName || '닉네임 없음'}</p>
+                    <p className="text-muted-foreground">{user.email}</p>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-          <Separator />
-          <div>
-            <Label className="text-sm font-medium text-muted-foreground">계정 생성일</Label>
-            <p className="text-foreground">{firebaseUser.metadata.creationTime ? new Date(firebaseUser.metadata.creationTime).toLocaleDateString('ko-KR') : '정보 없음'}</p>
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-muted-foreground">마지막 로그인</Label>
-            <p className="text-foreground">{firebaseUser.metadata.lastSignInTime ? new Date(firebaseUser.metadata.lastSignInTime).toLocaleDateString('ko-KR') : '정보 없음'}</p>
-          </div>
+            
+            <Separator />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="birthDateInput" className="text-sm font-medium text-muted-foreground flex items-center mb-2">
+                    <Calendar className="mr-2 h-4 w-4"/> 생년월일
+                  </Label>
+                  {isEditing ? (
+                     <Input 
+                       id="birthDateInput" 
+                       value={birthDate} 
+                       onChange={(e) => setBirthDate(e.target.value)}
+                       placeholder="예: 1990-01-01"
+                     />
+                  ) : (
+                    <p className="text-foreground h-10 flex items-center">{birthDate || '정보 없음'}</p>
+                  )}
+                </div>
+                <div>
+                   <Label className="text-sm font-medium text-muted-foreground">계정 생성일</Label>
+                   <p className="text-foreground h-10 flex items-center">{firebaseUser?.metadata.creationTime ? new Date(firebaseUser.metadata.creationTime).toLocaleDateString('ko-KR') : '정보 없음'}</p>
+                </div>
+            </div>
+
+            <div>
+              <Label htmlFor="sajuInfoInput" className="text-sm font-medium text-muted-foreground flex items-center mb-2">
+                <Sparkles className="mr-2 h-4 w-4"/> 사주 정보
+              </Label>
+              {isEditing ? (
+                 <Textarea 
+                   id="sajuInfoInput"
+                   value={sajuInfo}
+                   onChange={(e) => setSajuInfo(e.target.value)}
+                   placeholder="꿈 해석의 정확도를 높이기 위해 사주 정보를 입력할 수 있습니다. (예: 양력 1990년 1월 1일 오전 10시, 서울 출생)"
+                   className="min-h-[80px]"
+                 />
+              ) : (
+                <p className="text-foreground min-h-[80px] text-sm bg-muted/30 p-3 rounded-md whitespace-pre-wrap">{sajuInfo || '정보 없음'}</p>
+              )}
+            </div>
+
+            {isEditing && (
+              <div className="flex gap-2 justify-end">
+                <Button type="button" variant="ghost" onClick={handleCancelEdit}>
+                  취소
+                </Button>
+                <Button type="submit" disabled={isUpdating}>
+                  {isUpdating && <Spinner size="small" className="mr-2" />}
+                  {isUpdating ? '저장 중...' : '프로필 저장'}
+                </Button>
+              </div>
+            )}
+          </form>
         </CardContent>
       </Card>
 

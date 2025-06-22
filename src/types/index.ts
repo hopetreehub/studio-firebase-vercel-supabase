@@ -196,3 +196,11 @@ export const ApiCommunityCombinedPayloadSchema = z.discriminatedUnion("category"
     ApiReadingSharePostPayloadSchema
 ]);
 export type ApiCommunityCombinedPayload = z.infer<typeof ApiCommunityCombinedPayloadSchema>;
+
+// User Profile Update
+export const UserProfileFormSchema = z.object({
+  displayName: z.string().min(2, { message: '닉네임은 최소 2자 이상이어야 합니다.' }).max(50, { message: '닉네임은 최대 50자까지 가능합니다.' }),
+  birthDate: z.string().optional(),
+  sajuInfo: z.string().optional(),
+});
+export type UserProfileFormData = z.infer<typeof UserProfileFormSchema>;
