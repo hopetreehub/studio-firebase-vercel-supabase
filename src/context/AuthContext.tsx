@@ -6,18 +6,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
 import { Spinner } from '@/components/ui/spinner';
-import { getUserProfile } from '@/actions/userActions';
-
-// A more useful user object for the app, including the role and profile data
-export interface AppUser {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-  photoURL: string | null;
-  role: 'admin' | 'user';
-  birthDate?: string;
-  sajuInfo?: string;
-}
+import { getUserProfile, type AppUser } from '@/actions/userActions';
 
 interface AuthContextType {
   user: AppUser | null;
@@ -29,37 +18,15 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  // NOTE: This is a temporary setup for development to bypass login.
-  const mockUser: AppUser = {
-    uid: 'dev-user-01',
-    email: 'dev@example.com',
-    displayName: '개발자 계정',
-    photoURL: null,
-    role: 'admin',
-    birthDate: '1990-01-01',
-    sajuInfo: '이곳에 사주 정보 예시를 입력합니다. 예를 들어, 갑자일주, 식신격 등.',
-  };
-  const mockFirebaseUser = {
-    uid: 'dev-user-01',
-    email: 'dev@example.com',
-    displayName: '개발자 계정',
-    photoURL: null,
-    metadata: {
-      creationTime: new Date().toISOString(),
-      lastSignInTime: new Date().toISOString(),
-    },
-  } as FirebaseUser;
-
-  const [user, setUser] = useState<AppUser | null>(mockUser);
-  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(mockFirebaseUser);
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+  const [loading, setLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const refreshUser = () => {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  /* --- Original Auth Logic - Commented out for development ---
   useEffect(() => {
     if (auth) {
       const unsubscribe = onAuthStateChanged(auth, async (currentFirebaseUser) => {
@@ -71,7 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (profile) {
              setUser(profile);
           } else {
-            // Fallback for when profile doc doesn't exist yet
+            // Fallback for when profile doc doesn't exist yet for a new user
             setUser({
               uid: currentFirebaseUser.uid,
               email: currentFirebaseUser.email,
@@ -88,10 +55,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       return () => unsubscribe();
     } else {
+      // If firebase auth is not configured, stop loading and set user to null
       setLoading(false);
+      setUser(null);
+      setFirebaseUser(null);
     }
-  }, [refreshTrigger]); // re-run on refresh
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger]);
 
+  // While waiting for the initial auth state, show a loader
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -99,7 +71,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       </div>
     );
   }
-  */
 
   return (
     <AuthContext.Provider value={{ user, firebaseUser, loading, refreshUser }}>
