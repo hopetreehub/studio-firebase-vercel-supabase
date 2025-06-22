@@ -10,6 +10,12 @@ import { CommunityPostFormSchema, CommunityPostFormData, ReadingSharePostFormDat
 // Helper to map Firestore doc to CommunityPost type
 function mapDocToCommunityPost(doc: FirebaseFirestore.DocumentSnapshot): CommunityPost {
   const data = doc.data()!;
+  const createdAtTimestamp = data.createdAt as Timestamp;
+  const updatedAtTimestamp = data.updatedAt as Timestamp;
+
+  const createdAt = createdAtTimestamp ? createdAtTimestamp.toDate() : new Date();
+  const updatedAt = updatedAtTimestamp ? updatedAtTimestamp.toDate() : createdAt;
+
   return {
     id: doc.id,
     authorId: data.authorId,
@@ -22,8 +28,8 @@ function mapDocToCommunityPost(doc: FirebaseFirestore.DocumentSnapshot): Communi
     category: data.category || 'free-discussion',
     readingQuestion: data.readingQuestion || '',
     cardsInfo: data.cardsInfo || '',
-    createdAt: (data.createdAt as Timestamp).toDate(),
-    updatedAt: (data.updatedAt as Timestamp).toDate(),
+    createdAt: createdAt,
+    updatedAt: updatedAt,
   };
 }
 

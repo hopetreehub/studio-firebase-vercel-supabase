@@ -84,7 +84,7 @@ export async function getUserReadings(userId: string): Promise<SavedReading[]> {
         spreadNumCards: data.spreadNumCards,
         drawnCards: data.drawnCards as SavedReadingCard[],
         interpretationText: data.interpretationText,
-        createdAt: createdAtTimestamp.toDate(),
+        createdAt: createdAtTimestamp ? createdAtTimestamp.toDate() : new Date(),
       } as SavedReading;
     });
   } catch (error) {
