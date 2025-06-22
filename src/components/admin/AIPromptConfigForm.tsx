@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Trash2, PlusCircle, Loader2 } from 'lucide-react';
 
 import { useToast } from '@/hooks/use-toast';
@@ -182,156 +182,145 @@ export function AIPromptConfigForm() {
   };
 
   return (
-    <Card className="shadow-lg border-primary/10">
-      <CardHeader>
-        <CardTitle className="font-headline text-2xl text-primary">
-          AI 설정
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="promptTemplate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-lg font-semibold text-foreground/90">
-                    프롬프트 템플릿
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder="AI 프롬프트 템플릿을 입력하세요…"
-                      className="min-h-[300px] bg-background/70 text-sm leading-relaxed"
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    {
-                      '`{{{question}}}`, `{{{cardSpread}}}`, `{{{cardInterpretations}}}`와 같은 플레이스홀더를 사용하여 AI가 동적으로 내용을 채울 수 있도록 하세요. `{{{question}}}`에는 사용자가 선택한 해석 스타일 정보가 포함될 수 있습니다 (예: "저의 직업운은 어떤가요? (해석 스타일: 실질적 행동 지침)"). AI가 이 스타일을 인지하고 응답에 반영하도록 프롬프트에 명시하세요. 이 템플릿은 AI가 생성하는 타로 해석의 스타일과 내용을 결정합니다. AI가 사용자 정보를 반복하지 않도록 명확한 지침을 사용하세요.'
-                    }
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div>
-              <FormLabel className="mb-2 block text-lg font-semibold text-foreground/90">
-                안전 설정 (Safety Settings)
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="promptTemplate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-semibold text-foreground/90">
+                프롬프트 템플릿
               </FormLabel>
-              <FormDescription className="mb-4">
-                AI가 생성하는 콘텐츠의 유해성 차단 수준을 설정합니다. 각 카테고리별로 차단 임계값을 선택할 수 있습니다.
+              <FormControl>
+                <Textarea
+                  {...field}
+                  placeholder="AI 프롬프트 템플릿을 입력하세요…"
+                  className="min-h-[300px] bg-background/70 text-sm leading-relaxed"
+                />
+              </FormControl>
+              <FormDescription>
+                {
+                  '`{{{question}}}`, `{{{cardSpread}}}`, `{{{cardInterpretations}}}`와 같은 플레이스홀더를 사용하여 AI가 동적으로 내용을 채울 수 있도록 하세요. `{{{question}}}`에는 사용자가 선택한 해석 스타일 정보가 포함될 수 있습니다 (예: "저의 직업운은 어떤가요? (해석 스타일: 실질적 행동 지침)"). AI가 이 스타일을 인지하고 응답에 반영하도록 프롬프트에 명시하세요. 이 템플릿은 AI가 생성하는 타로 해석의 스타일과 내용을 결정합니다. AI가 사용자 정보를 반복하지 않도록 명확한 지침을 사용하세요.'
+                }
               </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-              {fields.map((item, index) => (
-                <Card
-                  key={item.id}
-                  className="mb-4 border-border/50 bg-card p-4"
-                >
-                  <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name={`safetySettings.${index}.category`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>카테고리</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="카테고리 선택" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {harmCategories.map((cat) => (
-                                <SelectItem key={cat} value={cat}>
-                                  {cat
-                                    .replace('HARM_CATEGORY_', '')
-                                    .replaceAll('_', ' ')}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+        <div>
+          <FormLabel className="mb-2 block text-lg font-semibold text-foreground/90">
+            안전 설정 (Safety Settings)
+          </FormLabel>
+          <FormDescription className="mb-4">
+            AI가 생성하는 콘텐츠의 유해성 차단 수준을 설정합니다. 각 카테고리별로 차단 임계값을 선택할 수 있습니다.
+          </FormDescription>
 
-                    <FormField
-                      control={form.control}
-                      name={`safetySettings.${index}.threshold`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>임계값</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="임계값 선택" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {harmThresholds.map((thr) => (
-                                <SelectItem key={thr} value={thr}>
-                                  {thr.replaceAll('_', ' ')}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+          {fields.map((item, index) => (
+            <Card
+              key={item.id}
+              className="mb-4 border-border/50 bg-card p-4"
+            >
+              <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name={`safetySettings.${index}.category`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>카테고리</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="카테고리 선택" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {harmCategories.map((cat) => (
+                            <SelectItem key={cat} value={cat}>
+                              {cat
+                                .replace('HARM_CATEGORY_', '')
+                                .replaceAll('_', ' ')}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => remove(index)}
-                    className="mt-4"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    설정 제거
-                  </Button>
-                </Card>
-              ))}
+                <FormField
+                  control={form.control}
+                  name={`safetySettings.${index}.threshold`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>임계값</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="임계값 선택" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {harmThresholds.map((thr) => (
+                            <SelectItem key={thr} value={thr}>
+                              {thr.replaceAll('_', ' ')}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <Button
                 type="button"
-                variant="outline"
+                variant="destructive"
                 size="sm"
-                onClick={() =>
-                  append({
-                    category: 'HARM_CATEGORY_HATE_SPEECH', 
-                    threshold: 'BLOCK_MEDIUM_AND_ABOVE', 
-                  })
-                }
-                className="mt-2 border-dashed border-accent text-accent hover:bg-accent/10 hover:text-accent"
+                onClick={() => remove(index)}
+                className="mt-4"
               >
-                <PlusCircle className="mr-2 h-4 w-4" />
-                안전 설정 추가
+                <Trash2 className="mr-2 h-4 w-4" />
+                설정 제거
               </Button>
-            </div>
+            </Card>
+          ))}
 
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-              {loading ? '저장 중…' : 'AI 설정 저장'}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              append({
+                category: 'HARM_CATEGORY_HATE_SPEECH', 
+                threshold: 'BLOCK_MEDIUM_AND_ABOVE', 
+              })
+            }
+            className="mt-2 border-dashed border-accent text-accent hover:bg-accent/10 hover:text-accent"
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            안전 설정 추가
+          </Button>
+        </div>
+
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full py-3 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
+          {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+          {loading ? '저장 중…' : 'AI 설정 저장'}
+        </Button>
+      </form>
+    </Form>
   );
 }
-

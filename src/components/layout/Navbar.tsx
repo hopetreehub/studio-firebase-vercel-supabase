@@ -14,6 +14,7 @@ import { useAuth } from '@/context/AuthContext';
 const baseNavItems = [
   { href: '/', label: '홈' },
   { href: '/reading', label: '타로리딩' },
+  { href: '/dream-interpretation', label: '꿈해몽' },
   { href: '/encyclopedia', label: '카드 백과' },
   { href: '/blog', label: '블로그' },
   { href: '/community', label: '커뮤니티' },

@@ -5,12 +5,13 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { AIPromptConfigForm } from '@/components/admin/AIPromptConfigForm';
+import { DreamInterpretationConfigForm } from '@/components/admin/DreamInterpretationConfigForm';
 import { BlogManagementForm } from '@/components/admin/BlogManagementForm';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { SystemManagement } from '@/components/admin/SystemManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Cog, FileText, Users, ShieldCheck, ListChecks, Edit, Trash2, AlertTriangle } from 'lucide-react';
+import { Cog, FileText, Users, ShieldCheck, ListChecks, Edit, Trash2, AlertTriangle, MoonStar } from 'lucide-react';
 import { getAllPosts, deleteBlogPost } from '@/actions/blogActions'; 
 import type { BlogPost } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -201,10 +202,13 @@ export default function AdminDashboardPage() {
         </p>
       </header>
 
-      <Tabs defaultValue="blog-management" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6">
-          <TabsTrigger value="ai-config" className="text-sm sm:text-base">
-            <Cog className="mr-1.5 h-4 w-4 sm:mr-2 sm:h-5 sm:w-5" /> AI 설정
+      <Tabs defaultValue="tarot-ai-config" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 mb-6">
+          <TabsTrigger value="tarot-ai-config" className="text-sm sm:text-base">
+            <Cog className="mr-1.5 h-4 w-4 sm:mr-2 sm:h-5 sm:w-5" /> 타로 AI
+          </TabsTrigger>
+          <TabsTrigger value="dream-ai-config" className="text-sm sm:text-base">
+            <MoonStar className="mr-1.5 h-4 w-4 sm:mr-2 sm:h-5 sm:w-5" /> 꿈해몽 AI
           </TabsTrigger>
           <TabsTrigger value="blog-management" className="text-sm sm:text-base">
             <FileText className="mr-1.5 h-4 w-4 sm:mr-2 sm:h-5 sm:w-5" /> 블로그 관리
@@ -217,11 +221,11 @@ export default function AdminDashboardPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="ai-config">
+        <TabsContent value="tarot-ai-config">
           <Card className="shadow-lg border-primary/10">
             <CardHeader>
               <CardTitle className="font-headline text-2xl text-primary flex items-center">
-                <Cog className="mr-2 h-6 w-6" /> AI 프롬프트 및 안전 설정
+                <Cog className="mr-2 h-6 w-6" /> 타로 AI 프롬프트 및 안전 설정
               </CardTitle>
               <CardDescription>
                 타로 해석 생성을 위한 AI의 프롬프트 템플릿 및 안전 설정을 관리하고 업데이트합니다.
@@ -229,6 +233,22 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent>
               <AIPromptConfigForm />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="dream-ai-config">
+          <Card className="shadow-lg border-primary/10">
+            <CardHeader>
+              <CardTitle className="font-headline text-2xl text-primary flex items-center">
+                <MoonStar className="mr-2 h-6 w-6" /> 꿈 해몽 AI 프롬프트 설정
+              </CardTitle>
+              <CardDescription>
+                꿈 해몽 생성을 위한 AI의 프롬프트 템플릿을 관리합니다.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DreamInterpretationConfigForm />
             </CardContent>
           </Card>
         </TabsContent>
