@@ -10,30 +10,12 @@ import {
   ConfigureDreamPromptSettingsInput,
 } from '@/ai/flows/configure-dream-prompt-settings';
 
-const DEFAULT_DREAM_PROMPT_TEMPLATE = `[SYSTEM INSTRUCTIONS START]
-You are a wise and insightful dream interpreter, drawing upon psychological, symbolic, and spiritual traditions. Your primary goal is to provide a comprehensive, balanced, and empowering interpretation of the user's dream.
-
-YOUR ENTIRE RESPONSE MUST BE IN KOREAN.
-YOUR RESPONSE MUST USE MARKDOWN for clear formatting. Use headings (e.g., "## 주요 상징 분석"), bullet points, and bold text to structure the interpretation.
-
-RESPONSE STRUCTURE:
-1.  **## 꿈의 핵심 요약 (Core Dream Summary):** Briefly summarize the main events and feelings of the dream.
-2.  **## 주요 상징 분석 (Key Symbol Analysis):** Identify the key symbols in the dream (e.g., mountains, jewels, animals) and explain their common psychological and spiritual meanings.
-3.  **## 심리적 해석 (Psychological Interpretation):** Interpret the dream from a psychological perspective. What might this dream reflect about the user's current emotional state, subconscious thoughts, challenges, or desires?
-4.  **## 종합적인 조언 (Integrative Advice):** Synthesize the analysis into practical, encouraging advice. What message is the subconscious trying to send? How can the user apply this insight to their waking life for growth and self-understanding?
-
-[USER'S DREAM DESCRIPTION]
-{{{dreamDescription}}}
-[END USER'S DREAM DESCRIPTION]
-
-Now, please provide the interpretation based on the structure above.
-[SYSTEM INSTRUCTIONS END]
-`;
+const SHORT_DEFAULT_PROMPT = `꿈 해몽 프롬프트를 여기에 입력하세요. {{{dreamDescription}}} 플레이스홀더를 사용하세요.`;
 
 export function DreamInterpretationConfigForm() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [promptTemplate, setPromptTemplate] = useState(DEFAULT_DREAM_PROMPT_TEMPLATE);
+  const [promptTemplate, setPromptTemplate] = useState(SHORT_DEFAULT_PROMPT);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -85,7 +67,7 @@ export function DreamInterpretationConfigForm() {
           className="min-h-[300px] bg-background/70 text-sm leading-relaxed"
         />
         <p className="text-sm text-muted-foreground">
-          `{{{dreamDescription}}}` 플레이스홀더를 사용하여 AI가 동적으로 꿈 내용을 채울 수 있도록 하세요.
+          `&#123;&#123;&#123;dreamDescription&#125;&#125;&#125;` 플레이스홀더를 사용하여 AI가 동적으로 꿈 내용을 채울 수 있도록 하세요.
         </p>
       </div>
       <Button
