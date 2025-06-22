@@ -1,6 +1,6 @@
 
 import type { Metadata } from 'next';
-import { MessageSquare, Heart, Users, HelpCircle, Library, BookUser } from 'lucide-react';
+import { MessageSquare, Heart, Users, HelpCircle, Library, BookUser, BookOpenText } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -39,6 +39,12 @@ const communityBoards = [
     description: '타로 스터디 그룹을 만들거나, 함께 공부할 동료를 찾아보세요. 오프라인 모임도 좋아요.',
     href: '/community/study-group',
     icon: <BookUser className="h-10 w-10 text-accent" />,
+  },
+  {
+    title: '타로 백과사전',
+    description: '78장 타로 카드 각각의 의미와 상징, 이미지를 깊이 있게 탐색하고 지혜를 발견하세요.',
+    href: '/encyclopedia',
+    icon: <BookOpenText className="h-10 w-10 text-accent" />,
   },
 ];
 
