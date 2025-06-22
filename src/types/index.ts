@@ -204,3 +204,20 @@ export const UserProfileFormSchema = z.object({
   sajuInfo: z.string().optional(),
 });
 export type UserProfileFormData = z.infer<typeof UserProfileFormSchema>;
+
+// Community Comment Types
+export const CommunityCommentFormSchema = z.object({
+  content: z.string().min(1, "댓글 내용은 비워둘 수 없습니다.").max(2000, "댓글은 2000자를 넘을 수 없습니다."),
+});
+export type CommunityCommentFormData = z.infer<typeof CommunityCommentFormSchema>;
+
+export type CommunityComment = {
+  id: string;
+  postId: string;
+  authorId: string;
+  authorName: string;
+  authorPhotoURL?: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+};

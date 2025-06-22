@@ -245,7 +245,7 @@ export async function createReadingSharePost(
   }
 }
 
-// Delete a community post
+// Delete a community post and its comments
 export async function deleteCommunityPost(
   postId: string,
   userId: string
@@ -264,9 +264,22 @@ export async function deleteCommunityPost(
       return { success: false, error: '이 게시물을 삭제할 권한이 없습니다.' };
     }
 
-    await postRef.delete();
-    console.log(`Successfully deleted community post with ID: ${postId}`);
-    // In a real app, you might want to delete associated comments as well.
+    // Delete comments in a batch
+    const commentsRef = postRef.collection('comments');
+    const commentsSnapshot = await commentsRef.get();
+    
+    const batch = firestore.batch();
+    
+    commentsSnapshot.docs.forEach(commentDoc => {
+      batch.delete(commentDoc.ref);
+    });
+
+    // Delete the post itself
+    batch.delete(postRef);
+
+    await batch.commit();
+    
+    console.log(`Successfully deleted community post ${postId} and its ${commentsSnapshot.size} comments.`);
     return { success: true };
   } catch (error) {
     console.error(`Error deleting post ${postId}:`, error);

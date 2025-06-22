@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { CommentSection } from '@/components/community/CommentSection';
 
 type Props = {
   params: { postId: string };
@@ -120,19 +121,10 @@ export default async function CommunityPostPage({ params }: Props) {
           </div>
         </CardContent>
       </Card>
+      
+      <Separator />
 
-      <div className="space-y-6">
-        <h2 className="text-2xl font-headline text-primary flex items-center">
-          <MessageCircle className="mr-2 h-6 w-6" />
-          댓글 ({post.commentCount})
-        </h2>
-        <Card>
-            <CardContent className="p-8 text-center text-muted-foreground">
-                <p>댓글 기능은 현재 준비 중입니다.</p>
-                <p className="text-sm">곧 활발한 토론을 할 수 있도록 업데이트하겠습니다!</p>
-            </CardContent>
-        </Card>
-      </div>
+      <CommentSection postId={post.id} initialCommentCount={post.commentCount} />
 
        <div className="text-center mt-8">
         <Button asChild variant="outline">
