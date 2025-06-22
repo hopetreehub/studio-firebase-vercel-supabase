@@ -1,4 +1,3 @@
-
 'use client';
 
 import type React from 'react';
@@ -19,7 +18,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       // Allow access to public pages
       const publicPaths = ['/', '/sign-in', '/sign-up', '/blog', '/encyclopedia', '/community'];
       const isPublicRootPath = publicPaths.includes(pathname);
-      const isPublicSubPath = pathname.startsWith('/blog/') || pathname.startsWith('/encyclopedia/');
+      const isPublicSubPath = pathname.startsWith('/blog/') || pathname.startsWith('/encyclopedia/') || pathname.startsWith('/community/');
       
       if (!isPublicRootPath && !isPublicSubPath) {
         router.push('/sign-in?redirect=' + encodeURIComponent(pathname));
