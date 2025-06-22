@@ -5,7 +5,7 @@ import type { BlogPost, BlogFormData } from '@/types';
 import { BlogFormDataSchema } from '@/types';
 import { firestore } from '@/lib/firebase/admin';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
-import { mapDocToBlogPost, fallbackBlogPosts } from '@/lib/blog-data'; 
+import { mapDocToBlogPost, fallbackBlogPosts } from '@/lib/blog-utils'; 
 
 export async function getAllPosts(): Promise<BlogPost[]> {
   try {
