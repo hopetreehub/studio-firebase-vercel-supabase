@@ -8,7 +8,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Menu, X } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const baseNavItems = [
@@ -36,22 +36,24 @@ export function Navbar() {
           <span className="font-headline text-2xl font-bold text-primary">InnerSpell</span>
         </Link>
         
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-          {navItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="transition-colors hover:text-primary text-foreground/80"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
         <div className="flex items-center space-x-2">
-          <ThemeToggle />
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
+            {navItems.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="transition-colors hover:text-primary text-foreground/80"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="hidden md:block border-l border-border/40 h-6 mx-4"></div>
+
           <UserNav />
+          <ThemeToggle />
 
           {/* Mobile Menu Trigger */}
           <div className="md:hidden">

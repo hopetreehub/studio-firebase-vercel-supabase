@@ -18,6 +18,7 @@ import { auth } from '@/lib/firebase/client';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { LogOut, UserCircle, Settings, LogIn, UserPlus } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function UserNav() {
   const { user, loading } = useAuth();
@@ -37,26 +38,22 @@ export function UserNav() {
   };
 
   if (loading) {
-    return <Button variant="ghost" size="sm" className="w-20 h-9 animate-pulse bg-muted"></Button>;
+    return <Skeleton className="h-10 w-28" />;
   }
 
   if (!user) {
     return (
-      <div className="flex items-center space-x-2">
+      <div className="hidden md:flex items-center space-x-2">
         <Button variant="ghost" size="sm" asChild>
           <Link href="/sign-in">
-            <span className="flex items-center">
-              <LogIn className="mr-2 h-4 w-4" />
-              Sign In
-            </span>
+            <LogIn className="mr-2 h-4 w-4" />
+            로그인
           </Link>
         </Button>
         <Button variant="default" size="sm" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
           <Link href="/sign-up">
-            <span className="flex items-center">
-              <UserPlus className="mr-2 h-4 w-4" />
-              Sign Up
-            </span>
+             <UserPlus className="mr-2 h-4 w-4" />
+            회원가입
           </Link>
         </Button>
       </div>
@@ -88,17 +85,17 @@ export function UserNav() {
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => router.push('/profile')}>
             <UserCircle className="mr-2 h-4 w-4" />
-            <span>Profile</span>
+            <span>프로필</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push('/settings')}>
             <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
+            <span>설정</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>
           <LogOut className="mr-2 h-4 w-4" />
-          <span>Log out</span>
+          <span>로그아웃</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
