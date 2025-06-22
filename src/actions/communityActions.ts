@@ -10,10 +10,10 @@ import { CommunityPostFormSchema, CommunityPostFormData, ReadingSharePostFormDat
 // Helper to safely map Firestore doc to CommunityPost type
 function mapDocToCommunityPost(doc: FirebaseFirestore.DocumentSnapshot): CommunityPost {
   const data = doc.data();
+  const now = new Date();
 
   // Fallback for documents without data to prevent crashes
   if (!data) {
-    const now = new Date();
     return {
         id: doc.id,
         authorId: 'system',
@@ -28,34 +28,15 @@ function mapDocToCommunityPost(doc: FirebaseFirestore.DocumentSnapshot): Communi
     };
   }
 
-  let createdAt: Date;
-  // Check for Firestore Timestamp and handle other potential types
-  if (data.createdAt && typeof data.createdAt.toDate === 'function') {
-    createdAt = data.createdAt.toDate();
-  } else if (data.createdAt) {
-    try {
-      const parsedDate = new Date(data.createdAt);
-      createdAt = isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
-    } catch {
-      createdAt = new Date();
-    }
-  } else {
-    createdAt = new Date();
-  }
+  // Robustly handle createdAt timestamp
+  const createdAt = (data.createdAt && typeof data.createdAt.toDate === 'function')
+    ? data.createdAt.toDate()
+    : now;
 
-  let updatedAt: Date;
-  if (data.updatedAt && typeof data.updatedAt.toDate === 'function') {
-    updatedAt = data.updatedAt.toDate();
-  } else if (data.updatedAt) {
-     try {
-        const parsedDate = new Date(data.updatedAt);
-        updatedAt = isNaN(parsedDate.getTime()) ? createdAt : parsedDate;
-    } catch {
-        updatedAt = createdAt;
-    }
-  } else {
-    updatedAt = createdAt;
-  }
+  // Robustly handle updatedAt timestamp
+  const updatedAt = (data.updatedAt && typeof data.updatedAt.toDate === 'function')
+    ? data.updatedAt.toDate()
+    : createdAt; // Fallback to createdAt if updatedAt is invalid
 
   return {
     id: doc.id,
@@ -161,17 +142,21 @@ export async function getCommunityPosts(category: CommunityPostCategory): Promis
 // Get a single community post by ID
 export async function getCommunityPostById(postId: string): Promise<CommunityPost | null> {
   try {
-    const doc = await firestore.collection('communityPosts').doc(postId).get();
+    const docRef = firestore.collection('communityPosts').doc(postId);
+    const doc = await docRef.get();
+    
     if (!doc.exists) {
       const fallbackPost = fallbackCommunityPosts.find(p => p.id === postId);
       return fallbackPost || null;
     }
-    // Increment view count
-    await doc.ref.update({ viewCount: FieldValue.increment(1) });
     
-    // After getting the post, refetch to get the updated view count
-    const updatedDoc = await firestore.collection('communityPosts').doc(postId).get();
-    return mapDocToCommunityPost(updatedDoc);
+    // Increment view count without affecting the data returned to this request.
+    // This is a "fire-and-forget" operation for performance.
+    docRef.update({ viewCount: FieldValue.increment(1) }).catch(err => {
+        console.error(`Failed to increment view count for post ${postId}:`, err);
+    });
+    
+    return mapDocToCommunityPost(doc);
 
   } catch (error) {
     console.error(`Error fetching post ${postId}:`, error);

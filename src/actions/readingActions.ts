@@ -75,29 +75,21 @@ export async function getUserReadings(userId: string): Promise<SavedReading[]> {
 
     return snapshot.docs.map(doc => {
       const data = doc.data();
-      let createdAt: Date;
-      // Safely handle createdAt field
-      if (data.createdAt && typeof data.createdAt.toDate === 'function') {
-        createdAt = data.createdAt.toDate();
-      } else if (data.createdAt) {
-         try {
-            const parsedDate = new Date(data.createdAt);
-            createdAt = isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
-        } catch {
-            createdAt = new Date();
-        }
-      } else {
-        createdAt = new Date();
-      }
+      const now = new Date();
+
+      // Robustly handle createdAt timestamp
+      const createdAt = (data?.createdAt && typeof data.createdAt.toDate === 'function')
+        ? data.createdAt.toDate()
+        : now;
 
       return {
         id: doc.id,
-        userId: data.userId || '',
-        question: data.question || 'No question provided',
-        spreadName: data.spreadName || 'Unknown Spread',
-        spreadNumCards: data.spreadNumCards || 0,
-        drawnCards: (data.drawnCards as SavedReadingCard[]) || [],
-        interpretationText: data.interpretationText || 'No interpretation text.',
+        userId: data?.userId || '',
+        question: data?.question || 'No question provided',
+        spreadName: data?.spreadName || 'Unknown Spread',
+        spreadNumCards: data?.spreadNumCards || 0,
+        drawnCards: (data?.drawnCards as SavedReadingCard[]) || [],
+        interpretationText: data?.interpretationText || 'No interpretation text.',
         createdAt: createdAt,
       } as SavedReading;
     });

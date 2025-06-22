@@ -76,10 +76,10 @@ export const fallbackBlogPosts: BlogPost[] = [
 
 export function mapDocToBlogPost(doc: FirebaseFirestore.DocumentSnapshot): BlogPost {
   const data = doc.data();
+  const now = new Date();
 
   // Fallback for documents without data to prevent crashes
   if (!data) {
-    const now = new Date();
     return {
       id: doc.id,
       title: 'Invalid Post',
@@ -96,35 +96,15 @@ export function mapDocToBlogPost(doc: FirebaseFirestore.DocumentSnapshot): BlogP
     };
   }
 
-  let createdAt: Date;
-  // Safely handle createdAt field
-  if (data.createdAt && typeof data.createdAt.toDate === 'function') {
-    createdAt = data.createdAt.toDate();
-  } else if (data.createdAt) {
-    try {
-      const parsedDate = new Date(data.createdAt);
-      createdAt = isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
-    } catch {
-      createdAt = new Date();
-    }
-  } else {
-    createdAt = new Date();
-  }
+  // Robustly handle createdAt timestamp
+  const createdAt = (data.createdAt && typeof data.createdAt.toDate === 'function')
+    ? data.createdAt.toDate()
+    : now;
 
-  let updatedAt: Date;
-  // Safely handle updatedAt field
-  if (data.updatedAt && typeof data.updatedAt.toDate === 'function') {
-    updatedAt = data.updatedAt.toDate();
-  } else if (data.updatedAt) {
-    try {
-      const parsedDate = new Date(data.updatedAt);
-      updatedAt = isNaN(parsedDate.getTime()) ? createdAt : parsedDate;
-    } catch {
-      updatedAt = createdAt;
-    }
-  } else {
-    updatedAt = createdAt;
-  }
+  // Robustly handle updatedAt timestamp
+  const updatedAt = (data.updatedAt && typeof data.updatedAt.toDate === 'function')
+    ? data.updatedAt.toDate()
+    : createdAt; // Fallback to createdAt if updatedAt is invalid
   
   const formattedDate = createdAt.toISOString().split('T')[0];
 
