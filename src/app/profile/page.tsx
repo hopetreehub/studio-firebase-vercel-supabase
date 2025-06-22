@@ -20,7 +20,8 @@ import {
 import { auth as firebaseAuth } from '@/lib/firebase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { SavedReading, SavedReadingCard } from '@/types';
-import { getUserReadings, deleteUserReading, updateUserProfile } from '@/actions/userActions';
+import { getUserReadings, deleteUserReading } from '@/actions/readingActions';
+import { updateUserProfile } from '@/actions/userActions';
 import Image from 'next/image';
 import {
   AlertDialog,
@@ -144,7 +145,7 @@ export default function ProfilePage() {
       if (error.code === 'auth/wrong-password') {
         errorMessage = '현재 비밀번호가 올바르지 않습니다.';
       } else if (error.code === 'auth/too-many-requests') {
-        errorMessage = '너무 많은 요청이 있었습니다. 잠시 후 다시 시도해주세요.';
+        errorMessage = '너무 많은 로그인 시도를 하셨습니다. 잠시 후 다시 시도해주세요.';
       } else if (error.code === 'auth/weak-password') {
         errorMessage = '새 비밀번호가 너무 약합니다. 더 강력한 비밀번호를 사용해주세요.';
       }
