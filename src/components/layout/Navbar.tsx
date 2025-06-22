@@ -8,19 +8,24 @@ import { ThemeToggle } from './ThemeToggle';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Menu, X } from 'lucide-react'; // Added X for a potential close button inside sheet if needed
+import { Menu, X } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
-const navItems = [
+const baseNavItems = [
   { href: '/', label: '홈' },
   { href: '/reading', label: '타로리딩' },
   { href: '/encyclopedia', label: '카드 백과' },
   { href: '/blog', label: '블로그' },
   { href: '/community', label: '커뮤니티' },
-  { href: '/admin', label: '관리자'}
 ];
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
+
+  const navItems = user?.role === 'admin' 
+    ? [...baseNavItems, { href: '/admin', label: '관리자' }] 
+    : baseNavItems;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -62,11 +67,6 @@ export function Navbar() {
                     <Image src="/logo.png" alt="InnerSpell 로고" width={28} height={28} />
                     <span className="font-headline text-xl font-bold text-primary">InnerSpell</span>
                   </SheetTitle>
-                  {/* Optional: Close button inside sheet if default X is not preferred */}
-                  {/* <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)} className="absolute right-4 top-4">
-                     <X className="h-5 w-5" />
-                     <span className="sr-only">메뉴 닫기</span>
-                  </Button> */}
                 </SheetHeader>
                 <nav className="flex flex-col p-4 space-y-2">
                   {navItems.map((item) => (

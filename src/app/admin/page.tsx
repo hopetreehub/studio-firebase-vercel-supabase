@@ -2,6 +2,8 @@
 'use client'; 
 
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 import { AIPromptConfigForm } from '@/components/admin/AIPromptConfigForm';
 import { BlogManagementForm } from '@/components/admin/BlogManagementForm';
 import { UserManagement } from '@/components/admin/UserManagement';
@@ -9,7 +11,6 @@ import { SystemManagement } from '@/components/admin/SystemManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Cog, FileText, Users, ShieldCheck, ListChecks, Edit, Trash2, AlertTriangle } from 'lucide-react';
-
 import { getAllPosts, deleteBlogPost } from '@/actions/blogActions'; 
 import type { BlogPost } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,6 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Spinner } from '@/components/ui/spinner';
 import { Separator } from '@/components/ui/separator';
-
 
 function ExistingBlogPosts({ onEditPost }: { onEditPost: (post: BlogPost) => void; }) {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -145,8 +145,24 @@ function ExistingBlogPosts({ onEditPost }: { onEditPost: (post: BlogPost) => voi
 
 
 export default function AdminDashboardPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
   const [editingPost, setEditingPost] = useState<BlogPost | undefined>(undefined);
   const [refreshPostListKey, setRefreshPostListKey] = useState(0); 
+
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        // Not logged in, redirect to sign-in
+        router.replace('/sign-in?redirect=/admin');
+      } else if (user.role !== 'admin') {
+        // Not an admin, redirect to home
+        router.replace('/');
+      }
+    }
+  }, [user, loading, router]);
+
 
   const handleEditPost = (post: BlogPost) => {
     setEditingPost(post);
@@ -160,6 +176,17 @@ export default function AdminDashboardPage() {
     setEditingPost(undefined); 
     setRefreshPostListKey(prev => prev + 1); 
   };
+  
+  if (loading || !user || user.role !== 'admin') {
+    return (
+      <div className="flex h-[calc(100vh-200px)] w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <p className="text-muted-foreground">관리자 권한을 확인하는 중...</p>
+          <Spinner size="large" />
+        </div>
+      </div>
+    );
+  }
 
 
   return (
@@ -170,7 +197,7 @@ export default function AdminDashboardPage() {
         </div>
         <h1 className="font-headline text-4xl font-bold text-primary">관리자 대시보드</h1>
         <p className="mt-2 text-lg text-foreground/80">
-          애플리케이션의 다양한 설정을 관리합니다. (향후 실제 로그인 시 관리자 권한 필요)
+          애플리케이션의 다양한 설정을 관리합니다.
         </p>
       </header>
 

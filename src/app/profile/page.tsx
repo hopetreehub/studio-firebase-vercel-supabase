@@ -43,7 +43,7 @@ const IMAGE_ORIGINAL_HEIGHT_SMALL = 173; // Aspect ratio: 275/475 * 100
 const CARD_IMAGE_SIZES_PROFILE = "80px";
 
 export default function ProfilePage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, firebaseUser, loading: authLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -75,21 +75,21 @@ export default function ProfilePage() {
       setLoadingReadings(false);
     };
 
-    if (!authLoading && !user) {
+    if (!authLoading && !firebaseUser) {
       router.push('/sign-in?redirect=/profile');
     }
-    if (user) {
-      setDisplayName(user.displayName || '');
-      fetchReadings(user.uid);
+    if (firebaseUser) {
+      setDisplayName(firebaseUser.displayName || '');
+      fetchReadings(firebaseUser.uid);
     }
-  }, [user, authLoading, router]);
+  }, [firebaseUser, authLoading, router]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firebaseAuth?.currentUser) return;
+    if (!firebaseUser) return;
     setIsUpdating(true);
     try {
-      await firebaseUpdateProfile(firebaseAuth.currentUser, { displayName });
+      await firebaseUpdateProfile(firebaseUser, { displayName });
       toast({ title: '성공', description: '프로필이 업데이트되었습니다.' });
       setIsEditing(false);
     } catch (error: any) {
@@ -101,7 +101,7 @@ export default function ProfilePage() {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firebaseAuth?.currentUser || !user?.email) {
+    if (!firebaseUser || !firebaseUser.email) {
       toast({ variant: 'destructive', title: '오류', description: '사용자 정보를 찾을 수 없습니다.' });
       return;
     }
@@ -116,9 +116,9 @@ export default function ProfilePage() {
 
     setIsChangingPassword(true);
     try {
-      const credential = EmailAuthProvider.credential(user.email, currentPassword);
-      await reauthenticateWithCredential(firebaseAuth.currentUser, credential);
-      await firebaseUpdatePassword(firebaseAuth.currentUser, newPassword);
+      const credential = EmailAuthProvider.credential(firebaseUser.email, currentPassword);
+      await reauthenticateWithCredential(firebaseUser, credential);
+      await firebaseUpdatePassword(firebaseUser, newPassword);
       toast({ title: '성공', description: '비밀번호가 성공적으로 변경되었습니다.' });
       setShowPasswordChangeForm(false);
       setCurrentPassword('');
@@ -155,7 +155,7 @@ export default function ProfilePage() {
   };
 
 
-  if (authLoading || !user) {
+  if (authLoading || !firebaseUser) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
         <Spinner size="large" />
@@ -185,9 +185,9 @@ export default function ProfilePage() {
         <CardContent className="space-y-6">
           <div className="flex items-center space-x-4">
             <Avatar className="h-20 w-20 border-2 border-primary">
-              <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
+              <AvatarImage src={firebaseUser.photoURL || undefined} alt={firebaseUser.displayName || 'User'} />
               <AvatarFallback className="text-2xl bg-primary/20 text-primary">
-                {(displayName || user.email?.charAt(0) || 'U').toUpperCase()}
+                {(displayName || firebaseUser.email?.charAt(0) || 'U').toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div>
@@ -206,7 +206,7 @@ export default function ProfilePage() {
                       {isUpdating && <Spinner size="small" className="mr-2" />}
                       {isUpdating ? '저장 중...' : '저장'}
                     </Button>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => { setIsEditing(false); setDisplayName(user.displayName || '');}}>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => { setIsEditing(false); setDisplayName(firebaseUser.displayName || '');}}>
                       취소
                     </Button>
                    </div>
@@ -214,17 +214,17 @@ export default function ProfilePage() {
               ) : (
                 <p className="text-2xl font-semibold text-foreground">{displayName || '닉네임 없음'}</p>
               )}
-              <p className="text-muted-foreground">{user.email}</p>
+              <p className="text-muted-foreground">{firebaseUser.email}</p>
             </div>
           </div>
           <Separator />
           <div>
             <Label className="text-sm font-medium text-muted-foreground">계정 생성일</Label>
-            <p className="text-foreground">{user.metadata.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString('ko-KR') : '정보 없음'}</p>
+            <p className="text-foreground">{firebaseUser.metadata.creationTime ? new Date(firebaseUser.metadata.creationTime).toLocaleDateString('ko-KR') : '정보 없음'}</p>
           </div>
           <div>
             <Label className="text-sm font-medium text-muted-foreground">마지막 로그인</Label>
-            <p className="text-foreground">{user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime).toLocaleDateString('ko-KR') : '정보 없음'}</p>
+            <p className="text-foreground">{firebaseUser.metadata.lastSignInTime ? new Date(firebaseUser.metadata.lastSignInTime).toLocaleDateString('ko-KR') : '정보 없음'}</p>
           </div>
         </CardContent>
       </Card>
