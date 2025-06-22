@@ -80,22 +80,65 @@ const fallbackBlogPosts: BlogPost[] = [
 
 
 export function mapDocToBlogPost(doc: FirebaseFirestore.DocumentSnapshot): BlogPost {
-  const data = doc.data()!;
-  const createdAtTimestamp = data.createdAt as Timestamp;
-  const updatedAtTimestamp = data.updatedAt as Timestamp; 
-  
-  const createdAt = createdAtTimestamp ? createdAtTimestamp.toDate() : new Date();
-  const updatedAt = updatedAtTimestamp ? updatedAtTimestamp.toDate() : createdAt; // If updatedAt is missing, use createdAt
+  const data = doc.data();
 
-  const isoDate = createdAt.toISOString();
-  const formattedDate = isoDate.split('T')[0];
+  // Fallback for documents without data to prevent crashes
+  if (!data) {
+    const now = new Date();
+    return {
+      id: doc.id,
+      title: 'Invalid Post',
+      slug: `invalid-${doc.id}`,
+      excerpt: 'This post could not be loaded due to missing data.',
+      content: '',
+      imageSrc: 'https://placehold.co/600x400.png',
+      dataAiHint: 'error placeholder',
+      author: 'System',
+      tags: ['error'],
+      date: now.toISOString().split('T')[0],
+      createdAt: now,
+      updatedAt: now,
+    };
+  }
+
+  let createdAt: Date;
+  // Safely handle createdAt field
+  if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+    createdAt = data.createdAt.toDate();
+  } else if (data.createdAt) {
+    try {
+      const parsedDate = new Date(data.createdAt);
+      createdAt = isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+    } catch {
+      createdAt = new Date();
+    }
+  } else {
+    createdAt = new Date();
+  }
+
+  let updatedAt: Date;
+  // Safely handle updatedAt field
+  if (data.updatedAt && typeof data.updatedAt.toDate === 'function') {
+    updatedAt = data.updatedAt.toDate();
+  } else if (data.updatedAt) {
+    try {
+      const parsedDate = new Date(data.updatedAt);
+      updatedAt = isNaN(parsedDate.getTime()) ? createdAt : parsedDate;
+    } catch {
+      updatedAt = createdAt;
+    }
+  } else {
+    updatedAt = createdAt;
+  }
+  
+  const formattedDate = createdAt.toISOString().split('T')[0];
 
   return {
     id: doc.id,
-    title: data.title,
-    slug: data.slug,
-    excerpt: data.excerpt,
-    content: data.content,
+    title: data.title || '제목 없음',
+    slug: data.slug || `post-${doc.id}`,
+    excerpt: data.excerpt || '',
+    content: data.content || '',
     imageSrc: data.imageSrc || 'https://placehold.co/600x400.png', 
     dataAiHint: data.dataAiHint || 'placeholder image',
     author: data.author || 'InnerSpell 팀',

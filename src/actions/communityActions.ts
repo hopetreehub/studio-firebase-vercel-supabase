@@ -7,22 +7,63 @@ import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import type { CommunityPost, CommunityPostCategory } from '@/types';
 import { CommunityPostFormSchema, CommunityPostFormData, ReadingSharePostFormData, ReadingSharePostFormSchema } from '@/types';
 
-// Helper to map Firestore doc to CommunityPost type
+// Helper to safely map Firestore doc to CommunityPost type
 function mapDocToCommunityPost(doc: FirebaseFirestore.DocumentSnapshot): CommunityPost {
-  const data = doc.data()!;
-  const createdAtTimestamp = data.createdAt as Timestamp;
-  const updatedAtTimestamp = data.updatedAt as Timestamp;
+  const data = doc.data();
 
-  const createdAt = createdAtTimestamp ? createdAtTimestamp.toDate() : new Date();
-  const updatedAt = updatedAtTimestamp ? updatedAtTimestamp.toDate() : createdAt;
+  // Fallback for documents without data to prevent crashes
+  if (!data) {
+    const now = new Date();
+    return {
+        id: doc.id,
+        authorId: 'system',
+        authorName: 'Unknown Author',
+        title: 'Invalid Post Data',
+        content: 'This post could not be loaded due to missing data.',
+        viewCount: 0,
+        commentCount: 0,
+        category: 'free-discussion',
+        createdAt: now,
+        updatedAt: now,
+    };
+  }
+
+  let createdAt: Date;
+  // Check for Firestore Timestamp and handle other potential types
+  if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+    createdAt = data.createdAt.toDate();
+  } else if (data.createdAt) {
+    try {
+      const parsedDate = new Date(data.createdAt);
+      createdAt = isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+    } catch {
+      createdAt = new Date();
+    }
+  } else {
+    createdAt = new Date();
+  }
+
+  let updatedAt: Date;
+  if (data.updatedAt && typeof data.updatedAt.toDate === 'function') {
+    updatedAt = data.updatedAt.toDate();
+  } else if (data.updatedAt) {
+     try {
+        const parsedDate = new Date(data.updatedAt);
+        updatedAt = isNaN(parsedDate.getTime()) ? createdAt : parsedDate;
+    } catch {
+        updatedAt = createdAt;
+    }
+  } else {
+    updatedAt = createdAt;
+  }
 
   return {
     id: doc.id,
-    authorId: data.authorId,
-    authorName: data.authorName,
+    authorId: data.authorId || 'system-user',
+    authorName: data.authorName || '익명 사용자',
     authorPhotoURL: data.authorPhotoURL || '',
-    title: data.title,
-    content: data.content,
+    title: data.title || '제목 없음',
+    content: data.content || '',
     viewCount: data.viewCount || 0,
     commentCount: data.commentCount || 0,
     category: data.category || 'free-discussion',
