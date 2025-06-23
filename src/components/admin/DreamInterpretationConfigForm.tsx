@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -67,7 +68,7 @@ export function DreamInterpretationConfigForm() {
           className="min-h-[300px] bg-background/70 text-sm leading-relaxed"
         />
         <p className="text-sm text-muted-foreground">
-          &#96;&#123;&#123;&#123;dreamDescription&#125;&#125;&#125;&#96; 플레이스홀더를 사용하여 AI가 동적으로 꿈 내용을 채울 수 있도록 하세요.
+          &#96;{{{dreamDescription}}}&#96; 플레이스홀더를 사용하여 AI가 동적으로 꿈 내용을 채울 수 있도록 하세요.
         </p>
       </div>
       <Button
