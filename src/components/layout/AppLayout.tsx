@@ -13,41 +13,41 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    if (!loading && !user) {
-      // Allow access to public pages
-      const publicPaths = ['/', '/sign-in', '/sign-up', '/blog', '/encyclopedia', '/community', '/privacy-policy', '/terms-of-service'];
-      const isPublicRootPath = publicPaths.includes(pathname);
-      const isPublicSubPath = pathname.startsWith('/blog/') || pathname.startsWith('/encyclopedia/') || pathname.startsWith('/community/');
+  // useEffect(() => {
+  //   if (!loading && !user) {
+  //     // Allow access to public pages
+  //     const publicPaths = ['/', '/sign-in', '/sign-up', '/blog', '/encyclopedia', '/community', '/privacy-policy', '/terms-of-service'];
+  //     const isPublicRootPath = publicPaths.includes(pathname);
+  //     const isPublicSubPath = pathname.startsWith('/blog/') || pathname.startsWith('/encyclopedia/') || pathname.startsWith('/community/');
       
-      if (!isPublicRootPath && !isPublicSubPath) {
-        router.push('/sign-in?redirect=' + encodeURIComponent(pathname));
-      }
-    }
-  }, [user, loading, router, pathname]);
+  //     if (!isPublicRootPath && !isPublicSubPath) {
+  //       router.push('/sign-in?redirect=' + encodeURIComponent(pathname));
+  //     }
+  //   }
+  // }, [user, loading, router, pathname]);
 
-  // Show a spinner while auth state is loading for protected pages
-  const protectedPaths = ['/reading', '/profile', '/settings', '/admin'];
-  const isProtectedPath = protectedPaths.some(p => pathname.startsWith(p));
+  // // Show a spinner while auth state is loading for protected pages
+  // const protectedPaths = ['/reading', '/profile', '/settings', '/admin'];
+  // const isProtectedPath = protectedPaths.some(p => pathname.startsWith(p));
 
-  if (loading && isProtectedPath) { 
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <Spinner size="large" />
-      </div>
-    );
-  }
+  // if (loading && isProtectedPath) { 
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen bg-background">
+  //       <Spinner size="large" />
+  //     </div>
+  //   );
+  // }
   
-  // If it's a protected page and auth has loaded but there's no user,
-  // the useEffect above will handle redirection.
-  // We prevent rendering children here to avoid flicker before redirect.
-  if (!loading && !user && isProtectedPath) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <Spinner size="large" /> {/* Or a more specific "Redirecting..." message */}
-      </div>
-    );
-  }
+  // // If it's a protected page and auth has loaded but there's no user,
+  // // the useEffect above will handle redirection.
+  // // We prevent rendering children here to avoid flicker before redirect.
+  // if (!loading && !user && isProtectedPath) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen bg-background">
+  //       <Spinner size="large" /> {/* Or a more specific "Redirecting..." message */}
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
