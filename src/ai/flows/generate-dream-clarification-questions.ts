@@ -12,18 +12,18 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const GenerateDreamClarificationQuestionsInputSchema = z.object({
+const GenerateDreamClarificationQuestionsInputSchema = z.object({
   dreamDescription: z.string().describe("The user's initial, free-form description of their dream."),
 });
 export type GenerateDreamClarificationQuestionsInput = z.infer<typeof GenerateDreamClarificationQuestionsInputSchema>;
 
-export const ClarificationQuestionSchema = z.object({
+const ClarificationQuestionSchema = z.object({
   question: z.string().describe("A question to ask the user to clarify a specific part of their dream."),
   options: z.array(z.string()).length(4).describe("Four plausible, distinct, multiple-choice options for the question."),
 });
 export type ClarificationQuestion = z.infer<typeof ClarificationQuestionSchema>;
 
-export const GenerateDreamClarificationQuestionsOutputSchema = z.object({
+const GenerateDreamClarificationQuestionsOutputSchema = z.object({
   questions: z.array(ClarificationQuestionSchema).min(2).max(4).describe("An array of 2 to 4 clarification questions."),
 });
 export type GenerateDreamClarificationQuestionsOutput = z.infer<typeof GenerateDreamClarificationQuestionsOutputSchema>;
