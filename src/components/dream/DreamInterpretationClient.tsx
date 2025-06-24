@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -7,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Input } from '@/components/ui/input';
 import { generateDreamClarificationQuestions } from '@/ai/flows/generate-dream-clarification-questions';
 import type { ClarificationQuestion } from '@/ai/flows/generate-dream-clarification-questions';
 import { generateDreamInterpretation } from '@/ai/flows/generate-dream-interpretation';
@@ -68,11 +68,15 @@ export function DreamInterpretationClient() {
   };
 
   const handleGetInterpretation = async () => {
-    if (clarificationQuestions.length > 0 && Object.keys(clarificationAnswers).length !== clarificationQuestions.length) {
+    const allQuestionsAnswered = clarificationQuestions.every((_, index) => {
+        return clarificationAnswers[index] && clarificationAnswers[index].trim() !== '';
+    });
+
+    if (clarificationQuestions.length > 0 && !allQuestionsAnswered) {
       toast({
         variant: 'destructive',
         title: '답변 필요',
-        description: '모든 질문에 답변해주세요.',
+        description: '모든 질문에 답변하거나 직접 입력해주세요.',
       });
       return;
     }
@@ -134,6 +138,10 @@ export function DreamInterpretationClient() {
         </CardContent>
       </Card>
   );
+
+  const areAllQuestionsAnswered = clarificationQuestions.every((_, index) => {
+    return clarificationAnswers[index] && clarificationAnswers[index].trim() !== '';
+  });
 
   if (step === 'generating_questions') {
     return renderLoadingState('AI 질문 생성 중', '꿈을 더 깊이 이해하기 위한 질문을 만들고 있습니다...');
@@ -200,19 +208,30 @@ export function DreamInterpretationClient() {
           <CardContent>
             <div className="space-y-6">
               {clarificationQuestions.map((q, index) => (
-                <div key={index} className="space-y-3">
+                <div key={index} className="space-y-3 p-4 border rounded-md bg-muted/20">
                   <Label className="text-md font-semibold">{index + 1}. {q.question}</Label>
                   <RadioGroup 
+                    value={clarificationAnswers[index] || ''}
                     onValueChange={(value) => handleAnswerChange(index, value)}
                     className="space-y-2"
                   >
                     {q.options.map((option, optionIndex) => (
                       <div key={optionIndex} className="flex items-center space-x-2">
                         <RadioGroupItem value={option} id={`q${index}-o${optionIndex}`} />
-                        <Label htmlFor={`q${index}-o${optionIndex}`} className="font-normal">{option}</Label>
+                        <Label htmlFor={`q${index}-o${optionIndex}`} className="font-normal cursor-pointer">{option}</Label>
                       </div>
                     ))}
                   </RadioGroup>
+                  <div className="flex items-center space-x-2 pt-2">
+                    <Label htmlFor={`q${index}-other`} className="text-sm text-muted-foreground shrink-0">기타 (직접 입력):</Label>
+                    <Input
+                      id={`q${index}-other`}
+                      placeholder="선택지에 없는 경우 여기에 입력하세요."
+                      value={clarificationAnswers[index] && !q.options.includes(clarificationAnswers[index]) ? clarificationAnswers[index] : ''}
+                      onChange={(e) => handleAnswerChange(index, e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
                 </div>
               ))}
 
@@ -222,7 +241,7 @@ export function DreamInterpretationClient() {
                 </Label>
                 <Textarea
                   id="additional-info"
-                  placeholder="선택지를 고르고 나니 떠오르는 생각이나, 꿈의 다른 세부사항을 자유롭게 적어주세요."
+                  placeholder="답변을 마치고 떠오르는 생각이나, 꿈의 다른 세부사항을 자유롭게 적어주세요."
                   value={additionalInfo}
                   onChange={(e) => setAdditionalInfo(e.target.value)}
                   className="min-h-[120px]"
@@ -248,7 +267,7 @@ export function DreamInterpretationClient() {
 
               <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end pt-4">
                 <Button type="button" variant="outline" onClick={() => setStep('initial')}>이전 단계로</Button>
-                <Button onClick={handleGetInterpretation} size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground" disabled={Object.keys(clarificationAnswers).length !== clarificationQuestions.length}>
+                <Button onClick={handleGetInterpretation} size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground" disabled={!areAllQuestionsAnswered}>
                   <Sparkles className="mr-2 h-5 w-5" />
                   AI 꿈 해몽 받기
                 </Button>
