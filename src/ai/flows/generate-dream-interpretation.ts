@@ -14,9 +14,14 @@ import {z} from 'genkit';
 import { firestore } from '@/lib/firebase/admin';
 import type { SafetySetting } from '@genkit-ai/googleai';
 
+const ClarificationSchema = z.object({
+  question: z.string(),
+  answer: z.string(),
+});
+
 const GenerateDreamInterpretationInputSchema = z.object({
   dreamDescription: z.string().describe("The user's initial, free-form description of their dream."),
-  questionnaireAnswers: z.string().optional().describe("A structured set of answers to guided questions about the dream."),
+  clarifications: z.array(ClarificationSchema).optional().describe("A structured set of answers to AI-generated clarification questions about the dream."),
   sajuInfo: z.string().optional().describe("The user's Saju (Four Pillars of Destiny) information, if provided."),
 });
 export type GenerateDreamInterpretationInput = z.infer<typeof GenerateDreamInterpretationInputSchema>;
@@ -37,10 +42,13 @@ Here is the information provided by the user:
 {{{dreamDescription}}}
 [END INITIAL DREAM DESCRIPTION]
 
-{{#if questionnaireAnswers}}
-[USER'S ANSWERS TO GUIDED QUESTIONS]
-{{{questionnaireAnswers}}}
-[END USER'S ANSWERS TO GUIDED QUESTIONS]
+{{#if clarifications}}
+[USER'S ANSWERS TO CLARIFYING QUESTIONS]
+{{#each clarifications}}
+- Q: {{this.question}}
+  A: {{this.answer}}
+{{/each}}
+[END USER'S ANSWERS TO CLARIFYING QUESTIONS]
 {{/if}}
 
 {{#if sajuInfo}}
