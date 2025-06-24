@@ -6,6 +6,7 @@ import { BookOpenText, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
+import { AdBanner } from '@/components/ads/AdBanner';
 
 export const metadata: Metadata = {
   title: '타로 백과사전 - InnerSpell',
@@ -69,6 +70,7 @@ export default function EncyclopediaPage() {
               </ScrollArea>
             </CardContent>
           </Card>
+          <AdBanner />
         </aside>
       </div>
     </div>

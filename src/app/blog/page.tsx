@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BlogList } from '@/components/blog/BlogList';
 import type { Metadata } from 'next';
+import { AdBanner } from '@/components/ads/AdBanner';
 
 export const metadata: Metadata = {
   title: '영적 사색 - 블로그',
@@ -90,6 +91,7 @@ export default async function BlogPage() {
               ))}
             </CardContent>
           </Card>
+          <AdBanner />
         </aside>
       </div>
     </div>

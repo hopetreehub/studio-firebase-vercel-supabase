@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { UserCircle, Edit3, KeyRound, ShieldCheck, Eye, EyeOff, BookHeart, Trash2, AlertTriangle, Search, Calendar, Sparkles } from 'lucide-react';
+import { UserCircle, Edit3, KeyRound, ShieldCheck, Eye, EyeOff, BookHeart, Trash2, AlertTriangle, Search, Calendar, Sparkles, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Spinner } from '@/components/ui/spinner';
@@ -222,6 +222,14 @@ export default function ProfilePage() {
                   <>
                     <p className="text-2xl font-semibold text-foreground">{displayName || '닉네임 없음'}</p>
                     <p className="text-muted-foreground">{user.email}</p>
+                     <div className="flex items-center gap-2 mt-2">
+                        <Badge variant={user.role === 'admin' ? 'destructive' : 'secondary'}>
+                            {user.role === 'admin' ? '관리자' : '사용자'}
+                        </Badge>
+                        <Badge variant={user.subscriptionStatus === 'paid' ? 'default' : 'outline'}>
+                            {user.subscriptionStatus === 'paid' ? <><Star className="mr-1.5 h-3.5 w-3.5"/>유료 구독자</> : '무료 회원'}
+                        </Badge>
+                    </div>
                   </>
                 )}
               </div>

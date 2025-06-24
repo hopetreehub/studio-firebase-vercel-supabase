@@ -16,6 +16,7 @@ export interface AppUser {
   role?: string; 
   birthDate?: string;
   sajuInfo?: string;
+  subscriptionStatus?: 'free' | 'paid';
 }
 
 export async function getUserProfile(uid: string): Promise<AppUser | null> {
@@ -36,12 +37,14 @@ export async function getUserProfile(uid: string): Promise<AppUser | null> {
       creationTime: userRecord.metadata.creationTime,
       lastSignInTime: userRecord.metadata.lastSignInTime,
       role: role,
+      subscriptionStatus: 'free', // Default to free
     };
 
     if (profileDoc.exists) {
       const profileData = profileDoc.data();
       appUser.birthDate = profileData?.birthDate || '';
       appUser.sajuInfo = profileData?.sajuInfo || '';
+      appUser.subscriptionStatus = profileData?.subscriptionStatus || 'free';
     }
 
     return appUser;
@@ -102,6 +105,7 @@ export async function listFirebaseUsers(
         role: profile?.role || 'user',
         birthDate: profile?.birthDate,
         sajuInfo: profile?.sajuInfo,
+        subscriptionStatus: profile?.subscriptionStatus || 'free',
       };
     }));
     return {

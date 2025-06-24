@@ -23,6 +23,7 @@ const devAdminUser: AppUser = {
   displayName: '개발자 관리자',
   photoURL: `https://i.pravatar.cc/150?u=dev-admin`,
   role: 'admin',
+  subscriptionStatus: 'paid', // Dev admin is a paid user to hide ads
   creationTime: new Date().toISOString(),
   lastSignInTime: new Date().toISOString(),
 };
@@ -65,6 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               displayName: currentFirebaseUser.displayName,
               photoURL: currentFirebaseUser.photoURL,
               role: 'user', // Default to 'user'
+              subscriptionStatus: 'free',
             });
           }
         } else {
