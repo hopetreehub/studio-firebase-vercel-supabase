@@ -16,7 +16,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!loading && !user) {
       // Allow access to public pages
-      const publicPaths = ['/', '/sign-in', '/sign-up', '/blog', '/encyclopedia', '/community'];
+      const publicPaths = ['/', '/sign-in', '/sign-up', '/blog', '/encyclopedia', '/community', '/privacy-policy', '/terms-of-service'];
       const isPublicRootPath = publicPaths.includes(pathname);
       const isPublicSubPath = pathname.startsWith('/blog/') || pathname.startsWith('/encyclopedia/') || pathname.startsWith('/community/');
       

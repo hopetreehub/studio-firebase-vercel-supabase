@@ -19,19 +19,18 @@ const policyItems = [
 export function Footer() {
   const currentYear = new Date().getFullYear();
   return (
-    <footer className="border-t border-border/40 bg-background/95 py-12 text-sm">
+    <footer className="border-t border-border/40 bg-background/95 py-8 text-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start mb-8">
           
           <div className="md:col-span-4 flex flex-col">
             <Link href="/" className="inline-flex items-center space-x-2 mb-3 group">
               <Image src="/logo.png" alt="InnerSpell Logo" width={40} height={40} className="h-10 w-10 group-hover:opacity-80 transition-opacity" />
               <span className="font-headline text-3xl font-bold text-primary group-hover:text-primary/80 transition-colors">InnerSpell</span>
             </Link>
-            <p className="text-muted-foreground text-xs max-w-xs mb-4">
+            <p className="text-muted-foreground text-xs max-w-xs">
               AI 기반 타로 리딩으로 명확성과 통찰력을 얻으세요. 당신의 내면 탐험을 위한 현대적인 영적 도구입니다.
             </p>
-            <p className="text-xs text-muted-foreground/80">© {currentYear} InnerSpell. All rights reserved.</p>
           </div>
 
           <div className="md:col-span-2 text-left">
@@ -55,6 +54,9 @@ export function Footer() {
           <div className="md:col-span-4 text-left">
             <NewsletterForm />
           </div>
+        </div>
+        <div className="border-t border-border/20 pt-6 text-center">
+            <p className="text-xs text-muted-foreground/80">© {currentYear} InnerSpell. All rights reserved.</p>
         </div>
       </div>
     </footer>

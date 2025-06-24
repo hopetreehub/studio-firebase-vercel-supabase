@@ -38,7 +38,7 @@ const SuitIcon = ({ suit, className }: { suit: TarotCard['suit'], className?: st
   }
 };
 
-const ITEMS_PER_PAGE_OPTIONS = [12, 24, 48];
+const ITEMS_PER_PAGE_OPTIONS = [6, 12, 24];
 
 function CardGrid({ cards }: { cards: TarotCard[]}) {
   if (!cards || cards.length === 0) {

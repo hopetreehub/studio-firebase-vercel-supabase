@@ -495,11 +495,6 @@ export function TarotReadingClient() {
             </p>
           </div>
         )}
-      {stage === 'shuffling' && isShufflingAnimationActive && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg bg-black/30">
-          <Loader2 className="h-10 w-10 animate-spin text-white" />
-        </div>
-      )}
     </div>
   );
 
