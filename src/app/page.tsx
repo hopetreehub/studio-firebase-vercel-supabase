@@ -1,6 +1,5 @@
 
 import { HeroSection } from '@/components/home/HeroSection';
-import { NewsletterSignup } from '@/components/home/NewsletterSignup';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star, Compass, BookOpen } from 'lucide-react';
@@ -99,9 +98,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      <Separator className="my-8 bg-primary/20" />
-      <NewsletterSignup />
     </div>
   );
 }

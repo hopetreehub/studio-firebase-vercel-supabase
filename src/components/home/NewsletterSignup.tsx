@@ -22,51 +22,35 @@ const formSchema = z.object({
   email: z.string().email({ message: '유효한 이메일 주소를 입력해주세요.' }),
 });
 
-export function NewsletterSignup() {
+export function NewsletterForm() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: '',
-    },
+    defaultValues: { email: '' },
   });
 
   const onSubmit = async (values: NewsletterSubscriptionFormData) => {
     setLoading(true);
     const result = await subscribeToNewsletter(values);
-    
     if (result.success) {
-      toast({
-        title: '구독 처리 완료',
-        description: result.message,
-      });
+      toast({ title: '구독 처리 완료', description: result.message });
       form.reset();
     } else {
-      toast({
-        variant: 'destructive',
-        title: '구독 실패',
-        description: result.message,
-      });
+      toast({ variant: 'destructive', title: '구독 실패', description: result.message });
     }
     setLoading(false);
   };
 
   return (
-    <section className="py-16 sm:py-24 bg-primary/5 rounded-xl shadow-lg border border-primary/10">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <Mail className="mx-auto h-12 w-12 text-accent mb-4" />
-        <h2 className="font-headline text-3xl sm:text-4xl font-semibold text-primary mb-4">
-          InnerSpell 소식 받기
-        </h2>
-        <p className="text-lg text-foreground/80 mb-8 max-w-2xl mx-auto">
-          뉴스레터를 구독하고 최신 업데이트, 타로 통찰, 특별 혜택을 받아보세요.
-        </p>
+    <div>
+        <h3 className="font-semibold text-foreground mb-3 uppercase tracking-wider text-xs">InnerSpell 소식 받기</h3>
+        <p className="text-xs text-muted-foreground mb-4">최신 업데이트, 타로 통찰, 특별 혜택을 받아보세요.</p>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto"
+            className="flex flex-col sm:flex-row gap-2"
           >
             <FormField
               control={form.control}
@@ -74,29 +58,22 @@ export function NewsletterSignup() {
               render={({ field }) => (
                 <FormItem className="flex-grow">
                   <FormControl>
-                    <div className="relative">
-                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                      <Input 
+                    <Input 
                         type="email" 
-                        placeholder="이메일 주소를 입력하세요" 
-                        className="pl-10 h-12 text-base"
+                        placeholder="이메일 주소" 
+                        className="h-10 text-sm bg-background/50 border-primary/20 focus:bg-background"
                         {...field} />
-                    </div>
                   </FormControl>
-                  <FormMessage className="text-left" />
+                  <FormMessage className="text-left text-xs mt-1" />
                 </FormItem>
               )}
             />
-            <Button type="submit" size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground h-12 shadow-md" disabled={loading}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              {loading ? '구독 중...' : '구독하기'}
+            <Button type="submit" size="default" className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-sm h-10 shrink-0" disabled={loading}>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4"/>}
+              <span className="sm:hidden ml-2">구독하기</span>
             </Button>
           </form>
         </Form>
-         <p className="text-xs text-muted-foreground mt-4">
-            구독하시면 InnerSpell의 소식을 뉴스레터로 받아보실 수 있습니다. (메일 발송 기능은 현재 준비 중입니다.)
-        </p>
-      </div>
-    </section>
+    </div>
   );
 }

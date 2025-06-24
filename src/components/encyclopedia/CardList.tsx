@@ -10,14 +10,20 @@ import { WandIcon } from '@/components/icons/WandIcon';
 import { CupIcon } from '@/components/icons/CupIcon';
 import { SwordIcon } from '@/components/icons/SwordIcon';
 import { PentacleIcon } from '@/components/icons/PentacleIcon';
-import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, ChevronLeft, ChevronRight, BookOpenText, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { AdBanner } from '../ads/AdBanner';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface CardListProps {
   cards: TarotCard[];
+  sidebarData: {
+    majorArcana: TarotCard[];
+    otherSuits: TarotCard[];
+  }
 }
 
 const SuitIcon = ({ suit, className }: { suit: TarotCard['suit'], className?: string }) => {
@@ -32,75 +38,15 @@ const SuitIcon = ({ suit, className }: { suit: TarotCard['suit'], className?: st
   }
 };
 
-const ITEMS_PER_PAGE_OPTIONS = [10, 20, 30]; // Removed "All" as an explicit number for now
+const ITEMS_PER_PAGE_OPTIONS = [12, 24, 48];
 
-export function CardList({ cards }: CardListProps) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState<number | 'all'>(ITEMS_PER_PAGE_OPTIONS[0]);
-
+function CardGrid({ cards }: { cards: TarotCard[]}) {
   if (!cards || cards.length === 0) {
-    return <p className="text-center text-muted-foreground">카드를 찾을 수 없습니다.</p>;
+    return <p className="text-center text-muted-foreground col-span-full">표시할 카드가 없습니다.</p>;
   }
-
-  const handleItemsPerPageChange = (value: string) => {
-    if (value === 'all') {
-      setItemsPerPage('all');
-    } else {
-      setItemsPerPage(parseInt(value, 10));
-    }
-    setCurrentPage(1); // 페이지당 항목 수가 변경되면 첫 페이지로 리셋
-  };
-
-  const cardsToDisplay = itemsPerPage === 'all' ? cards : cards.slice((currentPage - 1) * (itemsPerPage as number), currentPage * (itemsPerPage as number));
-  const totalPages = itemsPerPage === 'all' ? 1 : Math.ceil(cards.length / (itemsPerPage as number));
-
-  const handlePrevPage = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
-  };
-
-  const handleNextPage = () => {
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  };
-  
   return (
-    <div className="space-y-8">
-      <div className="max-w-2xl lg:max-w-3xl mx-auto w-full flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 p-4 bg-card border border-border rounded-lg shadow-sm">
-        <div className="flex items-center gap-2">
-          <Label htmlFor="items-per-page-select" className="text-sm font-medium text-muted-foreground">페이지당 카드 수:</Label>
-          <Select
-            value={itemsPerPage.toString()}
-            onValueChange={handleItemsPerPageChange}
-          >
-            <SelectTrigger id="items-per-page-select" className="w-[120px] h-9 text-sm">
-              <SelectValue placeholder="선택" />
-            </SelectTrigger>
-            <SelectContent>
-              {ITEMS_PER_PAGE_OPTIONS.map(option => (
-                <SelectItem key={option} value={option.toString()}>{option}장</SelectItem>
-              ))}
-              <SelectItem value="all">모두 보기</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {itemsPerPage !== 'all' && totalPages > 1 && (
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={currentPage === 1}>
-              <ChevronLeft className="h-4 w-4" />
-              <span className="ml-1">이전</span>
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              {currentPage} / {totalPages} 페이지
-            </span>
-            <Button variant="outline" size="sm" onClick={handleNextPage} disabled={currentPage === totalPages}>
-              <span className="mr-1">다음</span>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 sm:gap-8">
-        {cardsToDisplay.map((card) => (
+    <div className="grid grid-cols-1 gap-6 sm:gap-8">
+        {cards.map((card) => (
           <Link key={card.id} href={`/encyclopedia/${card.id}`} passHref legacyBehavior>
             <a className="block group max-w-2xl lg:max-w-3xl mx-auto w-full">
               <Card className="flex flex-col md:flex-row h-full overflow-hidden shadow-lg hover:shadow-primary/20 hover:border-primary/30 transition-all duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer border border-transparent bg-card/90 backdrop-blur-sm">
@@ -159,9 +105,106 @@ export function CardList({ cards }: CardListProps) {
           </Link>
         ))}
       </div>
-      
+  )
+}
+
+export function CardList({ cards, sidebarData }: CardListProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number | 'all'>(ITEMS_PER_PAGE_OPTIONS[0]);
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(value === 'all' ? 'all' : parseInt(value, 10));
+    setCurrentPage(1);
+  };
+
+  const cardsToDisplay = itemsPerPage === 'all' ? cards : cards.slice((currentPage - 1) * (itemsPerPage as number), currentPage * (itemsPerPage as number));
+  const totalPages = itemsPerPage === 'all' ? 1 : Math.ceil(cards.length / (itemsPerPage as number));
+
+  const handlePrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
+  const handleNextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  
+  return (
+    <div className="mt-8">
+       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8 border-y py-4">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="items-per-page-select" className="text-sm font-medium text-muted-foreground">페이지당 카드 수:</Label>
+          <Select
+            value={itemsPerPage.toString()}
+            onValueChange={handleItemsPerPageChange}
+          >
+            <SelectTrigger id="items-per-page-select" className="w-[120px] h-9 text-sm">
+              <SelectValue placeholder="선택" />
+            </SelectTrigger>
+            <SelectContent>
+              {ITEMS_PER_PAGE_OPTIONS.map(option => (
+                <SelectItem key={option} value={option.toString()}>{option}장</SelectItem>
+              ))}
+              <SelectItem value="all">모두 보기</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {itemsPerPage !== 'all' && totalPages > 1 && (
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={currentPage === 1}>
+              <ChevronLeft className="h-4 w-4" />
+              <span className="ml-1">이전</span>
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              {currentPage} / {totalPages} 페이지
+            </span>
+            <Button variant="outline" size="sm" onClick={handleNextPage} disabled={currentPage === totalPages}>
+              <span className="mr-1">다음</span>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-8">
+        <main className="w-full lg:w-2/3">
+            <CardGrid cards={cardsToDisplay} />
+        </main>
+        
+        <aside className="w-full lg:w-1/3 space-y-6 lg:sticky lg:top-20 self-start">
+           <Card className="shadow-md border-primary/10">
+            <CardHeader>
+              <CardTitle className="font-headline text-xl text-primary flex items-center">
+                <Sparkles className="mr-2 h-5 w-5"/>전체 카드 목록
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[60vh]">
+                <div className="pr-4">
+                  <h3 className="font-semibold text-lg text-primary/90 mb-2">메이저 아르카나</h3>
+                  <ul className="space-y-1.5 mb-4">
+                    {sidebarData.majorArcana.map(card => (
+                      <li key={card.id}>
+                        <Link href={`/encyclopedia/${card.id}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                          {card.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                  <h3 className="font-semibold text-lg text-primary/90 mb-2">마이너 아르카나</h3>
+                   <ul className="space-y-1.5">
+                    {sidebarData.otherSuits.map(card => (
+                      <li key={card.id}>
+                        <Link href={`/encyclopedia/${card.id}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                           {card.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+          <AdBanner />
+        </aside>
+      </div>
+
       {itemsPerPage !== 'all' && totalPages > 1 && (
-          <div className="max-w-2xl lg:max-w-3xl mx-auto w-full flex justify-center items-center gap-2 mt-8">
+          <div className="flex justify-center items-center gap-2 mt-8">
             <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={currentPage === 1}>
               <ChevronLeft className="h-4 w-4" />
               <span className="ml-1">이전</span>

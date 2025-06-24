@@ -21,6 +21,11 @@ export default function EncyclopediaPage() {
   const majorArcana = tarotDeck.filter(card => card.suit === 'major');
   const otherSuits = tarotDeck.filter(card => card.suit !== 'major');
 
+  const sidebarData = {
+      majorArcana,
+      otherSuits,
+  }
+
   return (
     <div className="space-y-8">
       <header className="text-center">
@@ -31,48 +36,7 @@ export default function EncyclopediaPage() {
         </p>
       </header>
       
-      <div className="flex flex-col lg:flex-row gap-8">
-        <main className="w-full lg:w-2/3">
-          <CardList cards={tarotDeck} />
-        </main>
-        
-        <aside className="w-full lg:w-1/3 space-y-6 lg:sticky lg:top-20 self-start">
-           <Card className="shadow-md border-primary/10">
-            <CardHeader>
-              <CardTitle className="font-headline text-xl text-primary flex items-center">
-                <Sparkles className="mr-2 h-5 w-5"/>전체 카드 목록
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[60vh]">
-                <div className="pr-4">
-                  <h3 className="font-semibold text-lg text-primary/90 mb-2">메이저 아르카나</h3>
-                  <ul className="space-y-1.5 mb-4">
-                    {majorArcana.map(card => (
-                      <li key={card.id}>
-                        <Link href={`/encyclopedia/${card.id}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                          {card.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                  <h3 className="font-semibold text-lg text-primary/90 mb-2">마이너 아르카나</h3>
-                   <ul className="space-y-1.5">
-                    {otherSuits.map(card => (
-                      <li key={card.id}>
-                        <Link href={`/encyclopedia/${card.id}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                           {card.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-          <AdBanner />
-        </aside>
-      </div>
+      <CardList cards={tarotDeck} sidebarData={sidebarData} />
     </div>
   );
 }

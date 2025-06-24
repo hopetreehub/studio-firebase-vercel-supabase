@@ -1,12 +1,8 @@
 
 import { getAllPosts } from '@/actions/blogActions';
-import { Feather, ListChecks, Tag } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BlogList } from '@/components/blog/BlogList';
+import { Feather } from 'lucide-react';
 import type { Metadata } from 'next';
-import { AdBanner } from '@/components/ads/AdBanner';
+import { BlogList } from '@/components/blog/BlogList';
 
 export const metadata: Metadata = {
   title: '영적 사색 - 블로그',
@@ -27,6 +23,12 @@ export default async function BlogPage() {
   const popularTags = ['운세', '사랑', '직업', '조언', '치유'];
   const recentPosts = sortedPosts.slice(0, 5).map(p => ({ title: p.title, slug: p.slug }));
 
+  const sidebarData = {
+    categories,
+    popularTags,
+    recentPosts,
+  }
+
   return (
     <div className="space-y-8">
       <header className="text-center">
@@ -37,63 +39,8 @@ export default async function BlogPage() {
         </p>
       </header>
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        <div className="w-full lg:w-2/3">
-          {/* Client component for interactive list, pass posts as props */}
-          <BlogList initialPosts={sortedPosts} />
-        </div>
-
-        {/* Sidebar remains part of the server component */}
-        <aside className="w-full lg:w-1/3 space-y-6 lg:sticky lg:top-20 self-start">
-          <Card className="shadow-md border-primary/10">
-            <CardHeader>
-              <CardTitle className="font-headline text-xl text-primary flex items-center"><ListChecks className="mr-2 h-5 w-5"/>카테고리</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                {categories.map(category => (
-                  <li key={category}>
-                    <Link href={`/blog/category/${category.toLowerCase().replace(/\s+/g, '-')}`} className="text-muted-foreground hover:text-primary transition-colors">
-                      {category}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-          <Card className="shadow-md border-primary/10">
-            <CardHeader>
-              <CardTitle className="font-headline text-xl text-primary">최근 게시물</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3">
-                {recentPosts.map(post => (
-                  <li key={post.slug}>
-                    <Link href={`/blog/${post.slug}`} className="text-muted-foreground hover:text-primary transition-colors line-clamp-2">
-                      {post.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-          <Card className="shadow-md border-primary/10">
-            <CardHeader>
-              <CardTitle className="font-headline text-xl text-primary flex items-center"><Tag className="mr-2 h-5 w-5"/>인기 태그</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-2">
-              {popularTags.map(tag => (
-                <Link key={tag} href={`/blog/tag/${tag.toLowerCase()}`}>
-                  <Button variant="outline" size="sm" className="text-xs bg-accent/5 border-accent/20 text-accent hover:bg-accent/10">
-                    #{tag}
-                  </Button>
-                </Link>
-              ))}
-            </CardContent>
-          </Card>
-          <AdBanner />
-        </aside>
-      </div>
+      {/* BlogList component now handles its own layout including sidebar */}
+      <BlogList initialPosts={sortedPosts} sidebarData={sidebarData} />
     </div>
   );
 }
