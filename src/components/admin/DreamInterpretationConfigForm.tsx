@@ -1,14 +1,24 @@
-
 'use client';
 
 import React, { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   configureDreamPromptSettings,
-  ConfigureDreamPromptSettingsInput,
 } from '@/ai/flows/configure-dream-prompt-settings';
 
 const DEFAULT_PROMPT = `[SYSTEM INSTRUCTIONS START]
@@ -70,29 +80,27 @@ Based on all the provided information, generate a structured and in-depth dream 
 [SYSTEM INSTRUCTIONS END]
 `;
 
+const FormSchema = z.object({
+  promptTemplate: z.string().min(10, {
+    message: "프롬프트 템플릿은 최소 10자 이상이어야 합니다.",
+  }),
+});
 
 export function DreamInterpretationConfigForm() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [promptTemplate, setPromptTemplate] = useState(DEFAULT_PROMPT);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      promptTemplate: DEFAULT_PROMPT,
+    },
+  });
+
+  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     setLoading(true);
-
-    if (promptTemplate.trim().length < 10) {
-      toast({
-        variant: 'destructive',
-        title: '오류',
-        description: '프롬프트 템플릿은 최소 10자 이상이어야 합니다.',
-      });
-      setLoading(false);
-      return;
-    }
-
     try {
-      const values: ConfigureDreamPromptSettingsInput = { promptTemplate };
-      const result = await configureDreamPromptSettings(values);
+      const result = await configureDreamPromptSettings(data);
       toast({
         variant: result.success ? 'default' : 'destructive',
         title: result.success ? '성공' : '오류',
@@ -110,33 +118,39 @@ export function DreamInterpretationConfigForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      <div className="space-y-2">
-        <label
-          htmlFor="dream-prompt-template"
-          className="text-lg font-semibold text-foreground/90"
-        >
-          꿈 해몽 프롬프트 템플릿
-        </label>
-        <Textarea
-          id="dream-prompt-template"
-          value={promptTemplate}
-          onChange={(e) => setPromptTemplate(e.target.value)}
-          placeholder="AI 꿈 해몽 프롬프트 템플릿을 입력하세요…"
-          className="min-h-[300px] bg-background/70 text-sm leading-relaxed"
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="promptTemplate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-semibold text-foreground/90">
+                꿈 해몽 프롬프트 템플릿
+              </FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="AI 꿈 해몽 프롬프트 템플릿을 입력하세요…"
+                  className="min-h-[300px] bg-background/70 text-sm leading-relaxed"
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription>
+                &#96;{"{{{dreamDescription}}}"}&#96;, &#96;{"{{{questionnaireAnswers}}}"}&#96;, &#96;{"{{{sajuInfo}}}"}&#96;와 같은 플레이스홀더(placeholder)를 사용하여 AI가 동적으로 내용을 채울 수 있도록 하세요.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-        <p className="text-sm text-muted-foreground">
-          &#96;{{{dreamDescription}}}&#96;, &#96;{{{questionnaireAnswers}}}&#96;, &#96;{{{sajuInfo}}}&#96;와 같은 플레이스홀더(placeholder)를 사용하여 AI가 동적으로 내용을 채울 수 있도록 하세요.
-        </p>
-      </div>
-      <Button
-        type="submit"
-        disabled={loading}
-        className="w-full py-3 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
-      >
-        {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-        {loading ? '저장 중…' : '꿈 해몽 AI 설정 저장'}
-      </Button>
-    </form>
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full py-3 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
+          {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+          {loading ? '저장 중…' : '꿈 해몽 AI 설정 저장'}
+        </Button>
+      </form>
+    </Form>
   );
 }
