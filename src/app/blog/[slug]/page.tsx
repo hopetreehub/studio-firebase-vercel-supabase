@@ -1,6 +1,5 @@
 
-import { getPostBySlug, getPreviousPost, getNextPost } from '@/lib/blog-data';
-import { getAllPosts as getAllPostsAction } from '@/actions/blogActions'; 
+import { getPostAndNeighbors } from '@/lib/blog-data';
 import type { BlogPost } from '@/types';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -23,7 +22,7 @@ export async function generateMetadata(
   { params }: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const post = await getPostBySlug(params.slug); 
+  const { post } = await getPostAndNeighbors(params.slug); 
 
   if (!post) {
     return {
@@ -73,7 +72,7 @@ export async function generateMetadata(
 
 export async function generateStaticParams() {
   try {
-    const posts = await getAllPostsAction(); 
+    const { posts } = await getPostAndNeighbors(''); // Pass empty slug to get all posts
     return posts.map((post) => ({
       slug: post.slug,
     }));
@@ -84,15 +83,12 @@ export async function generateStaticParams() {
 }
 
 export default async function BlogPostPage({ params }: Props) {
-  const post = await getPostBySlug(params.slug); 
+  const { post, previousPost, nextPost } = await getPostAndNeighbors(params.slug);
 
   if (!post) {
     notFound();
   }
-
-  const previousPost = await getPreviousPost(params.slug); 
-  const nextPost = await getNextPost(params.slug); 
-
+  
   const displayDate = format(new Date(post.date), 'yyyy년 MM월 dd일');
   const imageUrl = post.imageSrc 
     ? post.imageSrc.startsWith('http') ? post.imageSrc : `${siteUrl}${post.imageSrc}`

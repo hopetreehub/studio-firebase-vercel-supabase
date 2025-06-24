@@ -126,7 +126,7 @@ export function DreamInterpretationConfigForm() {
           className="min-h-[300px] bg-background/70 text-sm leading-relaxed"
         />
         <p className="text-sm text-muted-foreground">
-          &#96;{{{dreamDescription}}}&#96;, &#96;{{{questionnaireAnswers}}}&#96;, &#96;{{{sajuInfo}}}&#96;와 같은 플레이스홀더를 사용하여 AI가 동적으로 내용을 채울 수 있도록 하세요.
+          &#96;{{{dreamDescription}}}&#96;, &#96;{{{questionnaireAnswers}}}&#96;, &#96;{{{sajuInfo}}}&#96;와 같은 플레이스홀더(placeholder)를 사용하여 AI가 동적으로 내용을 채울 수 있도록 하세요.
         </p>
       </div>
       <Button
