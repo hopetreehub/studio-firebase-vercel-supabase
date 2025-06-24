@@ -22,6 +22,7 @@ const ClarificationSchema = z.object({
 const GenerateDreamInterpretationInputSchema = z.object({
   dreamDescription: z.string().describe("The user's initial, free-form description of their dream."),
   clarifications: z.array(ClarificationSchema).optional().describe("A structured set of answers to AI-generated clarification questions about the dream."),
+  additionalInfo: z.string().optional().describe("Any additional details or thoughts the user provided after answering the clarification questions."),
   sajuInfo: z.string().optional().describe("The user's Saju (Four Pillars of Destiny) information, if provided."),
 });
 export type GenerateDreamInterpretationInput = z.infer<typeof GenerateDreamInterpretationInputSchema>;
@@ -49,6 +50,12 @@ Here is the information provided by the user:
   A: {{this.answer}}
 {{/each}}
 [END USER'S ANSWERS TO CLARIFYING QUESTIONS]
+{{/if}}
+
+{{#if additionalInfo}}
+[USER'S ADDITIONAL THOUGHTS]
+{{{additionalInfo}}}
+[END USER'S ADDITIONAL THOUGHTS]
 {{/if}}
 
 {{#if sajuInfo}}

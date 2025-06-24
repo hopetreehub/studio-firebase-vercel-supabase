@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { generateDreamClarificationQuestions, type ClarificationQuestion } from '@/ai/flows/generate-dream-clarification-questions';
+import { generateDreamClarificationQuestions } from '@/ai/flows/generate-dream-clarification-questions';
+import type { ClarificationQuestion } from '@/ai/flows/generate-dream-clarification-questions';
 import { generateDreamInterpretation } from '@/ai/flows/generate-dream-interpretation';
 import { Sparkles, Loader2, Info } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -26,6 +27,7 @@ export function DreamInterpretationClient() {
   const [initialDescription, setInitialDescription] = useState<string>('');
   const [clarificationQuestions, setClarificationQuestions] = useState<ClarificationQuestion[]>([]);
   const [clarificationAnswers, setClarificationAnswers] = useState<Record<number, string>>({});
+  const [additionalInfo, setAdditionalInfo] = useState<string>('');
   const [interpretation, setInterpretation] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -42,6 +44,7 @@ export function DreamInterpretationClient() {
     setIsLoading(true);
     setClarificationQuestions([]);
     setClarificationAnswers({});
+    setAdditionalInfo('');
     try {
       const result = await generateDreamClarificationQuestions({ dreamDescription: initialDescription });
       setClarificationQuestions(result.questions);
@@ -87,6 +90,7 @@ export function DreamInterpretationClient() {
       const result = await generateDreamInterpretation({ 
         dreamDescription: initialDescription,
         clarifications: clarifications.length > 0 ? clarifications : undefined,
+        additionalInfo: additionalInfo.trim() ? additionalInfo.trim() : undefined,
         sajuInfo: user?.sajuInfo,
       });
       setInterpretation(result.interpretation);
@@ -109,6 +113,7 @@ export function DreamInterpretationClient() {
     setInitialDescription('');
     setClarificationQuestions([]);
     setClarificationAnswers({});
+    setAdditionalInfo('');
     setInterpretation('');
     setIsLoading(false);
   };
@@ -210,6 +215,19 @@ export function DreamInterpretationClient() {
                   </RadioGroup>
                 </div>
               ))}
+
+              <div className="space-y-3 pt-4">
+                <Label htmlFor="additional-info" className="text-md font-semibold">
+                  혹시 더 추가하고 싶은 이야기가 있나요?
+                </Label>
+                <Textarea
+                  id="additional-info"
+                  placeholder="선택지를 고르고 나니 떠오르는 생각이나, 꿈의 다른 세부사항을 자유롭게 적어주세요."
+                  value={additionalInfo}
+                  onChange={(e) => setAdditionalInfo(e.target.value)}
+                  className="min-h-[120px]"
+                />
+              </div>
               
               {user?.sajuInfo && (
                   <div className="flex items-start rounded-md border border-primary/20 bg-primary/5 p-3 text-sm text-primary/80">
