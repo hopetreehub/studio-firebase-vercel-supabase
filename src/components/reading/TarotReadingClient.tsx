@@ -587,13 +587,11 @@ export function TarotReadingClient() {
                 </SelectTrigger>
                 <SelectContent>
                   {tarotInterpretationStyles.map((style) => (
-                    <SelectItem key={style.id} value={style.id}>
-                      <span className="flex flex-col py-1">
-                        <span>{style.name}</span>
-                        <span className="text-xs text-muted-foreground mt-0.5 whitespace-normal">
-                          {style.description}
-                        </span>
-                      </span>
+                    <SelectItem key={style.id} value={style.id} className="py-2">
+                      <div className="whitespace-normal">
+                        <span className="font-medium">{style.name}:</span>
+                        <span className="ml-1.5 text-xs text-muted-foreground">{style.description}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
