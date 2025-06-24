@@ -123,6 +123,11 @@ const fallbackCommunityPosts: CommunityPost[] = [
 
 // Get community posts for a specific category
 export async function getCommunityPosts(category: CommunityPostCategory): Promise<CommunityPost[]> {
+  if (process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
+    console.log(`DEV MODE: Bypassing Firestore for getCommunityPosts('${category}'), returning fallback posts.`);
+    return fallbackCommunityPosts.filter(p => p.category === category);
+  }
+
   try {
     const snapshot = await firestore.collection('communityPosts')
       .where('category', '==', category)
@@ -141,6 +146,12 @@ export async function getCommunityPosts(category: CommunityPostCategory): Promis
 
 // Get a single community post by ID
 export async function getCommunityPostById(postId: string): Promise<CommunityPost | null> {
+  if (process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
+    console.log(`DEV MODE: Bypassing Firestore for getCommunityPostById('${postId}'), returning fallback post.`);
+    const fallbackPost = fallbackCommunityPosts.find(p => p.id === postId);
+    return fallbackPost || null;
+  }
+
   try {
     const docRef = firestore.collection('communityPosts').doc(postId);
     const doc = await docRef.get();

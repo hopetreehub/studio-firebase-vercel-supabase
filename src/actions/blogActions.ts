@@ -8,6 +8,15 @@ import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { mapDocToBlogPost, fallbackBlogPosts } from '@/lib/blog-utils'; 
 
 export async function getAllPosts(): Promise<BlogPost[]> {
+  if (process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
+    console.log("DEV MODE: Bypassing Firestore for getAllPosts, returning fallback posts.");
+    return fallbackBlogPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(post => ({
+        ...post,
+        createdAt: new Date(post.date),
+        updatedAt: new Date(post.date),
+    }));
+  }
+
   try {
     const snapshot = await firestore.collection('blogPosts').orderBy('createdAt', 'desc').get();
     if (snapshot.empty) {
