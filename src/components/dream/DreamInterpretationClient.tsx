@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -18,6 +19,22 @@ import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 
 type Step = 'initial' | 'generating_questions' | 'clarifying' | 'interpreting' | 'done';
+
+const SignUpPrompt = () => (
+  <div className="mt-6 p-4 bg-primary/10 border border-primary/20 rounded-lg text-center animate-fade-in">
+    <h4 className="font-headline text-lg text-primary">더 깊이 있는 해석을 원시나요?</h4>
+    <p className="text-sm text-foreground/80 mt-1 mb-3">무료로 회원가입하고 전체 해석과 조언, 그리고 리딩 기록 저장 기능까지 모두 이용해보세요!</p>
+    <div className="flex flex-col sm:flex-row gap-2 justify-center">
+        <Button asChild className="w-full sm:w-auto">
+            <Link href="/sign-up?redirect=/dream-interpretation">무료 회원가입</Link>
+        </Button>
+        <Button variant="ghost" asChild className="w-full sm:w-auto">
+            <Link href="/sign-in?redirect=/dream-interpretation">로그인</Link>
+        </Button>
+    </div>
+  </div>
+);
+
 
 export function DreamInterpretationClient() {
   const { user } = useAuth();
@@ -96,6 +113,7 @@ export function DreamInterpretationClient() {
         clarifications: clarifications.length > 0 ? clarifications : undefined,
         additionalInfo: additionalInfo.trim() ? additionalInfo.trim() : undefined,
         sajuInfo: user?.sajuInfo,
+        isGuestUser: !user,
       });
       setInterpretation(result.interpretation);
       setStep('done');
@@ -164,6 +182,7 @@ export function DreamInterpretationClient() {
           <div className="prose dark:prose-invert prose-lg max-w-none prose-headings:font-headline prose-headings:text-accent prose-p:text-foreground/90 prose-strong:text-primary/90 leading-relaxed">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{interpretation}</ReactMarkdown>
           </div>
+          {!user && <SignUpPrompt />}
           <Button onClick={resetState} className="mt-8">
             새로운 꿈 해몽하기
           </Button>
@@ -254,13 +273,13 @@ export function DreamInterpretationClient() {
                     <p>프로필에 저장된 사주 정보를 바탕으로 더 개인화된 해석을 제공합니다.</p>
                   </div>
               )}
-              {!user?.sajuInfo && user && (
+              {!user && (
                   <div className="flex items-start rounded-md border border-accent/20 bg-accent/5 p-3 text-sm text-accent/80">
                     <Info className="mr-2.5 mt-0.5 h-4 w-4 shrink-0" />
                     <p>
                       더 깊이 있는 해석을 원하시나요?{' '}
                       <Link href="/profile" className="font-semibold underline hover:text-accent">프로필</Link>
-                      에 사주 정보를 추가해보세요.
+                      에 사주 정보를 추가하거나 회원가입하고 더 정확한 정보를 받아보세요.
                     </p>
                   </div>
               )}

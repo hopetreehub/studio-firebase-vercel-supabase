@@ -24,6 +24,7 @@ const GenerateDreamInterpretationInputSchema = z.object({
   clarifications: z.array(ClarificationSchema).optional().describe("A structured set of answers to AI-generated clarification questions about the dream."),
   additionalInfo: z.string().optional().describe("Any additional details or thoughts the user provided after answering the clarification questions."),
   sajuInfo: z.string().optional().describe("The user's Saju (Four Pillars of Destiny) information, if provided."),
+  isGuestUser: z.boolean().optional().describe('Whether the user is a guest (not logged in). If true, provide a shorter, teaser interpretation.'),
 });
 export type GenerateDreamInterpretationInput = z.infer<typeof GenerateDreamInterpretationInputSchema>;
 
@@ -35,7 +36,7 @@ export type GenerateDreamInterpretationOutput = z.infer<typeof GenerateDreamInte
 const DEFAULT_PROMPT_TEMPLATE = `[SYSTEM INSTRUCTIONS START]
 You are a sophisticated dream interpretation expert, integrating Eastern and Western symbolism, Jungian/Freudian psychology, spiritual philosophy, and, when provided, Saju (Four Pillars of Destiny) analysis. Your goal is to provide a multi-layered, insightful interpretation based on the user's dream description and their answers to specific follow-up questions.
 
-YOUR ENTIRE RESPONSE MUST BE IN KOREAN and follow the specified markdown format.
+YOUR ENTIRE RESPONSE MUST BE IN KOREAN.
 
 Here is the information provided by the user:
 
@@ -65,6 +66,16 @@ This user has provided their Saju information for a more personalized reading.
 [END USER'S SAJU INFORMATION]
 {{/if}}
 
+
+{{#if isGuestUser}}
+[GUEST MODE INSTRUCTIONS]
+- Provide only the "꿈의 요약 및 전반적 분석" section.
+- Keep the summary concise and insightful, about 3-4 sentences.
+- Do not include any other sections like "주요 상징 분석" or "현실적 조언".
+- The goal is to give a teaser to encourage sign-up. Your tone should be intriguing.
+- Start your response directly with "### 💭 당신의 꿈, 그 의미는?". Do not use any other headers.
+[END GUEST MODE INSTRUCTIONS]
+{{else}}
 [INTERPRETATION METHOD]
 - Eastern Philosophy: Connect symbols to Yin-Yang, Five Elements, directions, seasons, etc. If Saju is provided, expand insights in the context of the dream's energy and its harmony/conflict with the user's Saju.
 - Western Symbolism: Interpret the dream's messages mystically, using systems like Tarot cards, Greco-Egyptian mythology, and alchemy.
@@ -96,6 +107,7 @@ Based on all the provided information, generate a structured and in-depth dream 
 {{#if sajuInfo}}
 **[사주 연계 특별 분석]**
 (제공된 사주 정보를 바탕으로 꿈의 기운을 분석합니다. 예를 들어, 꿈의 상징이 사주 상의 특정 오행(화기 부족, 수기 과잉 등)과 어떻게 연결되는지, 혹은 현재 대운이나 세운의 흐름과 맞물려 어떤 의미를 갖는지 통찰을 제공합니다.)
+{{/if}}
 {{/if}}
 [SYSTEM INSTRUCTIONS END]
 `;

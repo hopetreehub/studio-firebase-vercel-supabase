@@ -48,6 +48,7 @@ import { useAuth } from '@/context/AuthContext';
 
 
 import Image from 'next/image';
+import Link from 'next/link';
 import {
   Sparkles,
   Loader2,
@@ -80,6 +81,21 @@ const TARGET_CARD_HEIGHT_CLASS = "h-60";
 const IMAGE_ORIGINAL_WIDTH = 275;
 const IMAGE_ORIGINAL_HEIGHT = 475;
 const CARD_IMAGE_SIZES = "140px";
+
+const SignUpPrompt = () => (
+  <div className="mt-6 p-4 bg-primary/10 border border-primary/20 rounded-lg text-center animate-fade-in">
+    <h4 className="font-headline text-lg text-primary">더 깊이 있는 해석을 원시나요?</h4>
+    <p className="text-sm text-foreground/80 mt-1 mb-3">무료로 회원가입하고 전체 해석과 조언, 그리고 리딩 기록 저장 기능까지 모두 이용해보세요!</p>
+    <div className="flex flex-col sm:flex-row gap-2 justify-center">
+        <Button asChild className="w-full sm:w-auto">
+            <Link href="/sign-up?redirect=/reading">무료 회원가입</Link>
+        </Button>
+        <Button variant="ghost" asChild className="w-full sm:w-auto">
+            <Link href="/sign-in?redirect=/reading">로그인</Link>
+        </Button>
+    </div>
+  </div>
+);
 
 
 export function TarotReadingClient() {
@@ -363,6 +379,7 @@ export function TarotReadingClient() {
         question: `${question} (해석 스타일: ${interpretationMethod})`,
         cardSpread: selectedSpread.name,
         cardInterpretations: cardInterpretationsText,
+        isGuestUser: !user,
       });
       setInterpretation(result.interpretation);
       setStage('interpretation_ready');
@@ -819,9 +836,10 @@ export function TarotReadingClient() {
                 >
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayedInterpretation}</ReactMarkdown>
                 </div>
+                {!user && stage === 'interpretation_ready' && <SignUpPrompt />}
               </div>
               <AlertDialogFooter className="mt-4 pt-4 border-t flex-col sm:flex-row gap-2">
-                {user && !readingJustSaved && (
+                {user && !readingJustSaved && stage === 'interpretation_ready' && (
                    <Button
                     variant="default"
                     onClick={handleSaveReading}
