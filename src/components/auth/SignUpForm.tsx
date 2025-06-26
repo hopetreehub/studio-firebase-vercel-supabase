@@ -74,11 +74,14 @@ export function SignUpForm() {
         router.push(redirectUrl);
       }
     } catch (error: any) {
+      console.error("Sign-Up Error:", error);
       let errorMessage = '회원가입 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = '이미 사용 중인 이메일입니다. 다른 이메일을 사용해주세요.';
       } else if (error.code === 'auth/weak-password') {
         errorMessage = '비밀번호는 6자 이상이어야 합니다.';
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = '이메일/비밀번호 방식의 회원가입이 비활성화되어 있습니다. 관리자에게 문의하세요.';
       } else if (error.message) {
         errorMessage = error.message;
       }

@@ -60,11 +60,14 @@ export function SignInForm() {
         router.push(redirectUrl);
       }
     } catch (error: any) {
+      console.error("Sign-In Error:", error);
       let errorMessage = '로그인 중 오류가 발생했습니다. 이메일 또는 비밀번호를 확인해주세요.';
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         errorMessage = '이메일 또는 비밀번호가 올바르지 않습니다.';
       } else if (error.code === 'auth/too-many-requests') {
         errorMessage = '너무 많은 로그인 시도를 하셨습니다. 잠시 후 다시 시도해주세요.';
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = '이메일/비밀번호 방식의 로그인이 비활성화되어 있습니다. 관리자에게 문의하세요.';
       } else if (error.message) {
         errorMessage = error.message;
       }
