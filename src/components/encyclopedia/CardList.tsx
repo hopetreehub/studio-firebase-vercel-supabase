@@ -47,8 +47,7 @@ function CardGrid({ cards }: { cards: TarotCard[]}) {
   return (
     <div className="grid grid-cols-1 gap-6 sm:gap-8">
         {cards.map((card) => (
-          <Link key={card.id} href={`/encyclopedia/${card.id}`} passHref legacyBehavior>
-            <a className="block group max-w-2xl lg:max-w-3xl mx-auto w-full">
+          <Link key={card.id} href={`/encyclopedia/${card.id}`} className="block group max-w-2xl lg:max-w-3xl mx-auto w-full">
               <Card className="flex flex-col md:flex-row h-full overflow-hidden shadow-lg hover:shadow-primary/20 hover:border-primary/30 transition-all duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer border border-transparent bg-card/90 backdrop-blur-sm">
                 <div className="md:w-48 w-full shrink-0 bg-primary/5 relative aspect-[275/475] md:aspect-auto md:h-auto rounded-t-lg md:rounded-l-lg md:rounded-r-none overflow-hidden">
                   <Image
@@ -101,7 +100,6 @@ function CardGrid({ cards }: { cards: TarotCard[]}) {
                   </CardFooter>
                 </div>
               </Card>
-            </a>
           </Link>
         ))}
       </div>
