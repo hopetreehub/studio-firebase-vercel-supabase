@@ -8,7 +8,7 @@ import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CommunityCommentFormSchema, type CommunityCommentFormData, type CommunityComment } from '@/types';
 import { getCommentsForPost, addComment, deleteComment, updateComment } from '@/actions/commentActions';
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,23 @@ interface CommentSectionProps {
   postId: string;
   initialCommentCount: number;
 }
+
+// Helper component to prevent hydration mismatch for relative dates.
+const TimeAgo = ({ date }: { date: Date }) => {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    // Render a static, non-relative date on the server and initial client render.
+    return <>{format(date, 'yyyy.MM.dd')}</>;
+  }
+
+  // Render the dynamic "time ago" string only on the client after mounting.
+  return <>{formatDistanceToNow(date, { addSuffix: true, locale: ko })}</>;
+};
 
 export function CommentSection({ postId, initialCommentCount }: CommentSectionProps) {
   const { user } = useAuth();
@@ -147,7 +164,7 @@ export function CommentSection({ postId, initialCommentCount }: CommentSectionPr
                     <div>
                       <p className="font-semibold text-sm">{comment.authorName}</p>
                       <p className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(comment.createdAt, { addSuffix: true, locale: ko })}
+                        <TimeAgo date={comment.createdAt} />
                         {comment.updatedAt > comment.createdAt && ' (수정됨)'}
                       </p>
                     </div>

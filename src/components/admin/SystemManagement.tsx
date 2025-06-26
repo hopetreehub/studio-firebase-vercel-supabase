@@ -4,7 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShieldCheck, Server, Database, BrainCircuit, CheckCircle, AlertTriangle, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import React, { useState, useEffect } from 'react'; // Import useState and useEffect
+import React, { useState, useEffect } from 'react';
 
 const initialSystemStatuses = [
   { name: "애플리케이션 서버", status: "Online", icon: <Server className="h-5 w-5" />, variant: "default" as const },
@@ -17,10 +17,12 @@ const initialSystemStatuses = [
 
 export function SystemManagement() {
   const [systemStatuses, setSystemStatuses] = useState(initialSystemStatuses);
+  const [logs, setLogs] = useState<string[]>([]);
 
   useEffect(() => {
+    // This effect runs only on the client, after hydration
     const now = new Date();
-    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000 - 15 * 60 * 1000); // 2 hours 15 minutes ago for example
+    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000 - 15 * 60 * 1000);
     
     const diffMs = now.getTime() - twoHoursAgo.getTime();
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
@@ -30,7 +32,7 @@ export function SystemManagement() {
     if (diffHours > 0) {
       timeAgoMessage += `${diffHours}시간 `;
     }
-    if (diffMinutes > 0 || diffHours === 0) { // Show minutes if hours is 0 or minutes exist
+    if (diffMinutes > 0 || diffHours === 0) {
       timeAgoMessage += `${diffMinutes}분 `;
     }
     timeAgoMessage += "전)";
@@ -39,12 +41,22 @@ export function SystemManagement() {
       timeAgoMessage = "Success (방금 전)";
     }
 
-
     setSystemStatuses(prevStatuses => 
       prevStatuses.map(item => 
         item.id === "backup-status" ? { ...item, status: timeAgoMessage } : item
       )
     );
+
+    const clientNow = new Date();
+    setLogs([
+       `[${new Date(clientNow.getTime() - 3600000).toLocaleString('ko-KR')}] INFO: Application server started successfully on port 3000.`,
+        `[${new Date(clientNow.getTime() - 3540000).toLocaleString('ko-KR')}] INFO: Database connection established.`,
+        `[${new Date(clientNow.getTime() - 1800000).toLocaleString('ko-KR')}] INFO: User 'alice@example.com' logged in.`,
+        `[${new Date(clientNow.getTime() - 1200000).toLocaleString('ko-KR')}] AI_GEN: Tarot interpretation requested by user 'bob@example.com'.`,
+        `[${new Date(clientNow.getTime() - 1195000).toLocaleString('ko-KR')}] AI_GEN: Tarot interpretation generated successfully.`,
+        `[${new Date(clientNow.getTime() - 600000).toLocaleString('ko-KR')}] ADMIN: AI prompt configuration updated by 'alice@example.com'.`,
+        `[${clientNow.toLocaleString('ko-KR')}] SYSTEM: Health check OK.`,
+    ]);
   }, []);
 
   return (
@@ -83,13 +95,11 @@ export function SystemManagement() {
         <div>
            <h3 className="text-lg font-semibold mb-2 text-foreground/90">시스템 로그 (예시)</h3>
            <div className="bg-muted/50 p-3 rounded-md max-h-48 overflow-y-auto text-xs font-mono text-foreground/70">
-            <p>[{new Date(Date.now() - 3600000).toLocaleString('ko-KR')}] INFO: Application server started successfully on port 3000.</p>
-            <p>[{new Date(Date.now() - 3540000).toLocaleString('ko-KR')}] INFO: Database connection established.</p>
-            <p>[{new Date(Date.now() - 1800000).toLocaleString('ko-KR')}] INFO: User 'alice@example.com' logged in.</p>
-            <p>[{new Date(Date.now() - 1200000).toLocaleString('ko-KR')}] AI_GEN: Tarot interpretation requested by user 'bob@example.com'.</p>
-            <p>[{new Date(Date.now() - 1195000).toLocaleString('ko-KR')}] AI_GEN: Tarot interpretation generated successfully.</p>
-            <p>[{new Date(Date.now() - 600000).toLocaleString('ko-KR')}] ADMIN: AI prompt configuration updated by 'alice@example.com'.</p>
-            <p>[{new Date().toLocaleString('ko-KR')}] SYSTEM: Health check OK.</p>
+            {logs.length > 0 ? (
+              logs.map((log, index) => <p key={index}>{log}</p>)
+            ) : (
+              <p>로그를 생성하는 중...</p>
+            )}
            </div>
         </div>
          <p className="text-xs text-muted-foreground mt-4">
