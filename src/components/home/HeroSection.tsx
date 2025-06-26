@@ -44,7 +44,7 @@ export function HeroSection() {
           <div className="relative animate-fade-in" style={{ animationDelay: '0.4s' }}>
             <div className="aspect-square max-w-md mx-auto md:max-w-none rounded-xl overflow-hidden shadow-2xl transform transition-all duration-500 hover:scale-105 group">
               <Image
-                src="/images/tarothome.png" 
+                src="/images/tarothome.png?v=1" 
                 alt="신비로운 타로 카드"
                 width={600}
                 height={600}
