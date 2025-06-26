@@ -15,7 +15,7 @@ const baseNavItems = [
   { href: '/', label: '홈' },
   { href: '/reading', label: '타로리딩' },
   { href: '/dream-interpretation', label: '꿈해몽' },
-  { href: '/blog', label: '블로그' },
+  { href: 'https://your-wordpress-blog.com', label: '블로그' },
   { href: '/community', label: '커뮤니티' },
 ];
 
@@ -40,15 +40,20 @@ export function Navbar() {
         <div className="flex items-center space-x-2">
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-            {navItems.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="transition-colors hover:text-primary text-foreground/80"
-              >
-                {item.label}
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              const isExternal = item.href.startsWith('http');
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="transition-colors hover:text-primary text-foreground/80"
+                  target={isExternal ? '_blank' : undefined}
+                  rel={isExternal ? 'noopener noreferrer' : undefined}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="hidden md:block border-l border-border/40 h-6 mx-4"></div>
@@ -73,16 +78,21 @@ export function Navbar() {
                   </SheetTitle>
                 </SheetHeader>
                 <nav className="flex flex-col p-4 space-y-2">
-                  {navItems.map((item) => (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      className="block rounded-md px-3 py-2 text-base font-medium text-foreground/80 hover:bg-accent hover:text-accent-foreground transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
+                  {navItems.map((item) => {
+                     const isExternal = item.href.startsWith('http');
+                     return (
+                        <Link
+                          key={item.label}
+                          href={item.href}
+                          className="block rounded-md px-3 py-2 text-base font-medium text-foreground/80 hover:bg-accent hover:text-accent-foreground transition-colors"
+                          onClick={() => setMobileMenuOpen(false)}
+                          target={isExternal ? '_blank' : undefined}
+                          rel={isExternal ? 'noopener noreferrer' : undefined}
+                        >
+                          {item.label}
+                        </Link>
+                     );
+                  })}
                 </nav>
               </SheetContent>
             </Sheet>
