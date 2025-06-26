@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -15,7 +14,7 @@ const baseNavItems = [
   { href: '/', label: '홈' },
   { href: '/reading', label: '타로리딩' },
   { href: '/dream-interpretation', label: '꿈해몽' },
-  { href: 'https://your-wordpress-blog.com', label: '블로그' },
+  { href: 'https://blog.innerspell.com', label: '블로그' },
   { href: '/community', label: '커뮤니티' },
 ];
 

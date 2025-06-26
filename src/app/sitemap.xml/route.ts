@@ -1,13 +1,11 @@
 
-import { getAllPosts } from '@/actions/blogActions';
 import { tarotDeck } from '@/lib/tarot-data';
-import type { BlogPost, TarotCard } from '@/types';
+import type { TarotCard } from '@/types';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
 
 function generateSitemapXml(
   siteUrl: string,
-  posts: BlogPost[],
   cards: TarotCard[],
   staticPages: { path: string; priority: number; changefreq: string }[]
 ): string {
@@ -24,20 +22,6 @@ function generateSitemapXml(
     <lastmod>${today}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority.toFixed(1)}</priority>
-  </url>`;
-  });
-
-  // Blog posts
-  posts.forEach(post => {
-    const lastModified = post.updatedAt 
-      ? post.updatedAt.toISOString().split('T')[0] 
-      : (post.createdAt ? post.createdAt.toISOString().split('T')[0] : today);
-    xml += `
-  <url>
-    <loc>${siteUrl}/blog/${post.slug}</loc>
-    <lastmod>${lastModified}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
   </url>`;
   });
 
@@ -63,20 +47,18 @@ export async function GET() {
     });
   }
 
-  const posts = await getAllPosts();
   const cards = tarotDeck;
 
   const staticAppPages = [
     { path: '/', priority: 1.0, changefreq: 'daily' },
     { path: '/reading', priority: 0.8, changefreq: 'weekly' },
     { path: '/encyclopedia', priority: 0.8, changefreq: 'monthly' },
-    { path: '/blog', priority: 0.8, changefreq: 'weekly' },
     { path: '/community', priority: 0.7, changefreq: 'weekly' },
     { path: '/sign-in', priority: 0.3, changefreq: 'yearly' },
     { path: '/sign-up', priority: 0.3, changefreq: 'yearly' },
   ];
 
-  const body = generateSitemapXml(SITE_URL, posts, cards, staticAppPages);
+  const body = generateSitemapXml(SITE_URL, cards, staticAppPages);
 
   return new Response(body, {
     status: 200,

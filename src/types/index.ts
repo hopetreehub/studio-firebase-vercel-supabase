@@ -90,34 +90,6 @@ export const tarotSpreads: SpreadConfiguration[] = [
   { id: 'celtic-cross-wisdom', name: '켈틱 크로스 지혜 (Celtic Cross Wisdom)', description: '가장 전통적이고 심층적인 열 장의 카드 스프레드입니다.', numCards: 10, positions: ['현재 상황', '도전 과제', '과거 기반', '가까운 미래', '목표/의식', '무의식적 영향', '조언', '외부 영향', '희망과 두려움', '최종 결과'] },
 ];
 
-export type BlogPost = {
-  id: string; 
-  title: string;
-  date: string; 
-  excerpt: string;
-  imageSrc: string;
-  dataAiHint: string;
-  slug: string;
-  content: string;
-  author?: string;
-  tags?: string[];
-  createdAt?: Date;
-  updatedAt?: Date; // Added for sitemap and JSON-LD
-};
-
-export const BlogFormDataSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { message: 'Slug must be lowercase, numbers, and hyphens only.' }),
-  excerpt: z.string().min(1, "Excerpt is required"),
-  content: z.string().min(1, "Content is required"),
-  imageSrc: z.string().url().optional().or(z.literal('')),
-  dataAiHint: z.string().optional().or(z.literal('')),
-  author: z.string().optional().or(z.literal('')),
-  tags: z.array(z.string()).optional(),
-});
-export type BlogFormData = z.infer<typeof BlogFormDataSchema>;
-
-
 export type SavedReadingCard = {
   id: string; // TarotCard id
   name: string;
