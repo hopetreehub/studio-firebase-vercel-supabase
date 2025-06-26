@@ -7,7 +7,7 @@ const navItems = [
   { href: '/', label: 'Home' },
   { href: '/reading', label: 'Tarot Reading' },
   { href: '/dream-interpretation', label: 'Dream Interpretation' },
-  { href: '/blog', label: 'Blog' },
+  { href: 'https://blog.innerspell.com', label: 'Blog' },
   { href: '/community', label: 'Community' },
 ];
 
@@ -37,7 +37,15 @@ export function Footer() {
             <h3 className="font-semibold text-foreground mb-3 uppercase tracking-wider text-xs">Menu</h3>
             <nav className="flex flex-col space-y-2">
               {navItems.map((item) => (
-                <Link key={item.label} href={item.href} className="text-muted-foreground hover:text-primary transition-colors">{item.label}</Link>
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                  target={item.href.startsWith('http') ? '_blank' : undefined}
+                  rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                >
+                  {item.label}
+                </Link>
               ))}
             </nav>
           </div>
@@ -57,6 +65,9 @@ export function Footer() {
         </div>
         <div className="border-t border-border/20 pt-6 text-center">
             <p className="text-xs text-muted-foreground/80">© {currentYear} InnerSpell. All rights reserved.</p>
+            <p className="text-xs text-muted-foreground/80 mt-1">
+              문의: <a href="mailto:admin@innerspell.com" className="hover:text-primary">admin@innerspell.com</a>
+            </p>
         </div>
       </div>
     </footer>

@@ -19,7 +19,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const devAdminUser: AppUser = {
   uid: 'dev-admin-uid',
-  email: 'admin@dev.innerspell.com',
+  email: 'admin@innerspell.com',
   displayName: '개발자 관리자',
   photoURL: `https://i.pravatar.cc/150?u=dev-admin`,
   role: 'admin',
