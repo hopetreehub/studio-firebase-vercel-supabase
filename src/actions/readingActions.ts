@@ -1,9 +1,7 @@
-
 'use server';
 
 import { z } from 'zod';
-import { firestore } from '@/lib/firebase/admin';
-import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import type { SavedReading, SavedReadingCard, TarotCard } from '@/types';
 
 const SaveReadingInputSchema = z.object({
@@ -37,22 +35,26 @@ export async function saveUserReading(
     const { userId, question, spreadName, spreadNumCards, drawnCards, interpretationText } = validationResult.data;
 
     const readingData = {
-      userId,
+      user_id: userId,
       question,
-      spreadName,
-      spreadNumCards,
-      drawnCards,
-      interpretationText,
-      createdAt: FieldValue.serverTimestamp(),
+      spread_name: spreadName,
+      spread_num_cards: spreadNumCards,
+      drawn_cards: drawnCards, // JSONB column
+      interpretation_text: interpretationText,
     };
 
-    const docRef = await firestore.collection('userReadings').add(readingData);
-    console.log(`User reading saved successfully with ID: ${docRef.id} for user ${userId}.`);
-    return { success: true, readingId: docRef.id };
+    const { data, error } = await supabaseAdmin.from('user_readings').insert([readingData]).select('id').single();
+    
+    if (error) {
+      throw error;
+    }
 
-  } catch (error) {
-    console.error('Error saving user reading to Firestore:', error);
-    return { success: false, error: error instanceof Error ? error.message : '리딩 저장 중 알 수 없는 오류가 발생했습니다.' };
+    console.log(`User reading saved successfully with ID: ${data.id} for user ${userId}.`);
+    return { success: true, readingId: data.id };
+
+  } catch (error: any) {
+    console.error('Error saving user reading to Supabase:', error.message);
+    return { success: false, error: error.message || '리딩 저장 중 알 수 없는 오류가 발생했습니다.' };
   }
 }
 
@@ -62,39 +64,33 @@ export async function getUserReadings(userId: string): Promise<SavedReading[]> {
     return [];
   }
   try {
-    const snapshot = await firestore
-      .collection('userReadings')
-      .where('userId', '==', userId)
-      .orderBy('createdAt', 'desc')
-      .limit(50) // Limit to last 50 readings for performance
-      .get();
+    const { data, error } = await supabaseAdmin
+      .from('user_readings')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(50); // Limit to last 50 readings for performance
 
-    if (snapshot.empty) {
+    if (error) {
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
       return [];
     }
 
-    return snapshot.docs.map(doc => {
-      const data = doc.data();
-      const now = new Date();
-
-      // Robustly handle createdAt timestamp
-      const createdAt = (data?.createdAt && typeof data.createdAt.toDate === 'function')
-        ? data.createdAt.toDate()
-        : now;
-
-      return {
-        id: doc.id,
-        userId: data?.userId || '',
-        question: data?.question || 'No question provided',
-        spreadName: data?.spreadName || 'Unknown Spread',
-        spreadNumCards: data?.spreadNumCards || 0,
-        drawnCards: (data?.drawnCards as SavedReadingCard[]) || [],
-        interpretationText: data?.interpretationText || 'No interpretation text.',
-        createdAt: createdAt,
-      } as SavedReading;
-    });
-  } catch (error) {
-    console.error(`Error fetching readings for user ${userId}:`, error);
+    return data.map(row => ({
+      id: row.id,
+      userId: row.user_id || '',
+      question: row.question || 'No question provided',
+      spreadName: row.spread_name || 'Unknown Spread',
+      spreadNumCards: row.spread_num_cards || 0,
+      drawnCards: (row.drawn_cards as SavedReadingCard[]) || [],
+      interpretationText: row.interpretation_text || 'No interpretation text.',
+      createdAt: new Date(row.created_at),
+    })) as SavedReading[];
+  } catch (error: any) {
+    console.error(`Error fetching readings for user ${userId}:`, error.message);
     return []; // Return empty array on error to prevent crashing UI
   }
 }
@@ -104,22 +100,33 @@ export async function deleteUserReading(userId: string, readingId: string): Prom
     return { success: false, error: '사용자 ID 또는 리딩 ID가 제공되지 않았습니다.' };
   }
   try {
-    const readingRef = firestore.collection('userReadings').doc(readingId);
-    const doc = await readingRef.get();
+    const { data: reading, error: fetchError } = await supabaseAdmin
+      .from('user_readings')
+      .select('user_id')
+      .eq('id', readingId)
+      .single();
 
-    if (!doc.exists) {
+    if (fetchError || !reading) {
       return { success: false, error: '삭제할 리딩을 찾을 수 없습니다.' };
     }
 
-    if (doc.data()?.userId !== userId) {
+    if (reading.user_id !== userId) {
       return { success: false, error: '이 리딩을 삭제할 권한이 없습니다.' };
     }
 
-    await readingRef.delete();
+    const { error: deleteError } = await supabaseAdmin
+      .from('user_readings')
+      .delete()
+      .eq('id', readingId);
+
+    if (deleteError) {
+      throw deleteError;
+    }
+
     console.log(`User reading ${readingId} deleted successfully for user ${userId}.`);
     return { success: true };
-  } catch (error) {
-    console.error('Error deleting user reading from Firestore:', error);
-    return { success: false, error: error instanceof Error ? error.message : '리딩 삭제 중 알 수 없는 오류가 발생했습니다.' };
+  } catch (error: any) {
+    console.error('Error deleting user reading from Supabase:', error.message);
+    return { success: false, error: error.message || '리딩 삭제 중 알 수 없는 오류가 발생했습니다.' };
   }
 }

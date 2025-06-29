@@ -1,61 +1,32 @@
-
 'use server';
 
 import { z } from 'zod';
-import { firestore } from '@/lib/firebase/admin';
-import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import type { CommunityPost, CommunityPostCategory } from '@/types';
 import { CommunityPostFormSchema, CommunityPostFormData, ReadingSharePostFormData, ReadingSharePostFormSchema } from '@/types';
 
-// Helper to safely map Firestore doc to CommunityPost type
-function mapDocToCommunityPost(doc: FirebaseFirestore.DocumentSnapshot): CommunityPost {
-  const data = doc.data();
+// Helper to safely map Supabase row to CommunityPost type
+function mapRowToCommunityPost(row: any): CommunityPost {
   const now = new Date();
 
-  // Fallback for documents without data to prevent crashes
-  if (!data) {
-    return {
-        id: doc.id,
-        authorId: 'system',
-        authorName: 'Unknown Author',
-        title: 'Invalid Post Data',
-        content: 'This post could not be loaded due to missing data.',
-        viewCount: 0,
-        commentCount: 0,
-        category: 'free-discussion',
-        createdAt: now,
-        updatedAt: now,
-    };
-  }
-
-  // Robustly handle createdAt timestamp
-  const createdAt = (data.createdAt && typeof data.createdAt.toDate === 'function')
-    ? data.createdAt.toDate()
-    : now;
-
-  // Robustly handle updatedAt timestamp
-  const updatedAt = (data.updatedAt && typeof data.updatedAt.toDate === 'function')
-    ? data.updatedAt.toDate()
-    : createdAt; // Fallback to createdAt if updatedAt is invalid
-
   return {
-    id: doc.id,
-    authorId: data.authorId || 'system-user',
-    authorName: data.authorName || '익명 사용자',
-    authorPhotoURL: data.authorPhotoURL || '',
-    title: data.title || '제목 없음',
-    content: data.content || '',
-    viewCount: data.viewCount || 0,
-    commentCount: data.commentCount || 0,
-    category: data.category || 'free-discussion',
-    readingQuestion: data.readingQuestion || '',
-    cardsInfo: data.cardsInfo || '',
-    createdAt: createdAt,
-    updatedAt: updatedAt,
+    id: row.id,
+    authorId: row.author_id || 'system-user',
+    authorName: row.author_name || '익명 사용자',
+    authorPhotoURL: row.author_photo_url || '',
+    title: row.title || '제목 없음',
+    content: row.content || '',
+    viewCount: row.view_count || 0,
+    commentCount: row.comment_count || 0,
+    category: row.category || 'free-discussion',
+    readingQuestion: row.reading_question || '',
+    cardsInfo: row.cards_info || '',
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
   };
 }
 
-// Fallback data for development/testing
+// Fallback data for development/testing (Supabase will be primary)
 const fallbackCommunityPosts: CommunityPost[] = [
   {
     id: 'fallback-1',
@@ -124,22 +95,27 @@ const fallbackCommunityPosts: CommunityPost[] = [
 // Get community posts for a specific category
 export async function getCommunityPosts(category: CommunityPostCategory): Promise<CommunityPost[]> {
   if (process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
-    console.log(`DEV MODE: Bypassing Firestore for getCommunityPosts('${category}'), returning fallback posts.`);
+    console.log(`DEV MODE: Bypassing Supabase for getCommunityPosts('${category}'), returning fallback posts.`);
     return fallbackCommunityPosts.filter(p => p.category === category);
   }
 
   try {
-    const snapshot = await firestore.collection('communityPosts')
-      .where('category', '==', category)
-      .orderBy('createdAt', 'desc')
-      .get();
+    const { data, error } = await supabaseAdmin
+      .from('community_posts')
+      .select('*')
+      .eq('category', category)
+      .order('created_at', { ascending: false });
       
-    if (snapshot.empty) {
+    if (error) {
+      throw error;
+    }
+    
+    if (!data || data.length === 0) {
       return fallbackCommunityPosts.filter(p => p.category === category);
     }
-    return snapshot.docs.map(mapDocToCommunityPost);
-  } catch (error) {
-    console.error(`Error fetching ${category} posts from Firestore, returning fallback posts:`, error);
+    return data.map(mapRowToCommunityPost);
+  } catch (error: any) {
+    console.error(`Error fetching ${category} posts from Supabase, returning fallback posts:`, error.message);
     return fallbackCommunityPosts.filter(p => p.category === category);
   }
 }
@@ -147,30 +123,37 @@ export async function getCommunityPosts(category: CommunityPostCategory): Promis
 // Get a single community post by ID
 export async function getCommunityPostById(postId: string): Promise<CommunityPost | null> {
   if (process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
-    console.log(`DEV MODE: Bypassing Firestore for getCommunityPostById('${postId}'), returning fallback post.`);
+    console.log(`DEV MODE: Bypassing Supabase for getCommunityPostById('${postId}'), returning fallback post.`);
     const fallbackPost = fallbackCommunityPosts.find(p => p.id === postId);
     return fallbackPost || null;
   }
 
   try {
-    const docRef = firestore.collection('communityPosts').doc(postId);
-    const doc = await docRef.get();
+    const { data: post, error: fetchError } = await supabaseAdmin
+      .from('community_posts')
+      .select('*')
+      .eq('id', postId)
+      .single();
     
-    if (!doc.exists) {
+    if (fetchError || !post) {
       const fallbackPost = fallbackCommunityPosts.find(p => p.id === postId);
       return fallbackPost || null;
     }
     
-    // Increment view count without affecting the data returned to this request.
-    // This is a "fire-and-forget" operation for performance.
-    docRef.update({ viewCount: FieldValue.increment(1) }).catch(err => {
-        console.error(`Failed to increment view count for post ${postId}:`, err);
-    });
-    
-    return mapDocToCommunityPost(doc);
+    // Increment view count
+    const { error: updateError } = await supabaseAdmin
+      .from('community_posts')
+      .update({ view_count: (post.view_count || 0) + 1 })
+      .eq('id', postId);
 
-  } catch (error) {
-    console.error(`Error fetching post ${postId}:`, error);
+    if (updateError) {
+      console.warn(`Failed to increment view count for post ${postId}:`, updateError.message);
+    }
+    
+    return mapRowToCommunityPost(post);
+
+  } catch (error: any) {
+    console.error(`Error fetching post ${postId}:`, error.message);
     const fallbackPost = fallbackCommunityPosts.find(p => p.id === postId);
     return fallbackPost || null;
   }
@@ -195,24 +178,27 @@ export async function createCommunityPost(
     const { title, content } = validationResult.data;
 
     const newPostData = {
-      authorId: author.uid,
-      authorName: author.displayName || '익명 사용자',
-      authorPhotoURL: author.photoURL || '',
+      author_id: author.uid,
+      author_name: author.displayName || '익명 사용자',
+      author_photo_url: author.photoURL || '',
       title,
       content,
       category: category,
-      viewCount: 0,
-      commentCount: 0,
-      createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
+      view_count: 0,
+      comment_count: 0,
     };
 
-    const docRef = await firestore.collection('communityPosts').add(newPostData);
-    console.log(`Created new community post with ID: ${docRef.id} in category '${category}'`);
-    return { success: true, postId: docRef.id };
-  } catch (error) {
-    console.error('Error creating community post:', error);
-    return { success: false, error: error instanceof Error ? error.message : '게시물 생성 중 알 수 없는 오류가 발생했습니다.' };
+    const { data, error } = await supabaseAdmin.from('community_posts').insert([newPostData]).select('id').single();
+    
+    if (error) {
+      throw error;
+    }
+
+    console.log(`Created new community post with ID: ${data.id} in category '${category}'`);
+    return { success: true, postId: data.id };
+  } catch (error: any) {
+    console.error('Error creating community post:', error.message);
+    return { success: false, error: error.message || '게시물 생성 중 알 수 없는 오류가 발생했습니다.' };
   }
 }
 
@@ -233,26 +219,29 @@ export async function createReadingSharePost(
     const { title, readingQuestion, cardsInfo, content } = validationResult.data;
 
     const newPostData = {
-      authorId: author.uid,
-      authorName: author.displayName || '익명 사용자',
-      authorPhotoURL: author.photoURL || '',
+      author_id: author.uid,
+      author_name: author.displayName || '익명 사용자',
+      author_photo_url: author.photoURL || '',
       title,
-      readingQuestion,
-      cardsInfo,
+      reading_question: readingQuestion,
+      cards_info: cardsInfo,
       content,
       category: 'reading-share' as CommunityPostCategory,
-      viewCount: 0,
-      commentCount: 0,
-      createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
+      view_count: 0,
+      comment_count: 0,
     };
 
-    const docRef = await firestore.collection('communityPosts').add(newPostData);
-    console.log(`Created new reading-share post with ID: ${docRef.id}`);
-    return { success: true, postId: docRef.id };
-  } catch (error) {
-    console.error('Error creating reading share post:', error);
-    return { success: false, error: error instanceof Error ? error.message : '리딩 공유 게시물 생성 중 알 수 없는 오류가 발생했습니다.' };
+    const { data, error } = await supabaseAdmin.from('community_posts').insert([newPostData]).select('id').single();
+    
+    if (error) {
+      throw error;
+    }
+
+    console.log(`Created new reading-share post with ID: ${data.id}`);
+    return { success: true, postId: data.id };
+  } catch (error: any) {
+    console.error('Error creating reading share post:', error.message);
+    return { success: false, error: error.message || '리딩 공유 게시물 생성 중 알 수 없는 오류가 발생했습니다.' };
   }
 }
 
@@ -262,38 +251,45 @@ export async function deleteCommunityPost(
   userId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const postRef = firestore.collection('communityPosts').doc(postId);
-    const doc = await postRef.get();
+    const { data: post, error: fetchError } = await supabaseAdmin
+      .from('community_posts')
+      .select('author_id')
+      .eq('id', postId)
+      .single();
 
-    if (!doc.exists) {
+    if (fetchError || !post) {
       return { success: false, error: '삭제할 게시물을 찾을 수 없습니다.' };
     }
 
-    const postData = doc.data();
-    // In a real app, you might also allow admins to delete posts
-    if (postData?.authorId !== userId) {
+    if (post.author_id !== userId) {
       return { success: false, error: '이 게시물을 삭제할 권한이 없습니다.' };
     }
 
-    // Delete comments in a batch
-    const commentsRef = postRef.collection('comments');
-    const commentsSnapshot = await commentsRef.get();
-    
-    const batch = firestore.batch();
-    
-    commentsSnapshot.docs.forEach(commentDoc => {
-      batch.delete(commentDoc.ref);
-    });
+    // Delete comments first
+    const { error: deleteCommentsError } = await supabaseAdmin
+      .from('community_comments')
+      .delete()
+      .eq('post_id', postId);
+
+    if (deleteCommentsError) {
+      console.warn(`Failed to delete comments for post ${postId}:`, deleteCommentsError.message);
+      // Continue to delete the post even if comments deletion fails
+    }
 
     // Delete the post itself
-    batch.delete(postRef);
+    const { error: deletePostError } = await supabaseAdmin
+      .from('community_posts')
+      .delete()
+      .eq('id', postId);
 
-    await batch.commit();
+    if (deletePostError) {
+      throw deletePostError;
+    }
     
-    console.log(`Successfully deleted community post ${postId} and its ${commentsSnapshot.size} comments.`);
+    console.log(`Successfully deleted community post ${postId} and its comments.`);
     return { success: true };
-  } catch (error) {
-    console.error(`Error deleting post ${postId}:`, error);
-    return { success: false, error: error instanceof Error ? error.message : '게시물 삭제 중 오류가 발생했습니다.' };
+  } catch (error: any) {
+    console.error(`Error deleting post ${postId}:`, error.message);
+    return { success: false, error: error.message || '게시물 삭제 중 오류가 발생했습니다.' };
   }
 }

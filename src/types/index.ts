@@ -144,6 +144,13 @@ export const ReadingSharePostFormSchema = z.object({
 });
 export type ReadingSharePostFormData = z.infer<typeof ReadingSharePostFormSchema>;
 
+// Schema for Blog Form
+export const BlogFormDataSchema = z.object({
+  title: z.string().min(5, "제목은 5자 이상이어야 합니다.").max(150, "제목은 150자를 넘을 수 없습니다."),
+  content: z.string().min(10, "내용은 10자 이상이어야 합니다."),
+});
+export type BlogFormData = z.infer<typeof BlogFormDataSchema>;
+
 
 // --- API Specific Schemas ---
 

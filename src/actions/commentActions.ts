@@ -1,47 +1,40 @@
-
 'use server';
 
 import { z } from 'zod';
-import { firestore } from '@/lib/firebase/admin';
-import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import type { CommunityComment } from '@/types';
 import { CommunityCommentFormSchema, CommunityCommentFormData } from '@/types';
 
-// Helper to map Firestore doc to CommunityComment type
-function mapDocToCommunityComment(doc: FirebaseFirestore.DocumentSnapshot): CommunityComment {
-  const data = doc.data()!; // Assume data exists
-  const now = new Date();
-  const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : now;
-  const updatedAt = data.updatedAt?.toDate ? data.updatedAt.toDate() : createdAt;
-
+// Helper to map Supabase row to CommunityComment type
+function mapRowToCommunityComment(row: any): CommunityComment {
   return {
-    id: doc.id,
-    postId: data.postId,
-    authorId: data.authorId,
-    authorName: data.authorName || '익명 사용자',
-    authorPhotoURL: data.authorPhotoURL || '',
-    content: data.content,
-    createdAt,
-    updatedAt,
+    id: row.id,
+    postId: row.post_id,
+    authorId: row.author_id,
+    authorName: row.author_name || '익명 사용자',
+    authorPhotoURL: row.author_photo_url || '',
+    content: row.content,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
   };
 }
 
 // Get all comments for a specific post
 export async function getCommentsForPost(postId: string): Promise<CommunityComment[]> {
   try {
-    const snapshot = await firestore
-      .collection('communityPosts')
-      .doc(postId)
-      .collection('comments')
-      .orderBy('createdAt', 'asc')
-      .get();
-    
-    if (snapshot.empty) {
-      return [];
+    const { data, error } = await supabaseAdmin
+      .from('community_comments')
+      .select('*')
+      .eq('post_id', postId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      throw error;
     }
-    return snapshot.docs.map(mapDocToCommunityComment);
-  } catch (error) {
-    console.error(`Error fetching comments for post ${postId}:`, error);
+    
+    return data.map(mapRowToCommunityComment);
+  } catch (error: any) {
+    console.error(`Error fetching comments for post ${postId}:`, error.message);
     return [];
   }
 }
@@ -62,33 +55,52 @@ export async function addComment(
     }
 
     const { content } = validationResult.data;
-    const postRef = firestore.collection('communityPosts').doc(postId);
-    const commentRef = postRef.collection('comments').doc();
 
     const newCommentData = {
-      postId,
-      authorId: author.uid,
-      authorName: author.displayName || '익명 사용자',
-      authorPhotoURL: author.photoURL || '',
+      post_id: postId,
+      author_id: author.uid,
+      author_name: author.displayName || '익명 사용자',
+      author_photo_url: author.photoURL || '',
       content,
-      createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
     };
 
-    // Use a transaction to add comment and increment count atomically
-    await firestore.runTransaction(async (transaction) => {
-      const postDoc = await transaction.get(postRef);
-      if (!postDoc.exists) {
-        throw new Error("게시물을 찾을 수 없습니다.");
-      }
-      transaction.set(commentRef, newCommentData);
-      transaction.update(postRef, { commentCount: FieldValue.increment(1) });
-    });
+    const { data: commentData, error: commentError } = await supabaseAdmin
+      .from('community_comments')
+      .insert([newCommentData])
+      .select('id')
+      .single();
 
-    return { success: true, commentId: commentRef.id };
-  } catch (error) {
-    console.error(`Error adding comment to post ${postId}:`, error);
-    return { success: false, error: error instanceof Error ? error.message : '댓글 작성 중 오류가 발생했습니다.' };
+    if (commentError) {
+      throw commentError;
+    }
+
+    // Increment comment count in community_posts table
+    // Supabase does not have direct FieldValue.increment. Use a RLS-protected function or RPC.
+    // For simplicity, we'll use a direct update here, assuming RLS handles permissions.
+    // A more robust solution would involve a Supabase function (RPC) for atomic increments.
+    const { data: postData, error: fetchPostError } = await supabaseAdmin
+      .from('community_posts')
+      .select('comment_count')
+      .eq('id', postId)
+      .single();
+
+    if (fetchPostError || !postData) {
+      console.warn(`Failed to fetch post ${postId} for comment count increment:`, fetchPostError?.message);
+    } else {
+      const { error: updateError } = await supabaseAdmin
+        .from('community_posts')
+        .update({ comment_count: (postData.comment_count || 0) + 1 })
+        .eq('id', postId);
+
+      if (updateError) {
+        console.warn(`Failed to increment comment count for post ${postId}:`, updateError.message);
+      }
+    }
+
+    return { success: true, commentId: commentData.id };
+  } catch (error: any) {
+    console.error(`Error adding comment to post ${postId}:`, error.message);
+    return { success: false, error: error.message || '댓글 작성 중 오류가 발생했습니다.' };
   }
 }
 
@@ -99,28 +111,53 @@ export async function deleteComment(
   userId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const postRef = firestore.collection('communityPosts').doc(postId);
-    const commentRef = postRef.collection('comments').doc(commentId);
+    const { data: comment, error: fetchError } = await supabaseAdmin
+      .from('community_comments')
+      .select('author_id')
+      .eq('id', commentId)
+      .single();
 
-    await firestore.runTransaction(async (transaction) => {
-      const commentDoc = await transaction.get(commentRef);
-      if (!commentDoc.exists) {
-        throw new Error("삭제할 댓글을 찾을 수 없습니다.");
+    if (fetchError || !comment) {
+      throw new Error("삭제할 댓글을 찾을 수 없습니다.");
+    }
+
+    if (comment.author_id !== userId) {
+      throw new Error("이 댓글을 삭제할 권한이 없습니다.");
+    }
+
+    const { error: deleteError } = await supabaseAdmin
+      .from('community_comments')
+      .delete()
+      .eq('id', commentId);
+
+    if (deleteError) {
+      throw deleteError;
+    }
+
+    // Decrement comment count in community_posts table
+    const { data: postData, error: fetchPostError } = await supabaseAdmin
+      .from('community_posts')
+      .select('comment_count')
+      .eq('id', postId)
+      .single();
+
+    if (fetchPostError || !postData) {
+      console.warn(`Failed to fetch post ${postId} for comment count decrement:`, fetchPostError?.message);
+    } else {
+      const { error: updateError } = await supabaseAdmin
+        .from('community_posts')
+        .update({ comment_count: Math.max(0, (postData.comment_count || 0) - 1) })
+        .eq('id', postId);
+
+      if (updateError) {
+        console.warn(`Failed to decrement comment count for post ${postId}:`, updateError.message);
       }
-      const commentData = commentDoc.data();
-      // Allow post author or admin to delete comments in the future
-      if (commentData?.authorId !== userId) {
-        throw new Error("이 댓글을 삭제할 권한이 없습니다.");
-      }
-      
-      transaction.delete(commentRef);
-      transaction.update(postRef, { commentCount: FieldValue.increment(-1) });
-    });
+    }
 
     return { success: true };
-  } catch (error) {
-    console.error(`Error deleting comment ${commentId}:`, error);
-    return { success: false, error: error instanceof Error ? error.message : '댓글 삭제 중 오류가 발생했습니다.' };
+  } catch (error: any) {
+    console.error(`Error deleting comment ${commentId}:`, error.message);
+    return { success: false, error: error.message || '댓글 삭제 중 오류가 발생했습니다.' };
   }
 }
 
@@ -133,28 +170,38 @@ export async function updateComment(
 ): Promise<{ success: boolean; error?: string | object }> {
   try {
     const validationResult = CommunityCommentFormSchema.safeParse({ content });
-     if (!validationResult.success) {
+    if (!validationResult.success) {
       return { success: false, error: validationResult.error.flatten().fieldErrors };
     }
 
-    const commentRef = firestore.collection('communityPosts').doc(postId).collection('comments').doc(commentId);
-    
-    const doc = await commentRef.get();
-    if (!doc.exists) {
-       return { success: false, error: '수정할 댓글을 찾을 수 없습니다.' };
+    const { data: comment, error: fetchError } = await supabaseAdmin
+      .from('community_comments')
+      .select('author_id')
+      .eq('id', commentId)
+      .single();
+
+    if (fetchError || !comment) {
+      return { success: false, error: '수정할 댓글을 찾을 수 없습니다.' };
     }
-    if (doc.data()?.authorId !== userId) {
+    if (comment.author_id !== userId) {
       return { success: false, error: '이 댓글을 수정할 권한이 없습니다.' };
     }
-    
-    await commentRef.update({
-      content: validationResult.data.content,
-      updatedAt: FieldValue.serverTimestamp(),
-    });
+
+    const { error: updateError } = await supabaseAdmin
+      .from('community_comments')
+      .update({
+        content: validationResult.data.content,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', commentId);
+
+    if (updateError) {
+      throw updateError;
+    }
 
     return { success: true };
-  } catch (error) {
-    console.error(`Error updating comment ${commentId}:`, error);
-    return { success: false, error: error instanceof Error ? error.message : '댓글 수정 중 오류가 발생했습니다.' };
+  } catch (error: any) {
+    console.error(`Error updating comment ${commentId}:`, error.message);
+    return { success: false, error: error.message || '댓글 수정 중 오류가 발생했습니다.' };
   }
 }

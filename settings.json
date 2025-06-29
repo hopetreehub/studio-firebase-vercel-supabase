@@ -1,0 +1,119 @@
+{
+  "theme": "Default",
+  "selectedAuthType": "oauth-personal",
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:/Users/PC2412",
+        "C:/Users/PC2412/Desktop",
+        "C:/Users/PC2412/Documents",
+        "C:/mcp-shrimp-task-manager",
+        "d:/",
+        "d:/studio-firebase"
+      ]
+    },
+    "terminal": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@dillip285/mcp-terminal"
+      ],
+      "config": {
+        "allowedCommands": [
+          "npm", "npx", "node", "git", "python", "pip", "pipx", "pipenv", "poetry",
+          "pytest", "tox", "flake8", "pylint", "black", "isort", "mypy",
+          "coverage", "cProfile", "pyinstrument", "ab", "wrk", "siege",
+          "locust", "k6", "hey", "pytest-benchmark", "curl", "http", "ls", "dir", "mysql",
+          "cd", "pwd", "echo", "cat", "mkdir", "rmdir", "rm", "cp", "mv", "find", "grep",
+          "php", "composer", "docker", "docker-compose", "xampp", "sqlite3",
+          "wget", "ping", "telnet", "nslookup", "netstat"
+        ],
+        "defaultTimeout": 30000,
+        "cwd": "C:\\Users\\PC2412"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "your_github_token_here"
+      }
+    },
+    "web-automation": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-playwright"
+      ]
+    },
+    "web-fetch": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-fetch"
+      ]
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-brave-search"
+      ]
+    },
+    "memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    },
+    "shrimp-task-manager": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-shrimp-task-manager"
+      ]
+    },
+    "analysis": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-repl"
+      ]
+    },
+    "google-drive": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-gdrive"
+      ]
+    },
+    "gmail": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-gmail"
+      ]
+    },
+    "google-calendar": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-gcal"
+      ]
+    }
+  }
+}
