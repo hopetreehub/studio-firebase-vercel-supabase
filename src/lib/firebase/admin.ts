@@ -7,15 +7,41 @@ const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
   ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
   : undefined;
 
-const app = getApps().length === 0 
-  ? initializeApp({
-      credential: serviceAccount ? cert(serviceAccount) : undefined,
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    })
-  : getApps()[0];
+let app: any;
+let adminAuth: any;
+let adminDb: any;
+let firestore: any;
 
-export const adminAuth = getAuth(app);
-export const adminDb = getFirestore(app);
-export const firestore = adminDb; // Alias for compatibility
+if (serviceAccount && process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
+  app = getApps().length === 0 
+    ? initializeApp({
+        credential: cert(serviceAccount),
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      })
+    : getApps()[0];
 
+  adminAuth = getAuth(app);
+  adminDb = getFirestore(app);
+  firestore = adminDb; // Alias for compatibility
+} else {
+  // Mock Firebase Admin for build time
+  app = null;
+  adminAuth = {
+    getUser: () => Promise.resolve({ uid: 'mock', email: 'mock@example.com' }),
+    listUsers: () => Promise.resolve({ users: [] }),
+    setCustomUserClaims: () => Promise.resolve(),
+  };
+  adminDb = {
+    collection: () => ({
+      doc: () => ({
+        get: () => Promise.resolve({ exists: false, data: () => null }),
+        set: () => Promise.resolve(),
+        update: () => Promise.resolve(),
+      }),
+    }),
+  };
+  firestore = adminDb;
+}
+
+export { adminAuth, adminDb, firestore };
 export default app;
