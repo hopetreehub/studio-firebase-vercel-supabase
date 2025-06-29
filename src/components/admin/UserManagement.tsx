@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, ShieldQuestion, AlertCircle, Loader2 } from "lucide-react";
-import { listFirebaseUsers, changeUserRole, type AppUser } from '@/actions/userActions'; // Import changeUserRole
+import { listSupabaseUsers, changeUserRole, type AppUser } from '@/actions/userActions'; // Import changeUserRole
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -37,7 +37,7 @@ export function UserManagement() {
   async function fetchUsers() {
     setLoading(true);
     setError(null);
-    const result = await listFirebaseUsers(100); 
+    const result = await listSupabaseUsers(100); 
     if (result.error) {
       setError(result.error);
       toast({
